@@ -1,11 +1,13 @@
+import { slides } from '@/assets/login/data';
+import { FontAwesome } from '@react-native-vector-icons/fontawesome';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useState } from 'react';
-import { Alert, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Button, Input, LoadingSpinner } from '../components';
+import { Alert, Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Button, Carousel, Input, LoadingSpinner, PhoneInput } from '../components';
 import { useAuth } from '../context/AuthContext';
-import { colors, fontSize, fontWeight, spacing } from '../theme';
-
+import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
 const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen() {
@@ -86,80 +88,121 @@ export default function LoginScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Background Video */}
-            <VideoView 
-                player={player} 
-                style={styles.absoluteFillObject} 
-                contentFit="cover" 
-            />
+            {step === 'phone' ? (
+                <View style={styles.phoneNumberPageContainer}>
+                    <VideoView
+                        player={player}
+                        style={styles.absoluteFillObject}
+                        contentFit="cover"
+                    />
+                    <LinearGradient
+                        colors={[
+                            'transparent',
+                            'transparent',
+                            'rgba(80,54,41,0.5)',
+                            'rgba(80,54,41,0.9)',
+                        ]}
+                        locations={[0, 0.5, 0.75, 1]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 0, y: 1 }}
+                        style={styles.overlay}
+                    />
 
-            {/* Overlay for better readability */}
-            <View style={styles.overlay} />
+                    <Carousel
+                        data={slides}
+                        height={180}
+                        autoScroll
+                        autoScrollInterval={5000}
+                        renderItem={({ item }) => (
+                            <View
+                                style={{
+                                    flex: 1,
+                                    justifyContent: 'center',
+                                    paddingHorizontal: 32,
+                                }}
+                            >
+                                <Text
+                                    style={{
+                                        color: '#d0cdcd',
+                                        textAlign: 'center',
+                                        fontSize: 28,
+                                        lineHeight: 36,
+                                        fontWeight: 400,
+                                    }}
+                                >
+                                    {item.title}
+                                </Text>
+                            </View>
+                        )}
+                    />
 
-            {/* Content */}
-            <View style={styles.content}>
-                {step === 'phone' ? (
-                    <>
-                        <Text style={styles.title}>Welcome</Text>
-                        <Text style={styles.subtitle}>Enter your mobile number to continue</Text>
-
-                        <View style={styles.inputContainer}>
-                            <Input
-                                placeholder="Enter phone number"
-                                keyboardType="phone-pad"
-                                value={phoneNumber}
-                                onChangeText={setPhoneNumber}
-                                containerStyle={styles.inputWrapper}
-                            />
-                        </View>
+                    <View style={styles.phoneNumberSectionContainer}>
+                        <PhoneInput
+                            placeholder="Enter Phone Number"
+                            keyboardType="phone-pad"
+                            value={phoneNumber}
+                            onChangeText={setPhoneNumber}
+                            countryCode='+91'
+                        // containerStyle={styles.inputWrapper}
+                        />
 
                         <Button
-                            title="Send OTP"
+                            title="Send verification code"
                             onPress={handleSendOtp}
                             size="lg"
                             style={styles.button}
+                            icon={
+                                <FontAwesome name="arrow-right" size={15} color={colors.primaryForeground} />
+                            }
                         />
-                    </>
-                ) : (
-                    <>
-                        <Text style={styles.title}>Verify OTP</Text>
-                        <Text style={styles.subtitle}>
-                            We sent a code to{'\n'}+91 {phoneNumber}
-                        </Text>
+                    </View>
+                </View>
+            ) : (
+                <>
+                    <Text style={styles.title}>Verify OTP</Text>
+                    <Text style={styles.subtitle}>
+                        We sent a code to{'\n'}+91 {phoneNumber}
+                    </Text>
 
-                        <View style={styles.inputContainer}>
-                            <Input
-                                placeholder="Enter 6-digit OTP"
-                                keyboardType="number-pad"
-                                maxLength={6}
-                                value={otp}
-                                onChangeText={setOtp}
-                                style={styles.otpInput}
-                                containerStyle={styles.inputWrapper}
-                            />
-                        </View>
+                    <View style={styles.inputContainer}>
+                        <Input
+                            placeholder="Enter 6-digit OTP"
+                            keyboardType="number-pad"
+                            maxLength={6}
+                            value={otp}
+                            onChangeText={setOtp}
+                            style={styles.otpInput}
+                            containerStyle={styles.inputWrapper}
+                        />
+                    </View>
 
+                    <Button
+                        title="Verify & Continue"
+                        onPress={handleVerifyOtp}
+                        size="lg"
+                        loading={isLoading}
+                        style={styles.button}
+                    />
+
+                    <View style={styles.resendContainer}>
+                        <Text style={styles.resendText}>Didn't receive the code? </Text>
                         <Button
-                            title="Verify & Continue"
-                            onPress={handleVerifyOtp}
-                            size="lg"
-                            loading={isLoading}
-                            style={styles.button}
+                            title="Resend OTP"
+                            onPress={handleResendOtp}
+                            variant="ghost"
+                            disabled={isLoading}
+                            textStyle={styles.resendLink}
                         />
+                    </View>
 
-                        <View style={styles.resendContainer}>
-                            <Text style={styles.resendText}>Didn't receive the code? </Text>
-                            <TouchableOpacity onPress={handleResendOtp} disabled={isLoading}>
-                                <Text style={styles.resendLink}>Resend OTP</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        <TouchableOpacity style={styles.changeNumberBtn} onPress={handleChangePhone}>
-                            <Text style={styles.changeNumberText}>Change phone number</Text>
-                        </TouchableOpacity>
-                    </>
-                )}
-            </View>
+                    <Button
+                        title="Change phone number"
+                        onPress={handleChangePhone}
+                        variant="ghost"
+                        style={styles.changeNumberBtn}
+                    />
+                </>
+            )}
         </View>
     );
 }
@@ -168,6 +211,18 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
+    },
+    phoneNumberPageContainer: {
+        flexDirection: 'column',
+        gap: height * 0.05,
+        justifyContent: 'flex-end',
+        height: '100%',
+        paddingBottom: height * 0.15
+    },
+    phoneNumberSectionContainer: {
+        flexDirection: 'column',
+        gap: height * 0.02,
+        paddingHorizontal: width * 0.05
     },
     absoluteFillObject: {
         position: 'absolute',
@@ -178,18 +233,11 @@ const styles = StyleSheet.create({
     },
     overlay: {
         position: 'absolute',
-        width: width,
-        height: height,
         top: 0,
         left: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    },
-    overlayContent: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        // Optional: Adds a dark tint over the video so your white text/inputs are easier to read
-        backgroundColor: 'rgba(0, 0, 0, 0.4)', 
+        right: 0,
+        bottom: 0,
+        backgroundColor: '#50362900'
     },
     content: {
         flex: 1,
@@ -223,7 +271,7 @@ const styles = StyleSheet.create({
         width: '100%',
         maxWidth: 400,
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: 12,
+        borderRadius: borderRadius.lg,
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.sm,
         marginBottom: spacing.md,
@@ -240,11 +288,11 @@ const styles = StyleSheet.create({
         width: '100%',
         maxWidth: 400,
         marginTop: spacing.sm,
-        backgroundColor: colors.primary,
     },
     resendContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
+        alignItems: 'center',
         marginTop: spacing.xl,
     },
     resendText: {
@@ -264,13 +312,5 @@ const styles = StyleSheet.create({
     },
     changeNumberBtn: {
         marginTop: spacing.lg,
-        alignItems: 'center',
-    },
-    changeNumberText: {
-        color: colors.textLight,
-        fontSize: fontSize.md,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
     },
 });

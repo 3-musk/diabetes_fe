@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Button, LoadingSpinner } from '../components';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button, LoadingSpinner, PlanCard } from '../components';
 import { useAuth } from '../context/AuthContext';
 import { createSubscriptionCart, getPlans, Plan, SubscriptionCart } from '../services/subscriptionService';
-import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
+import { colors, fontSize, fontWeight, spacing } from '../theme';
 
 export default function SubscriptionScreen() {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -81,54 +81,16 @@ export default function SubscriptionScreen() {
 
         <View style={styles.plansContainer}>
           {plans.map((plan) => (
-            <TouchableOpacity
+            <PlanCard
               key={plan.id}
-              style={[
-                styles.planCard,
-                selectedPlan?.id === plan.id && styles.planCardSelected,
-                plan.isPopular && styles.planCardPopular,
-              ]}
+              name={plan.name}
+              price={plan.price}
+              duration={plan.duration}
+              features={plan.features}
+              isPopular={plan.isPopular}
+              isSelected={selectedPlan?.id === plan.id}
               onPress={() => handleSelectPlan(plan)}
-              activeOpacity={0.8}
-            >
-              {plan.isPopular && (
-                <View style={styles.popularBadge}>
-                  <Text style={styles.popularBadgeText}>POPULAR</Text>
-                </View>
-              )}
-
-              <View style={styles.planHeader}>
-                <Text style={[styles.planName, selectedPlan?.id === plan.id && styles.planNameSelected]}>
-                  {plan.name}
-                </Text>
-                <View style={styles.priceContainer}>
-                  <Text style={[styles.planPrice, selectedPlan?.id === plan.id && styles.planPriceSelected]}>
-                    {formatPrice(plan.price)}
-                  </Text>
-                  <Text style={styles.planDuration}>{plan.duration}</Text>
-                </View>
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.featuresContainer}>
-                {plan.features.map((feature, index) => (
-                  <View key={index} style={styles.featureRow}>
-                    <Text style={[styles.checkmark, selectedPlan?.id === plan.id && styles.checkmarkSelected]}>✓</Text>
-                    <Text style={[styles.featureText, selectedPlan?.id === plan.id && styles.featureTextSelected]}>
-                      {feature}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-
-              <View style={styles.selectIndicator}>
-                <View style={[styles.radio, selectedPlan?.id === plan.id && styles.radioSelected]}>
-                  {selectedPlan?.id === plan.id && <View style={styles.radioInner} />}
-                </View>
-                <Text style={styles.selectText}>{selectedPlan?.id === plan.id ? 'Selected' : 'Select'}</Text>
-              </View>
-            </TouchableOpacity>
+            />
           ))}
         </View>
       </ScrollView>
@@ -174,123 +136,6 @@ const styles = StyleSheet.create({
   },
   plansContainer: {
     paddingHorizontal: spacing.xl,
-  },
-  planCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
-    padding: spacing.xl,
-    marginBottom: spacing.lg,
-    borderWidth: 2,
-    borderColor: colors.border,
-    position: 'relative',
-  },
-  planCardSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
-  },
-  planCardPopular: {
-    borderColor: colors.secondary,
-  },
-  popularBadge: {
-    position: 'absolute',
-    top: -10,
-    right: spacing.xl,
-    backgroundColor: colors.secondary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.lg,
-  },
-  popularBadgeText: {
-    color: colors.textLight,
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.bold,
-  },
-  planHeader: {
-    marginBottom: spacing.md,
-  },
-  planName: {
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.semibold,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  planNameSelected: {
-    color: colors.primary,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  planPrice: {
-    fontSize: 32,
-    fontWeight: fontWeight.bold,
-    color: colors.textPrimary,
-  },
-  planPriceSelected: {
-    color: colors.primary,
-  },
-  planDuration: {
-    fontSize: fontSize.md,
-    color: colors.textSecondary,
-    marginLeft: spacing.xs,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.lg,
-  },
-  featuresContainer: {
-    marginBottom: spacing.lg,
-  },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  checkmark: {
-    color: colors.success,
-    fontSize: fontSize.lg,
-    marginRight: spacing.md,
-    fontWeight: fontWeight.bold,
-  },
-  checkmarkSelected: {
-    color: colors.primary,
-  },
-  featureText: {
-    fontSize: fontSize.md,
-    color: colors.textSecondary,
-    flex: 1,
-  },
-  featureTextSelected: {
-    color: colors.textPrimary,
-  },
-  selectIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.sm,
-  },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  radioSelected: {
-    borderColor: colors.primary,
-  },
-  radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.primary,
-  },
-  selectText: {
-    fontSize: fontSize.md,
-    color: colors.textSecondary,
   },
   footer: {
     position: 'absolute',

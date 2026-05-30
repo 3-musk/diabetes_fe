@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Button, LoadingSpinner } from '../components';
 import { useAuth } from '../context/AuthContext';
 import { completeCart, createRazorpayOrder } from '../services/subscriptionService';
+import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
+
+type PaymentStatus = 'pending' | 'processing' | 'success' | 'failed';
 
 export default function PaymentScreen() {
   const params = useLocalSearchParams();
@@ -10,14 +14,13 @@ export default function PaymentScreen() {
   const router = useRouter();
   
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'processing' | 'success' | 'failed'>('pending');
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending');
 
   const cartId = params.cartId as string;
   const planName = params.planName as string;
   const amount = parseInt(params.amount as string) || 0;
 
   useEffect(() => {
-    // For demo: simulate successful payment after 2 seconds
     const timer = setTimeout(() => {
       handleSimulatePayment();
     }, 2000);
@@ -36,28 +39,20 @@ export default function PaymentScreen() {
     setPaymentStatus('processing');
 
     try {
-      // Step 1: Create Razorpay order (simulated)
       const paymentDetails = await createRazorpayOrder(accessToken, cartId, amount);
       
-      // Step 2: In production, here you would:
-      // - Open Razorpay checkout with paymentDetails
-      // - Handle payment success/failure callbacks
-      
-      // For demo, simulate successful payment
       const subscription = await completeCart(
         accessToken,
         cartId,
-        'simulated_payment_' + Date.now(), // razorpayPaymentId
+        'simulated_payment_' + Date.now(),
         paymentDetails.razorpayOrderId,
-        'simulated_signature' // razorpaySignature
+        'simulated_signature'
       );
 
-      // Step 3: Update subscription status
       await completeSubscription();
 
       setPaymentStatus('success');
       
-      // Navigate to dashboard after success
       setTimeout(() => {
         router.replace('/(app)');
       }, 2000);
@@ -80,23 +75,24 @@ export default function PaymentScreen() {
     router.back();
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        {paymentStatus === 'pending' && (
+  const renderContent = () => {
+    switch (paymentStatus) {
+      case 'pending':
+        return (
           <>
             <View style={styles.iconContainer}>
-              <ActivityIndicator size="large" color="#007AFF" />
+              <LoadingSpinner size="small" />
             </View>
             <Text style={styles.title}>Preparing Payment...</Text>
             <Text style={styles.subtitle}>Please wait while we set up your payment</Text>
           </>
-        )}
+        );
 
-        {paymentStatus === 'processing' && (
+      case 'processing':
+        return (
           <>
             <View style={styles.iconContainer}>
-              <ActivityIndicator size="large" color="#007AFF" />
+              <LoadingSpinner size="small" />
             </View>
             <Text style={styles.title}>Processing Payment</Text>
             <Text style={styles.subtitle}>Please do not close this screen</Text>
@@ -108,9 +104,10 @@ export default function PaymentScreen() {
               <Text style={styles.orderAmount}>₹{amount}</Text>
             </View>
           </>
-        )}
+        );
 
-        {paymentStatus === 'success' && (
+      case 'success':
+        return (
           <>
             <View style={[styles.iconContainer, styles.successIcon]}>
               <Text style={styles.successCheck}>✓</Text>
@@ -127,9 +124,10 @@ export default function PaymentScreen() {
             
             <Text style={styles.redirectText}>Redirecting to dashboard...</Text>
           </>
-        )}
+        );
 
-        {paymentStatus === 'failed' && (
+      case 'failed':
+        return (
           <>
             <View style={[styles.iconContainer, styles.failedIcon]}>
               <Text style={styles.failedX}>✕</Text>
@@ -138,16 +136,30 @@ export default function PaymentScreen() {
             <Text style={styles.subtitle}>Something went wrong. Please try again.</Text>
             
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
-                <Text style={styles.retryButtonText}>Try Again</Text>
-              </TouchableOpacity>
+              <Button
+                title="Try Again"
+                onPress={handleRetry}
+                size="lg"
+                style={styles.buttonFullWidth}
+              />
               
-              <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
-                <Text style={styles.backButtonText}>Go Back</Text>
-              </TouchableOpacity>
+              <Button
+                title="Go Back"
+                onPress={handleGoBack}
+                variant="outline"
+                size="lg"
+                style={styles.buttonFullWidth}
+              />
             </View>
           </>
-        )}
+        );
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.content}>
+        {renderContent()}
       </View>
 
       {isProcessing && paymentStatus !== 'success' && (
@@ -164,126 +176,106 @@ export default function PaymentScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: spacing.xxxxl,
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#e8f4fd',
+    backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
   successIcon: {
-    backgroundColor: '#e8f5e9',
+    backgroundColor: colors.successLight,
   },
   failedIcon: {
-    backgroundColor: '#ffebee',
+    backgroundColor: colors.errorLight,
   },
   successCheck: {
     fontSize: 40,
-    color: '#4CAF50',
-    fontWeight: 'bold',
+    color: colors.success,
+    fontWeight: fontWeight.bold,
   },
   failedX: {
     fontSize: 40,
-    color: '#f44336',
-    fontWeight: 'bold',
+    color: colors.error,
+    fontWeight: fontWeight.bold,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: fontSize.xxl,
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: fontSize.md,
+    color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: spacing.xxxl,
   },
   orderSummary: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
     width: '100%',
     alignItems: 'center',
   },
   orderLabel: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 12,
+    fontSize: fontSize.sm,
+    color: colors.textTertiary,
+    marginTop: spacing.md,
   },
   orderValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginTop: 4,
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.semibold,
+    color: colors.textPrimary,
+    marginTop: spacing.xs,
   },
   orderAmount: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 4,
+    fontSize: fontSize.title,
+    fontWeight: fontWeight.bold,
+    color: colors.textPrimary,
+    marginTop: spacing.xs,
   },
   successAmount: {
-    color: '#4CAF50',
+    color: colors.success,
   },
   redirectText: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 24,
+    fontSize: fontSize.sm,
+    color: colors.textTertiary,
+    marginTop: spacing.xl,
   },
   buttonContainer: {
     width: '100%',
-    marginTop: 24,
+    marginTop: spacing.xl,
   },
-  retryButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  backButton: {
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  backButtonText: {
-    color: '#666',
-    fontSize: 16,
-    fontWeight: '600',
+  buttonFullWidth: {
+    width: '100%',
+    marginBottom: spacing.md,
   },
   disclaimer: {
     position: 'absolute',
-    bottom: 40,
-    left: 20,
-    right: 20,
-    backgroundColor: '#fff3cd',
-    borderRadius: 8,
-    padding: 12,
+    bottom: spacing.xxxxl,
+    left: spacing.lg,
+    right: spacing.lg,
+    backgroundColor: colors.warningLight,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     borderWidth: 1,
-    borderColor: '#ffc107',
+    borderColor: colors.warning,
   },
   disclaimerText: {
-    fontSize: 12,
-    color: '#856404',
+    fontSize: fontSize.sm,
+    color: colors.warning,
     textAlign: 'center',
   },
 });

@@ -1,6 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import { colors, borderRadius, fontSize, fontWeight, spacing } from '../theme';
+import { ActivityIndicator, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
+import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
 
 interface ButtonProps {
   title: string;
@@ -67,10 +67,14 @@ export const Button: React.FC<ButtonProps> = ({
 
     switch (variant) {
       case 'primary':
+        return {
+          ...baseTextStyle,
+          color: colors.primaryForeground,
+        };
       case 'secondary':
         return {
           ...baseTextStyle,
-          color: colors.textLight,
+          color: colors.secondaryForeground,
         };
       case 'outline':
       case 'ghost':
@@ -94,8 +98,8 @@ export const Button: React.FC<ButtonProps> = ({
         <ActivityIndicator color={variant === 'primary' || variant === 'secondary' ? colors.textLight : colors.primary} />
       ) : (
         <>
-          {icon}
           <Text style={[getTextStyle(), textStyle]}>{title}</Text>
+          {icon}
         </>
       )}
     </TouchableOpacity>
@@ -107,7 +111,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.full,
     gap: spacing.sm,
   },
   size_sm: {

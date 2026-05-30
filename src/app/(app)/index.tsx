@@ -2,8 +2,10 @@ import { getApp } from '@react-native-firebase/app';
 import { crash, getCrashlytics, log, setCrashlyticsCollectionEnabled } from '@react-native-firebase/crashlytics';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { Button, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { Button } from '../../components';
 import { useAuth } from '../../context/AuthContext';
+import { colors, fontSize, spacing } from '../../theme';
 
 export default function Index() {
     const crashAnalytics = getCrashlytics()
@@ -12,8 +14,6 @@ export default function Index() {
 
     useEffect(() => {
         console.log('Firebase App Name:', getApp().name);
-
-        // Force Crashlytics to track crashes even in local dev mode
         setCrashlyticsCollectionEnabled(crashAnalytics, true);
     }, []);
 
@@ -22,27 +22,28 @@ export default function Index() {
         router.replace('/login' as never);
     };
 
+    const handleTestCrash = () => {
+        log(crashAnalytics, "crash Button pressed");
+        crash(crashAnalytics)
+    };
+
     return (
         <View style={styles.container}>
-            <Text>Firebase is ready!</Text>
+            <Text style={styles.welcomeText}>Firebase is ready!</Text>
             <Text style={styles.phoneText}>Logged in as: {userPhoneNumber}</Text>
 
-            {/* Test Crash Button */}
             <Button
                 title="Test Crash"
-                color="red"
-                onPress={() => {
-                    log(crashAnalytics, "crash Button pressed");
-                    crash(crashAnalytics)
-                }
-                }
+                onPress={handleTestCrash}
+                variant="outline"
+                style={styles.button}
             />
 
-            {/* Logout Button */}
             <Button
                 title="Logout"
-                color="orange"
                 onPress={handleLogout}
+                variant="secondary"
+                style={styles.button}
             />
         </View>
     );
@@ -51,12 +52,22 @@ export default function Index() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: spacing.xl,
+    },
+    welcomeText: {
+        fontSize: fontSize.xl,
+        color: colors.textPrimary,
+        marginBottom: spacing.md,
     },
     phoneText: {
-        marginVertical: 10,
-        fontSize: 14,
-        color: '#666',
+        fontSize: fontSize.md,
+        color: colors.textSecondary,
+        marginBottom: spacing.xxl,
+    },
+    button: {
+        width: '100%',
+        marginBottom: spacing.md,
     },
 });

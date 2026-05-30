@@ -34,7 +34,8 @@ export const Input: React.FC<InputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.lg,
+    marginBottom: 0,
+    width: "100%"
   },
   label: {
     fontSize: fontSize.md,
@@ -43,13 +44,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   input: {
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: colors.border,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.xl,
     padding: spacing.md,
     fontSize: fontSize.lg,
     backgroundColor: colors.surface,
-    color: colors.textPrimary,
+    color: colors.textInput,
   },
   inputError: {
     borderColor: colors.error,
