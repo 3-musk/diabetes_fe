@@ -1,55 +1,101 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Button, LoadingSpinner, PlanCard } from '../components';
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  View,
+  Pressable,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FontAwesome } from '@react-native-vector-icons/fontawesome';
+import { subscriptionTexts } from '../../assets/data/subscriptionTexts';
+
+import {
+  AppText,
+  Button,
+  LoadingSpinner,
+  PlanCard,
+} from '../components';
+
+import { ROUTES } from '../constants/routes';
 import { useAuth } from '../context/AuthContext';
-import { createSubscriptionCart, getPlans, Plan, SubscriptionCart } from '../services/subscriptionService';
-import { colors, fontSize, fontWeight, spacing } from '../theme';
+
+import {
+  createSubscriptionCart,
+  getPlans,
+  Plan,
+  SubscriptionCart,
+} from '../services/subscriptionService';
+
+import {
+  borderRadius,
+  colors,
+  fontSize,
+  spacing,
+} from '../theme';
 
 export default function SubscriptionScreen() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [reminderEnabled, setReminderEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { accessToken } = useAuth();
-  const router = useRouter();
 
-  useEffect(() => {
-    loadPlans();
-  }, []);
+  const { accessToken, isFirstTimeUser, setHasDismissedSubscription } = useAuth();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const loadPlans = async () => {
     try {
       const fetchedPlans = await getPlans();
       setPlans(fetchedPlans);
+      if (fetchedPlans.length > 0) {
+        setSelectedPlan(fetchedPlans[0]);
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load plans. Please try again.');
-      console.error('Error loading plans:', error);
+      Alert.alert(
+        'Error',
+        'Failed to load subscription plans'
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSelectPlan = (plan: Plan) => {
-    setSelectedPlan(plan);
-  };
+  useEffect(() => {
+    loadPlans();
+  }, []);
 
   const handleContinue = async () => {
     if (!selectedPlan) {
-      Alert.alert('Error', 'Please select a plan to continue');
+      Alert.alert(
+        'Error',
+        'Please select a plan'
+      );
       return;
     }
 
     if (!accessToken) {
-      Alert.alert('Error', 'Please login again');
+      Alert.alert(
+        'Error',
+        'Please login again'
+      );
       return;
     }
 
     setIsProcessing(true);
+
     try {
-      const cart: SubscriptionCart = await createSubscriptionCart(accessToken, selectedPlan.id);
+      const cart: SubscriptionCart = await createSubscriptionCart(
+        accessToken,
+        selectedPlan.id
+      );
+
       router.push({
-        pathname: '/payment',
+        pathname: ROUTES.payment,
         params: {
           cartId: cart.id,
           planId: selectedPlan.id,
@@ -58,53 +104,107 @@ export default function SubscriptionScreen() {
         },
       });
     } catch (error) {
-      Alert.alert('Error', 'Failed to create subscription cart. Please try again.');
-      console.error('Error creating cart:', error);
+      Alert.alert(
+        'Error',
+        'Failed to create subscription'
+      );
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const formatPrice = (price: number) => `₹${price}`;
+  const handleClose = () => {
+    setHasDismissedSubscription(true);
+    router.replace(ROUTES.appHome);
+  };
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen text="Loading plans..." />;
+    return (
+      <LoadingSpinner
+        fullScreen
+        text="Loading plans..."
+      />
+    );
   }
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Choose Your Plan</Text>
-          <Text style={styles.subtitle}>Select a subscription plan that works best for you</Text>
+      {isFirstTimeUser === false && (
+        <Pressable
+          style={[styles.closeButton, { top: insets.top + spacing.sm }]}
+          onPress={handleClose}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
+        >
+          <FontAwesome name="times" size={20} color={colors.textPrimary} />
+        </Pressable>
+      )}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+      >
+        {/* HERO IMAGE */}
+        <View style={styles.heroContainer}>
+          <Image
+            source={require('../../assets/images/subscription/hero.png')}
+            resizeMode="contain"
+            style={styles.heroImage}
+          />
         </View>
 
-        <View style={styles.plansContainer}>
-          {plans.map((plan) => (
-            <PlanCard
-              key={plan.id}
-              name={plan.name}
-              price={plan.price}
-              duration={plan.duration}
-              features={plan.features}
-              isPopular={plan.isPopular}
-              isSelected={selectedPlan?.id === plan.id}
-              onPress={() => handleSelectPlan(plan)}
+        {/* MAIN CARD */}
+        <View style={styles.cardContainer}>
+          <AppText
+            variant="bold"
+            style={styles.heading}
+          >
+            {subscriptionTexts.takeControlOfYourHealth}
+          </AppText>
+
+          <View style={styles.planContainer}>
+            {plans.map(plan => (
+              <PlanCard
+                key={plan.id}
+                name={plan.name}
+                price={plan.price}
+                duration={plan.duration}
+                features={plan.features}
+                isSelected={selectedPlan?.id === plan.id}
+                onPress={() => setSelectedPlan(plan)}
+              />
+            ))}
+          </View>
+
+          <AppText style={styles.infoText}>
+            {subscriptionTexts.infoText}
+          </AppText>
+
+          <View style={styles.switchContainer}>
+            <AppText
+              style={styles.switchText}
+            >
+              {subscriptionTexts.reminderText}
+            </AppText>
+
+            <Switch
+              value={reminderEnabled}
+              onValueChange={setReminderEnabled}
+              trackColor={{
+                false: '#DDD',
+                true: colors.primary,
+              }}
+              thumbColor="#FFF"
             />
-          ))}
+          </View>
+
+          <Button
+            title={subscriptionTexts.proceedButton}
+            onPress={handleContinue}
+            loading={isProcessing}
+            size="lg"
+            style={styles.button}
+          />
         </View>
       </ScrollView>
-
-      <View style={styles.footer}>
-        <Button
-          title={selectedPlan ? `Continue to Payment - ${formatPrice(selectedPlan.price)}` : 'Select a Plan'}
-          onPress={handleContinue}
-          size="lg"
-          disabled={!selectedPlan}
-          loading={isProcessing}
-        />
-        <Text style={styles.termsText}>By subscribing, you agree to our Terms of Service and Privacy Policy.</Text>
-      </View>
     </View>
   );
 }
@@ -112,48 +212,78 @@ export default function SubscriptionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.secondarybackground,
   },
-  scrollContent: {
-    paddingBottom: 200,
+  closeButton: {
+    position: 'absolute',
+    right: spacing.lg,
+    zIndex: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
   },
-  header: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: 60,
+  heroContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: spacing.xxxl,
     paddingBottom: spacing.xl,
   },
-  title: {
-    fontSize: fontSize.title,
-    fontWeight: fontWeight.bold,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: spacing.sm,
+  heroImage: {
+    width: 250,
+    height: 250,
   },
-  subtitle: {
-    fontSize: fontSize.md,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  plansContainer: {
-    paddingHorizontal: spacing.xl,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  cardContainer: {
     backgroundColor: colors.surface,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: 40,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopLeftRadius: borderRadius.xxl,
+    borderTopRightRadius: borderRadius.xxl,
+    paddingHorizontal: spacing.xxl,
+    paddingTop: spacing.xxxl,
+    paddingBottom: spacing.xxxxl,
+    marginHorizontal: spacing.lg,
   },
-  termsText: {
-    fontSize: fontSize.sm,
-    color: colors.textTertiary,
+  heading: {
+    fontSize: fontSize.xl,
+    color: colors.textPrimary,
+    marginBottom: spacing.xxxl,
+    lineHeight: 34,
+  },
+  planContainer: {
+    marginBottom: spacing.lg,
+  },
+  infoText: {
     textAlign: 'center',
-    marginTop: spacing.md,
-    lineHeight: 18,
+    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    lineHeight: 20,
+    marginBottom: spacing.xxl,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.secondarybackground,
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.xxxl,
+  },
+  switchText: {
+    flex: 1,
+    marginRight: spacing.lg,
+    color: colors.textPrimary,
+    fontSize: fontSize.sm,
+  },
+  button: {
+    width: '100%',
   },
 });

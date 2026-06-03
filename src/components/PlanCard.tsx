@@ -1,16 +1,24 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
-import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {
+  borderRadius,
+  colors,
+  fontSize,
+  spacing,
+} from '../theme';
+import AppText from './AppText';
 
 interface PlanCardProps {
   name: string;
   price: number;
   duration: string;
   features: string[];
-  isPopular?: boolean;
   isSelected?: boolean;
   onPress: () => void;
-  style?: ViewStyle;
 }
 
 export const PlanCard: React.FC<PlanCardProps> = ({
@@ -18,58 +26,63 @@ export const PlanCard: React.FC<PlanCardProps> = ({
   price,
   duration,
   features,
-  isPopular = false,
   isSelected = false,
   onPress,
-  style,
 }) => {
   return (
     <TouchableOpacity
+      activeOpacity={0.9}
       style={[
         styles.card,
-        isSelected && styles.cardSelected,
-        isPopular && styles.cardPopular,
-        style,
+        isSelected && styles.selectedCard,
       ]}
       onPress={onPress}
-      activeOpacity={0.8}
     >
-      {isPopular && (
-        <View style={styles.popularBadge}>
-          <Text style={styles.popularBadgeText}>POPULAR</Text>
-        </View>
-      )}
-
       <View style={styles.header}>
-        <Text style={[styles.name, isSelected && styles.nameSelected]}>
+        <AppText
+          variant="medium"
+          style={styles.planName}
+        >
           {name}
-        </Text>
-        <View style={styles.priceContainer}>
-          <Text style={[styles.price, isSelected && styles.priceSelected]}>
-            ₹{price}
-          </Text>
-          <Text style={styles.duration}>{duration}</Text>
-        </View>
+        </AppText>
+
+        {isSelected && (
+          <View style={styles.selectedIcon}>
+            <AppText style={styles.selectedText}>
+              ✓
+            </AppText>
+          </View>
+        )}
       </View>
 
-      <View style={styles.divider} />
+      <View style={styles.priceContainer}>
+        <AppText
+          variant="bold"
+          style={styles.price}
+        >
+          ₹{price}
+        </AppText>
+
+        <AppText style={styles.duration}>
+          / {duration}
+        </AppText>
+      </View>
 
       <View style={styles.featuresContainer}>
         {features.map((feature, index) => (
-          <View key={index} style={styles.featureRow}>
-            <Text style={[styles.checkmark, isSelected && styles.checkmarkSelected]}>✓</Text>
-            <Text style={[styles.featureText, isSelected && styles.featureTextSelected]}>
+          <View
+            key={index}
+            style={styles.featureRow}
+          >
+            <AppText style={styles.bullet}>
+              •
+            </AppText>
+
+            <AppText style={styles.featureText}>
               {feature}
-            </Text>
+            </AppText>
           </View>
         ))}
-      </View>
-
-      <View style={styles.selectIndicator}>
-        <View style={[styles.radio, isSelected && styles.radioSelected]}>
-          {isSelected && <View style={styles.radioInner} />}
-        </View>
-        <Text style={styles.selectText}>{isSelected ? 'Selected' : 'Select'}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -77,121 +90,83 @@ export const PlanCard: React.FC<PlanCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
     marginBottom: spacing.lg,
-    borderWidth: 2,
-    borderColor: colors.border,
-    position: 'relative',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  cardSelected: {
+
+  selectedCard: {
     borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
+    borderWidth: 1.5,
   },
-  cardPopular: {
-    borderColor: colors.secondary,
-  },
-  popularBadge: {
-    position: 'absolute',
-    top: -10,
-    right: spacing.xl,
-    backgroundColor: colors.secondary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.lg,
-  },
-  popularBadgeText: {
-    color: colors.textLight,
-    fontSize: fontSize.xs,
-    fontWeight: fontWeight.bold,
-  },
+
   header: {
-    marginBottom: spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  name: {
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.semibold,
+
+  planName: {
+    fontSize: fontSize.md,
     color: colors.textPrimary,
-    marginBottom: spacing.xs,
   },
-  nameSelected: {
-    color: colors.primary,
+
+  selectedIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+
+  selectedText: {
+    color: colors.primaryForeground,
+    fontSize: 10,
+  },
+
   priceContainer: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'flex-end',
+    marginTop: spacing.md,
+    marginBottom: spacing.lg,
   },
+
   price: {
-    fontSize: 32,
-    fontWeight: fontWeight.bold,
+    fontSize: 26,
     color: colors.textPrimary,
   },
-  priceSelected: {
-    color: colors.primary,
-  },
+
   duration: {
     fontSize: fontSize.md,
     color: colors.textSecondary,
-    marginLeft: spacing.xs,
+    marginLeft: 4,
+    marginBottom: 3,
   },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.lg,
-  },
+
   featuresContainer: {
-    marginBottom: spacing.lg,
+    gap: spacing.sm,
   },
+
   featureRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
+    alignItems: 'flex-start',
   },
-  checkmark: {
-    color: colors.success,
-    fontSize: fontSize.lg,
-    marginRight: spacing.md,
-    fontWeight: fontWeight.bold,
-  },
-  checkmarkSelected: {
-    color: colors.primary,
-  },
-  featureText: {
-    fontSize: fontSize.md,
-    color: colors.textSecondary,
-    flex: 1,
-  },
-  featureTextSelected: {
+
+  bullet: {
     color: colors.textPrimary,
+    marginRight: spacing.sm,
+    lineHeight: 20,
   },
-  selectIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.sm,
-  },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  radioSelected: {
-    borderColor: colors.primary,
-  },
-  radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.primary,
-  },
-  selectText: {
-    fontSize: fontSize.md,
+
+  featureText: {
+    flex: 1,
     color: colors.textSecondary,
+    fontSize: fontSize.md,
+    lineHeight: 20,
   },
 });
 

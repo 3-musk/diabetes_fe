@@ -1,9 +1,10 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
+import { ActivityIndicator, StyleSheet, TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
 import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
+import AppText from './AppText';
 
 interface ButtonProps {
-  title: string;
+  title?: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
@@ -12,6 +13,7 @@ interface ButtonProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   icon?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -24,6 +26,7 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
   icon,
+  children
 }) => {
   const getButtonStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
@@ -98,8 +101,16 @@ export const Button: React.FC<ButtonProps> = ({
         <ActivityIndicator color={variant === 'primary' || variant === 'secondary' ? colors.textLight : colors.primary} />
       ) : (
         <>
-          <Text style={[getTextStyle(), textStyle]}>{title}</Text>
-          {icon}
+          {children ? (
+              children
+            ) : (
+              <>
+                <AppText style={[getTextStyle(), textStyle]}>
+                  {title}
+                </AppText>
+                {icon}
+              </>
+            )}
         </>
       )}
     </TouchableOpacity>

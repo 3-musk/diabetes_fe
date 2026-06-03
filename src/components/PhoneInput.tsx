@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
+import { StyleSheet, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
+import AppText from './AppText';
 
 interface PhoneInputProps extends TextInputProps {
   label?: string;
@@ -19,10 +20,10 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
 }) => {
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <AppText variant="medium" style={styles.label}>{label}</AppText>}
       <View style={styles.phoneContainer}>
         {countryCode && <View style={styles.countryCodeContainer}>
-          <Text style={styles.countryCodeLabel}>{countryCode}</Text>
+          <AppText variant="medium" style={styles.countryCodeLabel}>{countryCode}</AppText>
         </View>}
         <TextInput
           style={[
@@ -35,7 +36,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
           {...props}
         />
       </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && <AppText style={styles.errorText}>{error}</AppText>}
     </View>
   );
 };

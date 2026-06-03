@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Button, LoadingSpinner } from '../components';
+import { useEffect, useState } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppText, Button, LoadingSpinner } from '../components';
+import { ROUTES } from '../constants/routes';
 import { useAuth } from '../context/AuthContext';
 import { completeCart, createRazorpayOrder } from '../services/subscriptionService';
 import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
@@ -12,6 +14,7 @@ export default function PaymentScreen() {
   const params = useLocalSearchParams();
   const { accessToken, completeSubscription } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending');
@@ -19,14 +22,6 @@ export default function PaymentScreen() {
   const cartId = params.cartId as string;
   const planName = params.planName as string;
   const amount = parseInt(params.amount as string) || 0;
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      handleSimulatePayment();
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleSimulatePayment = async () => {
     if (!accessToken || !cartId) {
@@ -54,8 +49,8 @@ export default function PaymentScreen() {
       setPaymentStatus('success');
       
       setTimeout(() => {
-        router.replace('/(app)');
-      }, 2000);
+        router.replace(ROUTES.appHome);
+      }, 4000);
       
     } catch (error) {
       console.error('Payment error:', error);
@@ -65,6 +60,14 @@ export default function PaymentScreen() {
       setIsProcessing(false);
     }
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSimulatePayment();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleRetry = () => {
     setPaymentStatus('pending');
@@ -83,8 +86,8 @@ export default function PaymentScreen() {
             <View style={styles.iconContainer}>
               <LoadingSpinner size="small" />
             </View>
-            <Text style={styles.title}>Preparing Payment...</Text>
-            <Text style={styles.subtitle}>Please wait while we set up your payment</Text>
+            <AppText variant="bold" style={styles.title}>Preparing Payment...</AppText>
+            <AppText style={styles.subtitle}>Please wait while we set up your payment</AppText>
           </>
         );
 
@@ -94,14 +97,14 @@ export default function PaymentScreen() {
             <View style={styles.iconContainer}>
               <LoadingSpinner size="small" />
             </View>
-            <Text style={styles.title}>Processing Payment</Text>
-            <Text style={styles.subtitle}>Please do not close this screen</Text>
+            <AppText variant="bold" style={styles.title}>Processing Payment</AppText>
+            <AppText style={styles.subtitle}>Please do not close this screen</AppText>
             
             <View style={styles.orderSummary}>
-              <Text style={styles.orderLabel}>Plan</Text>
-              <Text style={styles.orderValue}>{planName}</Text>
-              <Text style={styles.orderLabel}>Amount</Text>
-              <Text style={styles.orderAmount}>₹{amount}</Text>
+              <AppText style={styles.orderLabel}>Plan</AppText>
+              <AppText variant="semibold" style={styles.orderValue}>{planName}</AppText>
+              <AppText style={styles.orderLabel}>Amount</AppText>
+              <AppText variant="bold" style={styles.orderAmount}>₹{amount}</AppText>
             </View>
           </>
         );
@@ -110,19 +113,19 @@ export default function PaymentScreen() {
         return (
           <>
             <View style={[styles.iconContainer, styles.successIcon]}>
-              <Text style={styles.successCheck}>✓</Text>
+              <AppText variant="bold" style={styles.successCheck}>✓</AppText>
             </View>
-            <Text style={styles.title}>Payment Successful!</Text>
-            <Text style={styles.subtitle}>Thank you for subscribing</Text>
+            <AppText variant="bold" style={styles.title}>Payment Successful!</AppText>
+            <AppText style={styles.subtitle}>Thank you for subscribing</AppText>
             
             <View style={styles.orderSummary}>
-              <Text style={styles.orderLabel}>Plan</Text>
-              <Text style={styles.orderValue}>{planName}</Text>
-              <Text style={styles.orderLabel}>Amount Paid</Text>
-              <Text style={[styles.orderAmount, styles.successAmount]}>₹{amount}</Text>
+              <AppText style={styles.orderLabel}>Plan</AppText>
+              <AppText variant="semibold" style={styles.orderValue}>{planName}</AppText>
+              <AppText style={styles.orderLabel}>Amount Paid</AppText>
+              <AppText variant="bold" style={[styles.orderAmount, styles.successAmount]}>₹{amount}</AppText>
             </View>
             
-            <Text style={styles.redirectText}>Redirecting to dashboard...</Text>
+            <AppText style={styles.redirectText}>Redirecting to dashboard...</AppText>
           </>
         );
 
@@ -130,10 +133,10 @@ export default function PaymentScreen() {
         return (
           <>
             <View style={[styles.iconContainer, styles.failedIcon]}>
-              <Text style={styles.failedX}>✕</Text>
+              <AppText variant="bold" style={styles.failedX}>✕</AppText>
             </View>
-            <Text style={styles.title}>Payment Failed</Text>
-            <Text style={styles.subtitle}>Something went wrong. Please try again.</Text>
+            <AppText variant="bold" style={styles.title}>Payment Failed</AppText>
+            <AppText style={styles.subtitle}>Something went wrong. Please try again.</AppText>
             
             <View style={styles.buttonContainer}>
               <Button
@@ -163,10 +166,10 @@ export default function PaymentScreen() {
       </View>
 
       {isProcessing && paymentStatus !== 'success' && (
-        <View style={styles.disclaimer}>
-          <Text style={styles.disclaimerText}>
+        <View style={[styles.disclaimer, { bottom: insets.bottom + spacing.xxxxl }]}>
+          <AppText style={styles.disclaimerText}>
             This is a simulated payment screen. In production, Razorpay payment gateway will be integrated here.
-          </Text>
+          </AppText>
         </View>
       )}
     </View>
@@ -264,7 +267,6 @@ const styles = StyleSheet.create({
   },
   disclaimer: {
     position: 'absolute',
-    bottom: spacing.xxxxl,
     left: spacing.lg,
     right: spacing.lg,
     backgroundColor: colors.warningLight,

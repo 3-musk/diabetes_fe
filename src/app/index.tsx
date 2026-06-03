@@ -1,31 +1,32 @@
-import { getApp } from '@react-native-firebase/app';
-import { crash, getCrashlytics, log, setCrashlyticsCollectionEnabled } from '@react-native-firebase/crashlytics';
+// import { getApp } from '@react-native-firebase/app';
+// import { crash, getCrashlytics, log, setCrashlyticsCollectionEnabled } from '@react-native-firebase/crashlytics';
 import { useEffect } from 'react';
-import { Button, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { AppText } from '../components';
 
 export default function Index() {
-  const crashAnalytics = getCrashlytics()
+  // const crashAnalytics = getCrashlytics()
 
   useEffect(() => {
-    console.log('Firebase App Name:', getApp().name); 
+    // console.log('Firebase App Name:', getApp().name); 
 
     // Force Crashlytics to track crashes even in local dev mode
-    setCrashlyticsCollectionEnabled(crashAnalytics, true);
+    // setCrashlyticsCollectionEnabled(crashAnalytics, true);
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Firebase is ready!</Text>
+      <AppText>Firebase is ready!</AppText>
       
       {/* Add this button */}
-      <Button 
+      {/* <Button 
         title="Test Crash" 
         color="red"
         onPress={() => {
           log(crashAnalytics, "crash Button pressed");
           crash(crashAnalytics)}
         } 
-      />
+      /> */}
     </View>
   );
 }

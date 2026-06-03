@@ -4,25 +4,27 @@ export const colors = {
   // Primary colors
   primary: "#FE6A35",
   primaryForeground: "#FFFFFF",
+  primaryBackground: "#FFFFFF",
   primaryLight: "#007AFF20",
   primaryDark: "#0056CC",
 
   // Secondary colors
   secondary: "#FFDD89",
   secondaryForeground: "#503629",
+  secondarybackground: "#FBF9EF",
   secondaryLight: "#FF6B3520",
 
   // Background colors
-  background: "#F5F5F5",
+  background: "#FBF9EF",
   surface: "#FFFFFF",
   cardBackground: "#FFFFFF",
 
   // Text colors
-  textPrimary: "#333333",
+  textPrimary: "#503629",
   textSecondary: "#666666",
   textTertiary: "#999999",
-  textLight: "#FFFFFF",
-  textInput: "#E3E3E3",
+  textLight: "#989898",
+  textInput: "#191818",
 
   // Status colors
   success: "#4CAF50",
@@ -33,12 +35,17 @@ export const colors = {
   warningLight: "#FFF3CD",
 
   // Border colors
-  border: "#E0E0E0",
+  border: "#E5E5E5",
   borderLight: "#DDDDDD",
 
   // Others
   disabled: "#CCCCCC",
   overlay: "rgba(0, 0, 0, 0.5)",
+
+  // TAB
+  tabBackgroundColor: "#503629",
+  tabbuttonColor: "#FFFFFF",
+  tabButtonHighlightColor: "#FFDD89",
 };
 
 export const spacing = {
@@ -57,6 +64,7 @@ export const borderRadius = {
   md: 8,
   lg: 12,
   xl: 16,
+  xxl: 32,
   full: 9999,
 };
 
