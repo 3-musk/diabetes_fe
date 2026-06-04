@@ -1,7 +1,7 @@
 import { FontAwesome } from "@react-native-vector-icons/fontawesome";
 import type React from "react";
 import { Pressable, View } from "react-native";
-import { colors, fontSize } from "../../theme";
+import { colors } from "../../theme";
 import AppText from "../AppText";
 import { homeStyles as styles } from "./styles";
 import type { GoalChipData, IconName } from "./types";
@@ -67,15 +67,7 @@ export function Metric({ color, value, label, unit, align }: MetricProps) {
       </View>
       <AppText
         variant="medium" 
-        style={{
-          flex: 1,
-          justifyContent: align,
-          fontSize: fontSize.md,
-          textAlign: 'center',
-          paddingTop: 15,
-          paddingLeft: 10,
-          paddingRight: 10
-        }}
+        style={styles.metricLabel}
       >
         {label}
       </AppText>

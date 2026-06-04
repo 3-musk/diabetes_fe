@@ -6,15 +6,14 @@ export type GlucoseReading = {
   value: number;
   unit: string;
   status: string;
-  lastLoggedAt: string;
+  timestamp: string;
+  statistics: GlucoseStatistics;
 };
 
-export type GlucoseMetric = {
-  unit: string;
-  status: string;
-  average?: number;
-  lowest?: number;
-  highest?: number;
+export type GlucoseStatistics = {
+  average: number;
+  lowest: number;
+  highest: number;
 };
 
 export type NutritionMetric = {
@@ -30,16 +29,34 @@ export type GoalChipData = {
   label: string;
 };
 
+export type NutritionStatus =
+  | "limit"
+  | "optimal"
+  | "increase"
+  | "normal"
+  | "high"
+  | "low"
+  | null;
+
+export type NutritionRange = {
+  currentVal: number | null;
+  rangeMax: number;
+  rangeMin: number;
+  status: NutritionStatus;
+};
+
 export type NutritionData = {
-  metrics: NutritionMetric[];
-  goals: GoalChipData[];
+  carbohydrates: NutritionRange;
+  totalFat: NutritionRange;
+  protein: NutritionRange;
+  dietaryFiber: NutritionRange;
+  addedSugar: NutritionRange;
 };
 
 export type Hba1cData = {
-  value: string;
-  date: string;
+  value: number;
+  testDate: string;
   status: string;
-  note: string;
 };
 
 export type MedicationData = {
@@ -56,9 +73,9 @@ export type LifestyleQuestionData = {
 
 export type HomeDashboardData = {
   glucose: GlucoseReading | null;
-  glucoseSummary: GlucoseMetric;
   nutrition: NutritionData | null;
   hba1c: Hba1cData | null;
-  medications: MedicationData[];
-  lifestyleQuestion: LifestyleQuestionData | null;
+  meals: Record<string, number>;
+  weightKg: Record<string, number>;
+  dailyActivityDurationMinutes: number;
 };

@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
+import { HBA1C_COLORS, HBA1C_STRINGS } from "../../constants/hba1cConfig";
+import { borderRadius, colors, fontSize, spacing } from "../../theme";
 import AppText from "../AppText";
-import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
-import { OutlineAction, SetupCard } from "./Shared";
 import type { Hba1cData } from "./types";
 
 export function Hba1cSection({ data }: { data: Hba1cData | null }) {
@@ -10,58 +10,52 @@ export function Hba1cSection({ data }: { data: Hba1cData | null }) {
       <>
         <View style={styles.hba1cIntro}>
           <AppText variant="semibold" style={styles.hba1cIntroTitle}>
-            Your First HbA1c Step
+            {HBA1C_STRINGS.introTitle}
           </AppText>
           <AppText style={styles.hba1cIntroText}>
-            Tracking your HbA1c provides a powerful window into your long term health.
-            Let's start building your story today.
+            {HBA1C_STRINGS.introBody}
           </AppText>
           <Pressable style={styles.goldButton}>
             <AppText variant="semibold" style={styles.goldButtonText}>
-              Add your First Reading
+              {HBA1C_STRINGS.introAction}
             </AppText>
           </Pressable>
         </View>
-
-        <SetupCard title="HbA1c">
-          <AppText style={styles.bodyText}>
-            Add your HbA1c value to understand your average blood sugar over the last
-            2-3 months.
-          </AppText>
-          <OutlineAction title="Add HbA1c Value" />
-        </SetupCard>
       </>
     );
   }
+
+  const formatted = new Date(data.testDate).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
   return (
     <View style={styles.card}>
       <View style={styles.sectionHeaderRow}>
         <AppText variant="semibold" style={styles.sectionTitle}>
-          HbA1c
+          {HBA1C_STRINGS.sectionTitle}
         </AppText>
+      </View>
+      <View style={styles.sectionHeaderRow}>
+        <View style={styles.valueBlock}>
+          <AppText variant="medium" style={styles.timestamp}>{formatted}</AppText>
+          <AppText variant="medium" style={styles.hba1cValue}>
+            {data.value}%
+          </AppText>
+        </View>
         <View style={styles.warningPill}>
-          <AppText variant="semibold" style={styles.warningPillText}>
+          <AppText variant="medium" style={styles.warningPillText}>
             {data.status}
           </AppText>
         </View>
       </View>
-      <AppText style={styles.timestamp}>{data.date}</AppText>
-      <AppText variant="bold" style={styles.hba1cValue}>
-        {data.value}
-      </AppText>
-      <AppText style={styles.timestamp}>{data.note}</AppText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  bodyText: {
-    color: colors.textSecondary,
-    fontSize: fontSize.sm,
-    lineHeight: 18,
-    marginBottom: spacing.lg,
-  },
   hba1cIntro: {
     backgroundColor: colors.secondaryForeground,
     borderRadius: borderRadius.lg,
@@ -69,12 +63,12 @@ const styles = StyleSheet.create({
   },
   hba1cIntroTitle: {
     color: colors.secondary,
-    fontSize: fontSize.lg,
+    fontSize: fontSize.xl,
     marginBottom: spacing.sm,
   },
   hba1cIntroText: {
-    color: "#F4E1D1",
-    fontSize: fontSize.sm,
+    color: HBA1C_COLORS.introText,
+    fontSize: fontSize.md,
     lineHeight: 18,
     marginBottom: spacing.lg,
   },
@@ -93,9 +87,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.secondary,
+    borderColor: HBA1C_COLORS.cardBorder,
     padding: spacing.lg,
-    ...shadows.sm,
   },
   sectionHeaderRow: {
     flexDirection: "row",
@@ -103,27 +96,31 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   sectionTitle: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.xl,
     color: colors.textPrimary,
     marginBottom: spacing.md,
   },
+  valueBlock: {
+    paddingLeft: 15,
+  },
   warningPill: {
-    backgroundColor: colors.secondary,
+    backgroundColor: HBA1C_COLORS.pillBackground,
     borderRadius: borderRadius.full,
+    borderColor: HBA1C_COLORS.cardBorder,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.md,
   },
   warningPillText: {
     color: colors.secondaryForeground,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.xl,
   },
   timestamp: {
-    color: colors.textTertiary,
-    fontSize: fontSize.xs,
+    color: colors.textPrimary,
+    fontSize: fontSize.md,
   },
   hba1cValue: {
     color: colors.textPrimary,
-    fontSize: fontSize.xl,
+    fontSize: fontSize.xxl,
     marginVertical: spacing.xs,
   },
 });

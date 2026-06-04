@@ -1,5 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 export interface Plan {
   id: string;
   name: string;
@@ -113,8 +111,6 @@ export const getSubscription = async (
   // API: GET /api/subscriptions/current
   // Headers: { Authorization: `Bearer ${accessToken}` }
 
-  // For simulated testing:
-  const localActive = await AsyncStorage.getItem("isSubscriptionActive");
   const startDate = new Date();
   const endDate = new Date();
   endDate.setDate(endDate.getDate() + 30);

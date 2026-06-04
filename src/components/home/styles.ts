@@ -14,7 +14,7 @@ export const homeStyles = StyleSheet.create({
     ...shadows.sm,
   },
   sectionTitle: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.xl,
     color: colors.textPrimary,
     marginBottom: spacing.md,
   },
@@ -74,13 +74,17 @@ export const homeStyles = StyleSheet.create({
   metricValue: {
     fontSize: fontSize.xxl,
   },
-  highMetric: {
-    color: colors.error,
-  },
+
   metricUnit: {
     fontSize: fontSize.sm,
     textAlign: "center",
     verticalAlign: "middle",
+  },
+  metricLabel: {
+    fontSize: fontSize.md,
+    textAlign: "center",
+    paddingTop: 15,
+    paddingHorizontal: spacing.sm,
   },
   goalChip: {
     flex: 1,

@@ -5,24 +5,28 @@ import {
   GlucoseSection,
   GlucoseSummarySection,
   Hba1cSection,
-  HomeDashboardData,
+  type HomeDashboardData,
   HomeHeader,
   HomeSectionStack,
   LifestyleQuestionSection,
+  type LifestyleQuestionData,
+  type MedicationData,
   MedicationSection,
   NutritionSection,
-  QuickSetupSection,
+  TrackingSummarySection,
 } from "../../components/home";
 import { useAuth } from "../../context/AuthContext";
-import { getHomeDashboardData } from "../../services/homepage";
+import { getHomeDashboardData, getLifestyleQuestions, getMedication } from "../../services/homepage";
 import { colors, spacing } from "../../theme";
 
 export default function Home() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const firstName = user?.name?.split(" ")[0] || "Pradeep";
+  const firstName = user?.name?.split(" ")[0] || "User";
   
   const [homeData, setHomeData] = useState<HomeDashboardData | null>(null);
+  const [lifestyleQuestions, setLifestyleQuestions] = useState<LifestyleQuestionData | null>(null);
+  const [medication, setMedication] = useState<MedicationData[] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,6 +34,12 @@ export default function Home() {
       try {
         const data = await getHomeDashboardData();
         setHomeData(data);
+
+        const medicationData = await getMedication();
+        setMedication(medicationData?.data || null)
+
+        const lifestyleqnaData = await getLifestyleQuestions();
+        setLifestyleQuestions(lifestyleqnaData?.data || null)
       } catch (error) {
         console.error("Error fetching home data:", error);
       } finally {
@@ -71,12 +81,16 @@ export default function Home() {
 
         <HomeSectionStack>
           <GlucoseSection data={homeData?.glucose || null} />
-          <GlucoseSummarySection data={homeData?.glucoseSummary || null} />
+          <GlucoseSummarySection data={homeData?.glucose || null} />
           <NutritionSection data={homeData?.nutrition || null} />
-          <QuickSetupSection show={!homeData?.glucose || !homeData?.nutrition} />
+          <TrackingSummarySection
+            meals={homeData?.meals}
+            weightKg={homeData?.weightKg}
+            activityMinutes={homeData?.dailyActivityDurationMinutes}
+          />
           <Hba1cSection data={homeData?.hba1c || null} />
-          <LifestyleQuestionSection data={homeData?.lifestyleQuestion || null} />
-          <MedicationSection data={homeData?.medications || []} />
+          <LifestyleQuestionSection data={lifestyleQuestions || null} />
+          <MedicationSection data={medication || []} />
         </HomeSectionStack>
       </ScrollView>
     </SafeAreaView>

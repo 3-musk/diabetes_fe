@@ -1,78 +1,73 @@
 import { Dimensions, StyleSheet, View } from "react-native";
+import {
+  GLUCOSE_GAUGE_RANGE,
+  GLUCOSE_GAUGE_RANGES,
+  GLUCOSE_STATUS_COLORS,
+  GLUCOSE_STRINGS,
+} from "../../constants/glucoseConfig";
 import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
 import AppText from "../AppText";
 import Button from "../Button";
 import GlucoseGauge from "../common/GlucoseGauge";
 import { Metric, OutlineAction, SetupCard } from "./Shared";
-import type { GlucoseMetric, GlucoseReading } from "./types";
-const { width, height } = Dimensions.get('window');
+import type { GlucoseReading } from "./types";
 
-
-const readingColors : Record<string, string> = {
-  normal: '#15933A',
-  'borderline': '#679315',
-  'out_of_range': '#c9e913',
-  'danger': '#c9130d'
-}
+const { width } = Dimensions.get('window');
 
 export function GlucoseSection({ data }: { data: GlucoseReading | null }) {
   if (!data) {
     return (
-      <SetupCard title="Glucose Monitor">
+      <SetupCard title={GLUCOSE_STRINGS.sectionTitle}>
         <AppText style={styles.mutedText}>
-          Your readings will appear here once you log your first check.
+          {GLUCOSE_STRINGS.emptyBody}
         </AppText>
-        <OutlineAction title="Add first glucose reading" />
+        <OutlineAction title={GLUCOSE_STRINGS.emptyAction} />
       </SetupCard>
     );
   }
 
-  const tileColor = readingColors[data.status as string] || readingColors['danger']
+  const tileColor = GLUCOSE_STATUS_COLORS[data.status as keyof typeof GLUCOSE_STATUS_COLORS]
+    ?? GLUCOSE_STATUS_COLORS.danger;
 
   return (
-    <View style={[styles.monitorCard,{ borderColor : tileColor}]}>
+    <View style={[styles.monitorCard, { borderColor: tileColor }]}>
       <AppText variant="semibold" style={styles.sectionTitle}>
-        Glucose Monitor
+        {GLUCOSE_STRINGS.sectionTitle}
       </AppText>
       <View style={styles.gaugeWrap}>
-        <GlucoseGauge 
-            value={190}
-            unit="mg/dl"
-            status="Normal"
-            min={60}
-            max={250}
-            ranges={[
-              { from: 60, to: 100, color: "#9CB400" },
-              { from: 100, to: 140, color: "#B5D300" },
-              { from: 140, to: 180, color: "#F0B414" },
-              { from: 180, to: 250, color: "#F78B12" },
-            ]}
+        <GlucoseGauge
+          value={data.value}
+          unit={data.unit}
+          status={data.status}
+          min={GLUCOSE_GAUGE_RANGE.min}
+          max={GLUCOSE_GAUGE_RANGE.max}
+          ranges={[...GLUCOSE_GAUGE_RANGES]}
         />
       </View>
-      <AppText style={styles.timestamp}>Last log: {data.lastLoggedAt}</AppText>
-      <Button style={styles.logButton} onPress={()=>{}}>
+      <AppText style={styles.timestamp}>
+        {GLUCOSE_STRINGS.lastLogPrefix}{new Date(data.timestamp).toLocaleString()}
+      </AppText>
+      <Button style={styles.logButton} onPress={() => {}}>
         <AppText variant="semibold" style={styles.logButtonText}>
-          Log Glucose
+          {GLUCOSE_STRINGS.logButton}
         </AppText>
       </Button>
     </View>
   );
 }
 
-export function GlucoseSummarySection({ data }: { data: GlucoseMetric | null }) {
+export function GlucoseSummarySection({ data }: { data: GlucoseReading | null }) {
   if (!data) return null;
-
-  const tileColor = readingColors[data.status as string] || readingColors['danger']
 
   return (
     <View style={styles.summaryCard}>
       <AppText variant="semibold" style={styles.sectionTitle}>
-        Daily Glucose Summary
+        {GLUCOSE_STRINGS.summaryTitle}
       </AppText>
       <View style={styles.summaryRow}>
-        <Metric label="Average" color={tileColor} value={data.average + ''} unit={data.unit} align="flex-start"/>
-        <Metric label="Lowest" color={tileColor} value={data.lowest + ''} unit={data.unit} align="center"/>
-        <Metric label="Highest" color={tileColor} value={data.highest + ''} unit={data.unit} align="flex-end"/>
+        <Metric label={GLUCOSE_STRINGS.metricAverage} color={colors.textPrimary} value={data.statistics.average + ''} unit={data.unit} align="flex-start" />
+        <Metric label={GLUCOSE_STRINGS.metricLowest}  color={colors.textPrimary} value={data.statistics.lowest  + ''} unit={data.unit} align="center" />
+        <Metric label={GLUCOSE_STRINGS.metricHighest} color={colors.textPrimary} value={data.statistics.highest + ''} unit={data.unit} align="flex-end" />
       </View>
     </View>
   );
@@ -80,7 +75,7 @@ export function GlucoseSummarySection({ data }: { data: GlucoseMetric | null }) 
 
 const styles = StyleSheet.create({
   mutedText: {
-    color: colors.textTertiary,
+    color: colors.textPrimary,
     fontSize: fontSize.md,
     width: width * 0.7,
     lineHeight: 18,
@@ -95,7 +90,7 @@ const styles = StyleSheet.create({
     ...shadows.sm,
   },
   sectionTitle: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.xl,
     color: colors.textPrimary,
     marginBottom: spacing.md,
   },
@@ -105,10 +100,9 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   timestamp: {
-    position: 'relative',
     color: colors.textTertiary,
     fontSize: fontSize.sm,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   logButton: {
     alignSelf: "center",
@@ -128,7 +122,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderLeftWidth: width * 0.01,
-    borderLeftColor: colors.error,
+    borderLeftColor: colors.textPrimary,
     padding: spacing.lg,
     ...shadows.sm,
   },

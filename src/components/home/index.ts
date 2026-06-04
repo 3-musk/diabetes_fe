@@ -4,6 +4,6 @@ export { HomeHeader } from "./HomeHeader";
 export { LifestyleQuestionSection } from "./LifestyleQuestionSection";
 export { MedicationSection } from "./MedicationSection";
 export { NutritionSection } from "./NutritionSection";
-export { QuickSetupSection } from "./QuickSetupSection";
+export { TrackingSummarySection } from "./TrackingSummarySection";
 export { HomeSectionStack } from "./Shared";
-export type { HomeDashboardData } from "./types";
+export type { HomeDashboardData, LifestyleQuestionData, MedicationData } from "./types";

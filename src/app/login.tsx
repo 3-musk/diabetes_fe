@@ -1,4 +1,4 @@
-import { loginTexts } from '@/assets/data/loginTexts';
+import { loginTexts } from '../constants/loginTexts';
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';

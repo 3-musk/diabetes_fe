@@ -95,10 +95,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const userProfile = await apiGetUser(storedAccessToken);
                     if (userProfile) {
                         setUser(userProfile);
-                        setIsSubscribed(userProfile.isSubscribed);
+                        setIsSubscribed(userProfile.isSubscriptionActive);
                         setIsFirstTimeUser(userProfile.isFirstTimeUser);
                         setIsSubscriptionActive(userProfile.isSubscriptionActive);
                         await Promise.all([
+                            AsyncStorage.setItem(STORAGE_KEYS.isSubscribed, userProfile.isSubscriptionActive ? 'true' : 'false'),
                             AsyncStorage.setItem(STORAGE_KEYS.isFirstTimeUser, userProfile.isFirstTimeUser ? 'true' : 'false'),
                             AsyncStorage.setItem(STORAGE_KEYS.isSubscriptionActive, userProfile.isSubscriptionActive ? 'true' : 'false'),
                         ]);
@@ -160,10 +161,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setIsNewUser(response.isNewUser);
                 setIsFirstTimeUser(response.isFirstTimeUser);
                 setIsSubscriptionActive(response.isSubscriptionActive);
+                setIsSubscribed(response.isSubscriptionActive);
                 setIsLoggedIn(true);
 
                 await Promise.all([
                     AsyncStorage.setItem(STORAGE_KEYS.isNewUser, response.isNewUser ? 'true' : 'false'),
+                    AsyncStorage.setItem(STORAGE_KEYS.isSubscribed, response.isSubscriptionActive ? 'true' : 'false'),
                     AsyncStorage.setItem(STORAGE_KEYS.isFirstTimeUser, response.isFirstTimeUser ? 'true' : 'false'),
                     AsyncStorage.setItem(STORAGE_KEYS.isSubscriptionActive, response.isSubscriptionActive ? 'true' : 'false'),
                 ]);
@@ -212,11 +215,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setIsNewUser(false);
                 setIsFirstTimeUser(response.isFirstTimeUser);
                 setIsSubscriptionActive(response.isSubscriptionActive);
+                setIsSubscribed(response.isSubscriptionActive);
 
                 await Promise.all([
                     AsyncStorage.setItem(STORAGE_KEYS.accessToken, response.accessToken),
                     AsyncStorage.setItem(STORAGE_KEYS.refreshToken, response.refreshToken),
                     AsyncStorage.setItem(STORAGE_KEYS.isNewUser, 'false'),
+                    AsyncStorage.setItem(STORAGE_KEYS.isSubscribed, response.isSubscriptionActive ? 'true' : 'false'),
                     AsyncStorage.setItem(STORAGE_KEYS.isFirstTimeUser, response.isFirstTimeUser ? 'true' : 'false'),
                     AsyncStorage.setItem(STORAGE_KEYS.isSubscriptionActive, response.isSubscriptionActive ? 'true' : 'false'),
                     AsyncStorage.removeItem(STORAGE_KEYS.tempToken),
@@ -229,7 +234,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     setUser(userProfile);
                     setIsFirstTimeUser(userProfile.isFirstTimeUser);
                     setIsSubscriptionActive(userProfile.isSubscriptionActive);
+                    setIsSubscribed(userProfile.isSubscriptionActive);
                     await Promise.all([
+                        AsyncStorage.setItem(STORAGE_KEYS.isSubscribed, userProfile.isSubscriptionActive ? 'true' : 'false'),
                         AsyncStorage.setItem(STORAGE_KEYS.isFirstTimeUser, userProfile.isFirstTimeUser ? 'true' : 'false'),
                         AsyncStorage.setItem(STORAGE_KEYS.isSubscriptionActive, userProfile.isSubscriptionActive ? 'true' : 'false'),
                     ]);
@@ -277,10 +284,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const userProfile = await apiGetUser(accessToken);
             if (userProfile) {
                 setUser(userProfile);
-                setIsSubscribed(userProfile.isSubscribed);
+                setIsSubscribed(userProfile.isSubscriptionActive);
                 setIsFirstTimeUser(userProfile.isFirstTimeUser);
                 setIsSubscriptionActive(userProfile.isSubscriptionActive);
                 await Promise.all([
+                    AsyncStorage.setItem(STORAGE_KEYS.isSubscribed, userProfile.isSubscriptionActive ? 'true' : 'false'),
                     AsyncStorage.setItem(STORAGE_KEYS.isFirstTimeUser, userProfile.isFirstTimeUser ? 'true' : 'false'),
                     AsyncStorage.setItem(STORAGE_KEYS.isSubscriptionActive, userProfile.isSubscriptionActive ? 'true' : 'false'),
                 ]);

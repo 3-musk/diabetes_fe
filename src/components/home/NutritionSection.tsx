@@ -1,112 +1,235 @@
-import { FontAwesome } from "@react-native-vector-icons/fontawesome";
 import { StyleSheet, View } from "react-native";
-import AppText from "../AppText";
+import Svg, { Circle, Path } from "react-native-svg";
+import {
+  NUTRIENT_DISPLAY,
+  NUTRITION_STATUS_CONFIG,
+  NUTRITION_STATUS_GAUGE,
+  NUTRITION_STRINGS,
+} from "../../constants/nutritionConfig";
 import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
-import { GoalChip, OutlineAction, SetupCard } from "./Shared";
-import type { GoalChipData, NutritionData, NutritionMetric } from "./types";
+import AppText from "../AppText";
+import { OutlineAction, SetupCard } from "./Shared";
+import type { NutritionData, NutritionRange } from "./types";
 
-const defaultNutritionMetrics: NutritionMetric[] = [
-  { label: "Carbs", value: "50g", icon: "cutlery", color: "#FF6B6B" },
-  { label: "Fat", value: "10g", icon: "tint", color: "#FFB020" },
-  { label: "Protein", value: "20g", icon: "heartbeat", color: "#FF9F43" },
-  { label: "Avg\nGlucose", value: "90", icon: "line-chart", color: "#36C46D" },
-  { label: "Time\nin Target", value: "90%", icon: "bullseye", color: "#36C46D" },
-];
+function getNutrientState(item: NutritionRange) {
+  if (!item.status) {
+    return {
+      subtitle: NUTRITION_STRINGS.noDataLabel,
+      accentColor: colors.textTertiary,
+      needleAngle: null,
+      arcStartAngle: undefined,
+      arcEndAngle: undefined,
+    };
+  }
 
-const defaultGoals: GoalChipData[] = [
-  { icon: "smile-o", label: "Log Meal", value: "0/3" },
-  { icon: "flask", label: "TL: 1 kg / W: 0 kg", value: "0%" },
-  { icon: "bar-chart", label: "Weekly Progress", value: "48%" },
-];
+  const status   = NUTRITION_STATUS_CONFIG[item.status];
+  const position = NUTRITION_STATUS_GAUGE[item.status];
+
+  return {
+    subtitle: status.label,
+    accentColor: status.color,
+    ...position,
+  };
+}
+
+function polarToCartesian(cx: number, cy: number, radius: number, angle: number) {
+  const radians = (angle * Math.PI) / 180;
+  return {
+    x: cx + Math.cos(radians) * radius,
+    y: cy + Math.sin(radians) * radius,
+  };
+}
+
+function describeArc(cx: number, cy: number, radius: number, startAngle: number, endAngle: number) {
+  const start = polarToCartesian(cx, cy, radius, startAngle);
+  const end   = polarToCartesian(cx, cy, radius, endAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+  return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
+}
 
 export function NutritionSection({ data }: { data: NutritionData | null }) {
   if (!data) {
     return (
-      <SetupCard title="Daily Nutrition Compass">
+      <SetupCard title={NUTRITION_STRINGS.sectionTitle}>
         <AppText style={styles.mutedText}>
-          Track your macros to see how meals affect your energy levels.
+          {NUTRITION_STRINGS.emptyBody}
         </AppText>
-        <OutlineAction title="Log your first meal" />
+        <OutlineAction title={NUTRITION_STRINGS.emptyAction} />
       </SetupCard>
     );
   }
 
+  return <NutritionCompassCard data={data} />;
+}
+
+function getBorderLeftColor(data: NutritionData): string {
+  const statuses = Object.values(data).map(r => r.status);
+
+  if (statuses.some(s => s === "limit" || s === "high")) {
+    return NUTRITION_STATUS_CONFIG.limit.color;
+  }
+  if (statuses.some(s => s === "increase" || s === "low")) {
+    return NUTRITION_STATUS_CONFIG.increase.color;
+  }
+  return NUTRITION_STATUS_CONFIG.optimal.color;
+}
+
+function NutritionCompassCard({ data }: { data: NutritionData }) {
+  const borderLeftColor = getBorderLeftColor(data);
+
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { borderLeftColor }]}>
       <AppText variant="semibold" style={styles.sectionTitle}>
-        Daily Nutrition Compass
+        {NUTRITION_STRINGS.sectionTitle}
       </AppText>
+
       <View style={styles.nutritionRow}>
-        {(data.metrics.length ? data.metrics : defaultNutritionMetrics).map((item) => (
-          <View key={item.label} style={styles.nutritionItem}>
-            <View style={[styles.smallIconCircle, { backgroundColor: `${item.color}20` }]}>
-              <FontAwesome name={item.icon} size={13} color={item.color} />
-            </View>
-            <AppText variant="semibold" style={styles.nutritionValue}>
-              {item.value}
-            </AppText>
-            <AppText style={styles.nutritionLabel}>{item.label}</AppText>
-          </View>
-        ))}
+        {NUTRIENT_DISPLAY.map((nutrient) => {
+          const range = data[nutrient.key];
+          const state = getNutrientState(range);
+
+          return (
+            <NutrientGaugeItem
+              key={nutrient.key}
+              title={nutrient.title}
+              subtitle={state.subtitle}
+              accentColor={state.accentColor}
+              needleAngle={state.needleAngle}
+              arcStartAngle={state.arcStartAngle}
+              arcEndAngle={state.arcEndAngle}
+            />
+          );
+        })}
       </View>
-      <View style={styles.goalGrid}>
-        {(data.goals.length ? data.goals : defaultGoals).map((item) => (
-          <GoalChip key={item.label} {...item} />
-        ))}
-      </View>
+    </View>
+  );
+}
+
+function NutrientGaugeItem({
+  title,
+  subtitle,
+  accentColor,
+  needleAngle,
+  arcStartAngle,
+  arcEndAngle,
+}: {
+  title: string;
+  subtitle: string;
+  accentColor: string;
+  needleAngle: number | null;
+  arcStartAngle?: number;
+  arcEndAngle?: number;
+}) {
+  const centerX      = 34;
+  const centerY      = 34;
+  const arcRadius    = 27;
+  const needleLength = 16;
+  const radians  = ((needleAngle ?? 270) * Math.PI) / 180;
+  const needleX  = centerX + Math.cos(radians) * needleLength;
+  const needleY  = centerY + Math.sin(radians) * needleLength;
+
+  return (
+    <View style={styles.nutrientItem}>
+      {needleAngle === null ? (
+        <View style={styles.noDataGauge}>
+          <AppText style={styles.noDataText}>{NUTRITION_STRINGS.noDataSymbol}</AppText>
+        </View>
+      ) : (
+        <Svg width={70} height={42} viewBox="0 0 70 42">
+          <Path
+            d={describeArc(centerX, centerY, arcRadius, 205, 335)}
+            stroke={`${accentColor}22`}
+            strokeWidth={6}
+            fill="none"
+            strokeLinecap="round"
+          />
+          <Path
+            d={describeArc(centerX, centerY, arcRadius, arcStartAngle ?? 255, arcEndAngle ?? 285)}
+            stroke={accentColor}
+            strokeWidth={6}
+            fill="none"
+            strokeLinecap="round"
+          />
+          <Path
+            d={`M${centerX} ${centerY} L${needleX} ${needleY}`}
+            stroke={colors.secondaryForeground}
+            strokeWidth={2}
+            strokeLinecap="round"
+          />
+          <Circle
+            cx={centerX}
+            cy={centerY}
+            r={3.5}
+            fill={colors.surface}
+            stroke={colors.secondaryForeground}
+            strokeWidth={2}
+          />
+        </Svg>
+      )}
+
+      <AppText variant="medium" style={styles.nutrientTitle}>
+        {title}
+      </AppText>
+      <AppText style={styles.nutrientSubtitle}>
+        {subtitle}
+      </AppText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   mutedText: {
-    color: colors.textTertiary,
-    fontSize: fontSize.sm,
+    color: colors.textPrimary,
+    fontSize: fontSize.md,
     lineHeight: 18,
-    marginLeft: spacing.xxl,
+    marginLeft: spacing.xl,
     marginBottom: spacing.lg,
   },
   card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-    padding: spacing.lg,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.error,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
     ...shadows.sm,
   },
   sectionTitle: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.xl,
     color: colors.textPrimary,
-    marginBottom: spacing.md,
+    marginBottom: spacing.xxl,
   },
   nutritionRow: {
     flexDirection: "row",
+    alignItems: "flex-start",
     justifyContent: "space-between",
-    marginBottom: spacing.md,
   },
-  nutritionItem: {
-    width: "19%",
+  nutrientItem: {
+    flex: 1,
     alignItems: "center",
+    minWidth: 0,
   },
-  smallIconCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+  nutrientTitle: {
+    color: colors.textPrimary,
+    fontSize: fontSize.xl,
+    textAlign: "center",
+    marginTop: spacing.xs,
+  },
+  nutrientSubtitle: {
+    color: colors.textTertiary,
+    fontSize: fontSize.lg,
+    textAlign: "center",
+    marginTop: spacing.xs,
+  },
+  noDataGauge: {
+    width: 70,
+    height: 42,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: spacing.xs,
   },
-  nutritionValue: {
-    color: colors.textPrimary,
-    fontSize: fontSize.xs,
-  },
-  nutritionLabel: {
+  noDataText: {
     color: colors.textTertiary,
-    fontSize: 9,
-    textAlign: "center",
-  },
-  goalGrid: {
-    flexDirection: "row",
-    gap: spacing.sm,
+    fontSize: fontSize.xl,
   },
 });

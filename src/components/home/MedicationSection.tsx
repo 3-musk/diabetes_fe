@@ -1,7 +1,9 @@
+import { SvgIcon } from "@/utils/icon";
 import { FontAwesome } from "@react-native-vector-icons/fontawesome";
 import { Pressable, StyleSheet, View } from "react-native";
-import AppText from "../AppText";
 import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
+import AppText from "../AppText";
+import Button from "../Button";
 import { OutlineAction, SetupCard } from "./Shared";
 import type { MedicationData } from "./types";
 
@@ -24,13 +26,13 @@ export function MedicationSection({ data }: { data: MedicationData[] }) {
           Medications
         </AppText>
         <Pressable style={styles.addCircle}>
-          <FontAwesome name="plus" size={10} color={colors.primaryForeground} />
+          <FontAwesome name="plus" size={15} color={colors.primaryForeground} />
         </Pressable>
       </View>
       {data.map((item) => (
         <View key={item.name} style={styles.medicationItem}>
           <View style={styles.medicationIcon}>
-            <FontAwesome name={item.icon} size={14} color={colors.secondaryForeground} />
+            <SvgIcon source={require('../../../assets/svgs/medication.svg')} size={50}/>
           </View>
           <View style={styles.medicationText}>
             <AppText variant="semibold" style={styles.medicationName}>
@@ -38,7 +40,11 @@ export function MedicationSection({ data }: { data: MedicationData[] }) {
             </AppText>
             <AppText style={styles.timestamp}>{item.dose}</AppText>
           </View>
-          <FontAwesome name="trash-o" size={15} color={colors.textTertiary} />
+          <Button 
+            variant="ghost"
+            onPress={()=>{}}
+            icon={<SvgIcon source={require('../../../assets/svgs/delete.svg')} size={28}/>}
+          />
         </View>
       ))}
     </View>
@@ -48,9 +54,10 @@ export function MedicationSection({ data }: { data: MedicationData[] }) {
 const styles = StyleSheet.create({
   bodyText: {
     color: colors.textSecondary,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.md,
     lineHeight: 18,
     marginBottom: spacing.lg,
+    marginLeft: spacing.xl
   },
   card: {
     backgroundColor: colors.surface,
@@ -66,14 +73,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   sectionTitle: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.xl,
     color: colors.textPrimary,
     marginBottom: spacing.md,
   },
   addCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 30,
+    height:30,
+    borderRadius: borderRadius.full,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.primary,
@@ -84,8 +91,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     backgroundColor: colors.background,
     borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    marginTop: spacing.sm,
+    padding: spacing.lg,
+    marginTop: spacing.lg,
   },
   medicationIcon: {
     width: 36,
@@ -97,13 +104,15 @@ const styles = StyleSheet.create({
   },
   medicationText: {
     flex: 1,
+    gap: 4,
+    marginLeft: 4
   },
   medicationName: {
     color: colors.textPrimary,
-    fontSize: fontSize.md,
+    fontSize: fontSize.lg,
   },
   timestamp: {
     color: colors.textTertiary,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
   },
 });

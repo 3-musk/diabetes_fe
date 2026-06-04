@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { STORAGE_KEYS } from '../constants/storageKeys';
 
 export interface LoginResponse {
   success: boolean;
@@ -160,7 +161,7 @@ export const getUser = async (accessToken: string): Promise<User | null> => {
   let isFirstTimeUser = true;
   let isSubscriptionActive = false;
 
-  const localActive = await AsyncStorage.getItem('isSubscriptionActive');
+  const localActive = await AsyncStorage.getItem(STORAGE_KEYS.isSubscriptionActive);
   const hasLocalActive = localActive === 'true';
 
   if (accessToken.includes('88888')) {

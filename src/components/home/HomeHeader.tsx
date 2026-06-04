@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   headerEyebrow: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.lg,
     color: colors.textPrimary,
   },
   headerName: {

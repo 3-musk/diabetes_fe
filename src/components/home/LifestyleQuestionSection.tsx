@@ -1,7 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, StyleSheet } from "react-native";
-import AppText from "../AppText";
+import { StyleSheet } from "react-native";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
+import AppText from "../AppText";
+import Button from "../Button";
 import type { LifestyleQuestionData } from "./types";
 
 export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData | null }) {
@@ -9,7 +10,7 @@ export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData
 
   return (
     <LinearGradient
-      colors={["#FFD83B", "#FFFFFF"]}
+      colors={["#F7C118", "#FFFFFF"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.questionCard}
@@ -17,12 +18,16 @@ export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData
       <AppText variant="semibold" style={styles.questionTitle}>
         Lifestyle Questions ({data.current}/{data.total})
       </AppText>
-      <AppText style={styles.questionText}>{data.question}</AppText>
-      <Pressable style={styles.primaryPill}>
+      <AppText style={styles.questionText}>
+        {data.question}
+      </AppText>
+      <Button
+        onPress={()=>{}}
+      >
         <AppText variant="semibold" style={styles.primaryPillText}>
           View Lifestyle Questions
         </AppText>
-      </Pressable>
+      </Button>
     </LinearGradient>
   );
 }
@@ -30,28 +35,25 @@ export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData
 const styles = StyleSheet.create({
   questionCard: {
     borderRadius: borderRadius.lg,
+    borderColor: colors.secondary,
+    borderWidth: 1,
     padding: spacing.lg,
+    paddingTop: spacing.xxl,
+    paddingBottom: spacing.xl
   },
   questionTitle: {
     color: colors.textPrimary,
-    fontSize: fontSize.md,
+    fontSize: fontSize.xl,
     marginBottom: spacing.lg,
   },
   questionText: {
     color: colors.textPrimary,
-    fontSize: fontSize.sm,
-    lineHeight: 18,
+    fontSize: fontSize.lg,
+    lineHeight: 20,
     marginBottom: spacing.lg,
-  },
-  primaryPill: {
-    minHeight: 42,
-    borderRadius: borderRadius.full,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.primary,
   },
   primaryPillText: {
     color: colors.primaryForeground,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.lg,
   },
 });
