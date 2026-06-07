@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
-import AppText from "../AppText";
+import AppText from "../ui/AppText";
 
 type GaugeRange = {
   from: number;

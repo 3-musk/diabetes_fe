@@ -1,4 +1,3 @@
-import { loginTexts } from '../constants/loginTexts';
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -16,6 +15,7 @@ import {
 } from 'react-native';
 import { OtpInput } from "react-native-otp-entry";
 import { AppText, Button, Carousel, LoadingSpinner, PhoneInput } from '../components';
+import { loginTexts } from '../constants/login';
 import { ROUTES } from '../constants/routes';
 import { useAuth } from '../context/AuthContext';
 import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
@@ -161,7 +161,7 @@ export default function LoginScreen() {
                                     size="lg"
                                     style={styles.button}
                                     icon={
-                                        <FontAwesome name="arrow-right" size={15} color={colors.primaryForeground} />
+                                        <FontAwesome name="arrow-right" size={15} color={colors.primaryBackground} />
                                     }
                                 />
                             </View>
@@ -232,7 +232,7 @@ export default function LoginScreen() {
                                     loading={isLoading}
                                     style={styles.button}
                                     icon={
-                                        <FontAwesome name="arrow-right" size={15} color={colors.primaryForeground} />
+                                        <FontAwesome name="arrow-right" size={15} color={colors.primaryBackground} />
                                     }
                                 />
                             </View>

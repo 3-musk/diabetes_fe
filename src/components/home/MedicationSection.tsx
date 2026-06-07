@@ -1,20 +1,25 @@
 import { SvgIcon } from "@/utils/icon";
 import { FontAwesome } from "@react-native-vector-icons/fontawesome";
+import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
+import { ROUTES } from "../../constants/routes";
 import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
-import AppText from "../AppText";
-import Button from "../Button";
+import AppText from "../ui/AppText";
+import Button from "../ui/Button";
 import { OutlineAction, SetupCard } from "./Shared";
 import type { MedicationData } from "./types";
 
 export function MedicationSection({ data }: { data: MedicationData[] }) {
+  const router = useRouter();
+  const goToAddMedication = () => router.push(ROUTES.appAddMedication as any);
+
   if (!data.length) {
     return (
       <SetupCard title="Medications">
         <AppText style={styles.bodyText}>
           Add your prescribed medicines to get reminders and stay on track.
         </AppText>
-        <OutlineAction title="Add Medication" />
+        <OutlineAction title="Add Medication" onPress={goToAddMedication} />
       </SetupCard>
     );
   }
@@ -25,7 +30,7 @@ export function MedicationSection({ data }: { data: MedicationData[] }) {
         <AppText variant="semibold" style={styles.sectionTitle}>
           Medications
         </AppText>
-        <Pressable style={styles.addCircle}>
+        <Pressable style={styles.addCircle} onPress={goToAddMedication}>
           <FontAwesome name="plus" size={15} color={colors.primaryForeground} />
         </Pressable>
       </View>

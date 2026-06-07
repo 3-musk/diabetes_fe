@@ -1,8 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet } from "react-native";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
-import AppText from "../AppText";
-import Button from "../Button";
+import AppText from "../ui/AppText";
+import Button from "../ui/Button";
 import type { LifestyleQuestionData } from "./types";
 
 export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData | null }) {

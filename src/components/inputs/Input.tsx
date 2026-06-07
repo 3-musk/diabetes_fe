@@ -11,8 +11,8 @@ import {
   colors,
   fontSize,
   spacing
-} from '../theme';
-import AppText from './AppText';
+} from '../../theme';
+import AppText from '../ui/AppText';
 
 interface InputProps extends TextInputProps {
   label?: string;

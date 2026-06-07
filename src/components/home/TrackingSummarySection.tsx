@@ -1,7 +1,9 @@
 import { SvgIcon } from "@/utils/icon";
-import { StyleSheet, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Pressable, StyleSheet, View } from "react-native";
+import { ROUTES } from "../../constants/routes";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
-import AppText from "../AppText";
+import AppText from "../ui/AppText";
 
 type TrackingSummarySectionProps = {
   meals?: Record<string, number>;
@@ -14,6 +16,7 @@ type TrackingTileProps = {
   icon: React.ReactNode;
   title: string;
   subtitle: string;
+  onPress?: () => void;
 };
 
 export function TrackingSummarySection({
@@ -21,6 +24,8 @@ export function TrackingSummarySection({
   weightKg,
   activityMinutes,
 }: TrackingSummarySectionProps) {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
       <TrackingTile
@@ -35,39 +40,36 @@ export function TrackingSummarySection({
         icon={<SvgIcon source={require("../../../assets/svgs/weight.svg")} size={60} />}
         title={weightKg ? `${weightKg?.current ?? 0}kg / ${weightKg?.target ?? 0}kg` : 'Log Weight'}
         subtitle={weightKg ? 'Log Weight' : ''}
+        onPress={() => router.push(ROUTES.appWeightTracker as any)}
       />
 
       <TrackingTile
         accentColor={colors.success}
         icon={<SvgIcon source={require("../../../assets/svgs/activity.svg")} size={60} />}
-        title={activityMinutes ? `${activityMinutes ?? 0} mins` : "Log Activity" }
+        title={activityMinutes ? `${activityMinutes ?? 0} mins` : "Log Activity"}
         subtitle={activityMinutes ? "Log Activities" : ''}
+        onPress={() => router.push(ROUTES.appActivityTracker as any)}
       />
     </View>
   );
 }
 
-function TrackingTile({ accentColor, icon, title, subtitle }: TrackingTileProps) {
+function TrackingTile({ accentColor, icon, title, subtitle, onPress }: TrackingTileProps) {
   return (
-    <View 
+    <Pressable
       style={[
-        styles.tile, 
-        { 
+        styles.tile,
+        {
           borderTopColor: accentColor,
           borderTopWidth: 6,
-        }
+        },
       ]}
+      onPress={onPress}
     >
-      <View>
-        {icon}
-      </View>
-      <AppText variant="medium" style={styles.tileTitle}>
-        {title}
-      </AppText>
-      <AppText variant="medium" style={styles.tileSubtitle}>
-        {subtitle}
-      </AppText>
-    </View>
+      <View>{icon}</View>
+      <AppText variant="medium" style={styles.tileTitle}>{title}</AppText>
+      <AppText variant="medium" style={styles.tileSubtitle}>{subtitle}</AppText>
+    </Pressable>
   );
 }
 
@@ -86,7 +88,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.sm,
-    // Shadow
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,

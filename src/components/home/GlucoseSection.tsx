@@ -1,3 +1,5 @@
+import { ROUTES } from "@/constants/routes";
+import { useRouter } from "expo-router";
 import { Dimensions, StyleSheet, View } from "react-native";
 import {
   GLUCOSE_GAUGE_RANGE,
@@ -6,22 +8,25 @@ import {
   GLUCOSE_STRINGS,
 } from "../../constants/glucoseConfig";
 import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
-import AppText from "../AppText";
-import Button from "../Button";
-import GlucoseGauge from "../common/GlucoseGauge";
+import AppText from "../ui/AppText";
+import Button from "../ui/Button";
+import GlucoseGauge from "../features/GlucoseGauge";
 import { Metric, OutlineAction, SetupCard } from "./Shared";
 import type { GlucoseReading } from "./types";
 
 const { width } = Dimensions.get('window');
 
 export function GlucoseSection({ data }: { data: GlucoseReading | null }) {
+  const router = useRouter();
+  const logGlucose = () => router.push(ROUTES.appLogGlucose as any);
+
   if (!data) {
     return (
       <SetupCard title={GLUCOSE_STRINGS.sectionTitle}>
         <AppText style={styles.mutedText}>
           {GLUCOSE_STRINGS.emptyBody}
         </AppText>
-        <OutlineAction title={GLUCOSE_STRINGS.emptyAction} />
+        <OutlineAction title={GLUCOSE_STRINGS.emptyAction} onPress={logGlucose}/>
       </SetupCard>
     );
   }
@@ -47,7 +52,7 @@ export function GlucoseSection({ data }: { data: GlucoseReading | null }) {
       <AppText style={styles.timestamp}>
         {GLUCOSE_STRINGS.lastLogPrefix}{new Date(data.timestamp).toLocaleString()}
       </AppText>
-      <Button style={styles.logButton} onPress={() => {}}>
+      <Button style={styles.logButton} onPress={logGlucose} >
         <AppText variant="semibold" style={styles.logButtonText}>
           {GLUCOSE_STRINGS.logButton}
         </AppText>

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
-import { subscriptionTexts } from '../constants/subscriptionTexts';
+import { subscriptionTexts } from '../constants/subscription';
 
 import {
   AppText,

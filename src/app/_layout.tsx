@@ -3,7 +3,11 @@ import { Stack, usePathname, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { APP_PATHS, ROUTES } from "../constants/routes";
+import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from "../context/AuthContext";
+
+// Prevent splash screen from hiding automatically
+SplashScreen.preventAutoHideAsync();
 
 function AuthRouter({ children }: { children: React.ReactNode }) {
   const { isLoggedIn, isLoading, isNewUser, isFirstTimeUser, isSubscriptionActive, hasDismissedSubscription } = useAuth();
@@ -19,6 +23,9 @@ function AuthRouter({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isLoading || !loaded) return;
+
+    // Hide splash screen once fonts and auth state are loaded
+    SplashScreen.hideAsync();
 
     // Auth flow routing logic
     if (!isLoggedIn) {

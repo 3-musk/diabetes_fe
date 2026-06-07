@@ -74,8 +74,15 @@ export default function AppLayout() {
                     ),
                 }}
             />
-            <Tabs.Screen name="profile"  options={{ href: null }} />
-            <Tabs.Screen name="settings" options={{ href: null }} />
+            <Tabs.Screen name="profile"        options={{ href: null }} />
+            <Tabs.Screen name="settings"       options={{ href: null }} />
+            <Tabs.Screen name="log-glucose"    options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="hba1c-tracker"  options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="weight-tracker" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="add-medication"      options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="lifestyle-questions" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="reminders"            options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="activity-tracker"     options={{ href: null, tabBarStyle: { display: 'none' } }} />
         </Tabs>
     );
 }

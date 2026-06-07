@@ -9,8 +9,8 @@ import {
     fontSize,
     fontWeight,
     spacing,
-} from '../theme';
-import AppText from './AppText';
+} from '../../theme';
+import AppText from '../ui/AppText';
 
 interface SegmentedControlProps {
     value: string;

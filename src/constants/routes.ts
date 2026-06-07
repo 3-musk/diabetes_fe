@@ -4,9 +4,16 @@ export const ROUTES = {
   register: "/register",
   subscription: "/subscription",
   payment: "/payment",
-  appHome: "/(app)/home",
-  appProfile: "/(app)/profile",
-  appSettings: "/(app)/settings",
+  appHome:           "/(app)/home",
+  appProfile:        "/(app)/profile",
+  appSettings:       "/(app)/settings",
+  appLogGlucose:     "/log-glucose",
+  appHba1cTracker:   "/hba1c-tracker",
+  appWeightTracker:  "/weight-tracker",
+  appAddMedication:    "/add-medication",
+  appLifestyleQuestions: "/lifestyle-questions",
+  appReminders: "/reminders",
+  appActivityTracker: "/activity-tracker",
 } as const;
 
 export const APP_PATHS = [
@@ -17,4 +24,11 @@ export const APP_PATHS = [
   "/more",
   "/profile",
   "/settings",
+  "/log-glucose",
+  "/hba1c-tracker",
+  "/weight-tracker",
+  "/add-medication",
+  "/lifestyle-questions",
+  "/reminders",
+  "/activity-tracker",
 ] as const;

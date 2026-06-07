@@ -1,10 +1,14 @@
+import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from "react-native";
 import { HBA1C_COLORS, HBA1C_STRINGS } from "../../constants/hba1cConfig";
+import { ROUTES } from "../../constants/routes";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
-import AppText from "../AppText";
+import AppText from "../ui/AppText";
 import type { Hba1cData } from "./types";
 
 export function Hba1cSection({ data }: { data: Hba1cData | null }) {
+  const router = useRouter();
+  const goToTracker = () => router.push(ROUTES.appHba1cTracker as any);
   if (!data) {
     return (
       <>
@@ -15,7 +19,7 @@ export function Hba1cSection({ data }: { data: Hba1cData | null }) {
           <AppText style={styles.hba1cIntroText}>
             {HBA1C_STRINGS.introBody}
           </AppText>
-          <Pressable style={styles.goldButton}>
+          <Pressable style={styles.goldButton} onPress={goToTracker}>
             <AppText variant="semibold" style={styles.goldButtonText}>
               {HBA1C_STRINGS.introAction}
             </AppText>
@@ -32,7 +36,7 @@ export function Hba1cSection({ data }: { data: Hba1cData | null }) {
   });
 
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={goToTracker}>
       <View style={styles.sectionHeaderRow}>
         <AppText variant="semibold" style={styles.sectionTitle}>
           {HBA1C_STRINGS.sectionTitle}
@@ -51,7 +55,7 @@ export function Hba1cSection({ data }: { data: Hba1cData | null }) {
           </AppText>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

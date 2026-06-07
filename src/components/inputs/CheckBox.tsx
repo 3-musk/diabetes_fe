@@ -5,8 +5,8 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { colors, fontSize, fontWeight, spacing } from '../theme';
-import AppText from './AppText';
+import { colors, fontSize, fontWeight, spacing } from '../../theme';
+import AppText from '../ui/AppText';
 
 interface CheckboxProps {
     checked: boolean;
@@ -41,7 +41,7 @@ export default function Checkbox({
                     checked && styles.checkboxChecked,
                 ]}
             >
-                {checked && <FontAwesome name="check" size={20} color={colors.primaryForeground} />}
+                {checked && <FontAwesome name="check" size={20} color={colors.primaryBackground} />}
             </View>
 
             <View style={styles.content}>

@@ -9,8 +9,9 @@ import {
   colors,
   fontSize,
   spacing,
-} from '../theme';
-import AppText from './AppText';
+} from '../../theme';
+import AppText from '../ui/AppText';
+import { RoundCheckBox } from '../inputs/RoundCheckBox';
 
 interface PlanCardProps {
   name: string;
@@ -46,13 +47,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           {name}
         </AppText>
 
-        {isSelected && (
-          <View style={styles.selectedIcon}>
-            <AppText style={styles.selectedText}>
-              ✓
-            </AppText>
-          </View>
-        )}
+        <RoundCheckBox selected={isSelected} />
       </View>
 
       <View style={styles.priceContainer}>
@@ -124,7 +119,7 @@ const styles = StyleSheet.create({
   },
 
   selectedText: {
-    color: colors.primaryForeground,
+    color: colors.primaryBackground,
     fontSize: 10,
   },
 

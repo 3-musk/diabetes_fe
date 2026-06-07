@@ -1,8 +1,8 @@
-import SegmentedControl from '@/components/SegmentedControl';
+import { SegmentedControl } from '../components';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Dimensions, ScrollView, StyleSheet, View } from 'react-native';
-import { registerTexts } from '../constants/registerTexts';
+import { registerTexts } from '../constants/register';
 import { AppText, Button, Card, Checkbox, DateInput, Input, LoadingSpinner } from '../components';
 import { ROUTES } from '../constants/routes';
 import { useAuth } from '../context/AuthContext';

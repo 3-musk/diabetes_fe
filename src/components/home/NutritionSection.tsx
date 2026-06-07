@@ -7,7 +7,7 @@ import {
   NUTRITION_STRINGS,
 } from "../../constants/nutritionConfig";
 import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
-import AppText from "../AppText";
+import AppText from "../ui/AppText";
 import { OutlineAction, SetupCard } from "./Shared";
 import type { NutritionData, NutritionRange } from "./types";
 

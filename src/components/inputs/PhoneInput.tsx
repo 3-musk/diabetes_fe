@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
-import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
-import AppText from './AppText';
+import { borderRadius, colors, fontSize, fontWeight, spacing } from '../../theme';
+import AppText from '../ui/AppText';
 
 interface PhoneInputProps extends TextInputProps {
   label?: string;

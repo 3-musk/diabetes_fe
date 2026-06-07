@@ -2,9 +2,10 @@ import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { useRouter } from 'expo-router';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText } from '../../components';
+import { AppText, BackButton } from '../../components';
 import { useAuth } from '../../context/AuthContext';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
+import { more as MORECONSTANTS } from '../../constants/more';
 
 type MenuItem = {
   id: string;
@@ -20,10 +21,10 @@ export default function More() {
   const insets = useSafeAreaInsets();
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(MORECONSTANTS.logoutAlertTitle, MORECONSTANTS.logoutAlertMessage, [
+      { text: MORECONSTANTS.cancelBtn, style: 'cancel' },
       {
-        text: 'Logout',
+        text: MORECONSTANTS.logoutBtn,
         style: 'destructive',
         onPress: async () => {
           await logout();
@@ -35,21 +36,21 @@ export default function More() {
   const menuItems: MenuItem[] = [
     {
       id: 'profile',
-      label: 'User Profile',
+      label: MORECONSTANTS.menuUserProfile,
       icon: 'user-circle-o',
       iconBg: colors.secondary,
       onPress: () => router.push('/(app)/profile'),
     },
     {
       id: 'notifications',
-      label: 'Push Notifications',
+      label: MORECONSTANTS.menuPushNotifications,
       icon: 'bell-o',
       iconBg: colors.secondary,
       onPress: () => router.push('/(app)/settings'),
     },
     {
       id: 'logout',
-      label: 'Logout',
+      label: MORECONSTANTS.logoutBtn,
       icon: 'sign-out',
       iconBg: colors.primary,
       onPress: handleLogout,
@@ -62,10 +63,8 @@ export default function More() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <FontAwesome name="arrow-left" size={16} color={colors.primaryForeground} />
-        </Pressable>
-        <AppText variant="semibold" style={styles.headerTitle}>Profile</AppText>
+        <BackButton />
+        <AppText variant="semibold" style={styles.headerTitle}>{MORECONSTANTS.pageTitle}</AppText>
       </View>
 
       <ScrollView
@@ -123,14 +122,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     gap: spacing.md,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: fontSize.xl,

@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 4,
     },
     activeDot: {
-        backgroundColor: colors.primaryForeground,
+        backgroundColor: colors.primaryBackground,
     },
 });
 

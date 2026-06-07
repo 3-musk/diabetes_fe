@@ -2,7 +2,7 @@ import { FontAwesome } from "@react-native-vector-icons/fontawesome";
 import type React from "react";
 import { Pressable, View } from "react-native";
 import { colors } from "../../theme";
-import AppText from "../AppText";
+import AppText from "../ui/AppText";
 import { homeStyles as styles } from "./styles";
 import type { GoalChipData, IconName } from "./types";
 
@@ -21,9 +21,9 @@ export function SetupCard({ title, children }: { title: string; children: React.
   );
 }
 
-export function OutlineAction({ title }: { title: string }) {
+export function OutlineAction({ title, onPress }: { title: string, onPress?: () => void }) {
   return (
-    <Pressable style={styles.outlineButton}>
+    <Pressable style={styles.outlineButton} onPress={onPress}>
       <AppText variant="semibold" style={styles.outlineButtonText}>
         {title}
       </AppText>

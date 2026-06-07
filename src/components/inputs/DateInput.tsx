@@ -2,7 +2,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import React, { useState } from 'react';
 import { Platform, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { colors } from '../theme';
+import { colors } from '../../theme';
 import { Input } from './Input';
 
 interface DateInputProps {
@@ -12,6 +12,7 @@ interface DateInputProps {
   containerStyle?: ViewStyle;
   required?: boolean;
   error?: string;
+  placeholder?: string;
   mode?: 'date' | 'time' | 'datetime' | 'countdown';
   display?: 'default' | 'spinner' | 'calendar';
   dateFormat?: 'full' | 'yy/mm/dd' | 'yy/mm' | 'mm/dd' | 'year' | ((date: Date) => string);
@@ -28,6 +29,7 @@ const DateInput: React.FC<DateInputProps> = ({
   mode = 'date',
   display = 'default',
   dateFormat = 'full',
+  placeholder = undefined,
   ...rest
 }) => {
   const [showPicker, setShowPicker] = useState(false);
@@ -79,6 +81,7 @@ const DateInput: React.FC<DateInputProps> = ({
           required={required}
           error={error}
           editable={false}
+          placeholder={placeholder}
           rightIcon={<FontAwesome name="calendar" size={20} color={colors.textLight} />}
           {...rest}
         />
@@ -89,7 +92,7 @@ const DateInput: React.FC<DateInputProps> = ({
           value={value || new Date()}
           mode={mode}
           display={display}
-          onChange={handleChange}
+          onValueChange={handleChange}
         />
       )}
     </View>

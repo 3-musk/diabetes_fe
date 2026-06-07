@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, StyleSheet, TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
-import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
+import { borderRadius, colors, fontSize, fontWeight, spacing } from '../../theme';
 import AppText from './AppText';
 
 interface ButtonProps {
@@ -72,7 +72,7 @@ export const Button: React.FC<ButtonProps> = ({
       case 'primary':
         return {
           ...baseTextStyle,
-          color: colors.primaryForeground,
+          color: colors.primaryBackground,
         };
       case 'secondary':
         return {
@@ -105,7 +105,7 @@ export const Button: React.FC<ButtonProps> = ({
               children
             ) : (
               <>
-                <AppText style={[getTextStyle(), textStyle]}>
+                <AppText variant='semibold' style={[getTextStyle(), textStyle]}>
                   {title}
                 </AppText>
                 {icon}
