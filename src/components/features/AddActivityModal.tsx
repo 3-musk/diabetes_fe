@@ -10,8 +10,10 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, Button, Input } from '..';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
+import Input from '../inputs/Input';
+import AppText from '../ui/AppText';
+import Button from '../ui/Button';
 
 export type NewActivityData = {
   exerciseType: string;
