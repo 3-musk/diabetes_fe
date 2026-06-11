@@ -1,5 +1,5 @@
+import { SvgIcon } from '@/utils/icon';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import React, { useState } from 'react';
 import { Platform, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { colors } from '../../theme';
@@ -82,7 +82,13 @@ const DateInput: React.FC<DateInputProps> = ({
           error={error}
           editable={false}
           placeholder={placeholder}
-          rightIcon={<FontAwesome name="calendar" size={20} color={colors.textLight} />}
+          rightIcon={
+            <SvgIcon 
+              source={require('../../../assets/svgs/calender.svg')} 
+              size={20} 
+              color={colors.primaryForeground}
+            />
+          }
           {...rest}
         />
       </TouchableOpacity>

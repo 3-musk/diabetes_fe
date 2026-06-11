@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddActivityModal, AppText, BackButton, Button, DateStrip, NewActivityData, RoundCheckBox } from '../../components';
-import { Activity, addActivity, fetchActivities } from '../../services/activityService';
+import { Activity, addActivity, fetchActivities, saveCompletedActivity } from '../../services/activityService';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
 
 const ACTIVITY_SVG_MAP: Record<string, any> = {
@@ -46,8 +46,8 @@ export default function ActivityTracker() {
   const handleSaveActivity = async () => {
     if (!selectedActivityId) return;
     setSubmitting(true);
-    // Simulate saving the selected activity reading to backend
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const dateKey = selectedDate.toISOString().split('T')[0];
+    await saveCompletedActivity(dateKey, selectedActivityId);
     setSubmitting(false);
     router.back();
   };

@@ -1,4 +1,5 @@
 // Care Plan API service
+import { lifestyleAnswers } from "../constants/mockDb";
 
 export type CarePlanStatus = 'active' | 'pending' | null;
 
@@ -29,26 +30,37 @@ export type LifestyleQuestionsStatus = {
 
 // ─── API stubs (replace with real HTTP calls) ─────────────────────────────────
 
+export let mockCarePlanGenerated = false;
+export const markCarePlanGenerated = () => { mockCarePlanGenerated = true; };
+
+export let mockProfileComplete = false;
+export const markProfileComplete = () => { mockProfileComplete = true; };
+
 /** Fetch the user's care plan. Returns null if none exists. */
 export const getCarePlan = async (accessToken: string): Promise<CarePlan | null> => {
   await new Promise(r => setTimeout(r, 800));
 
-  // TODO: GET /api/care-plan
-  // return actual care plan data from API
-  return null;
+  if (!mockCarePlanGenerated) return null;
+
+  return {
+    id: 'plan_1',
+    status: 'active',
+  };
 };
 
 export const getProfileCompletion = async (token: string): Promise<ProfileCompletion> => {
   await new Promise(r => setTimeout(r, 800));
   return {
-    isComplete: true, // we set to true for now so we can test the other flows, or false if testing popup
-    missingFields: [],
+    isComplete: mockProfileComplete,
+    missingFields: mockProfileComplete ? [] : ['BMI'],
   };
 };
 
 
+
 export const submitLifestyleAnswers = async (token: string, answers: Record<string, string[]>) => {
   await new Promise(r => setTimeout(r, 800));
+  Object.assign(lifestyleAnswers, answers);
   return { success: true };
 };
 
@@ -58,11 +70,13 @@ export const getLifestyleQuestionsStatus = async (
 ): Promise<LifestyleQuestionsStatus> => {
   await new Promise(r => setTimeout(r, 400));
 
-  // TODO: GET /api/lifestyle-questions/status
+  const totalQuestions = 5;
+  const answeredCount = Object.keys(lifestyleAnswers).length;
+
   return {
-    answered: false,
-    totalAnswered: 0,
-    totalQuestions: 10,
+    answered: answeredCount >= totalQuestions,
+    totalAnswered: answeredCount,
+    totalQuestions: totalQuestions,
   };
 };
 

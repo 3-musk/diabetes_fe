@@ -3,9 +3,9 @@ import { useRouter } from 'expo-router';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText, BackButton } from '../../components';
+import { more as MORECONSTANTS } from '../../constants/more';
 import { useAuth } from '../../context/AuthContext';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
-import { more as MORECONSTANTS } from '../../constants/more';
 
 type MenuItem = {
   id: string;
@@ -39,7 +39,7 @@ export default function More() {
       label: MORECONSTANTS.menuUserProfile,
       icon: 'user-circle-o',
       iconBg: colors.secondary,
-      onPress: () => router.push('/(app)/profile'),
+      onPress: () => router.push('/profile'),
     },
     {
       id: 'notifications',
@@ -63,8 +63,7 @@ export default function More() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <BackButton />
-        <AppText variant="semibold" style={styles.headerTitle}>{MORECONSTANTS.pageTitle}</AppText>
+        <BackButton color={colors.primaryBackground}/>
       </View>
 
       <ScrollView

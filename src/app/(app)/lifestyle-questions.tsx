@@ -1,17 +1,16 @@
-import { FontAwesome } from '@react-native-vector-icons/fontawesome';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SvgIcon } from '@/utils/icon';
+import { AppText, BackButton, Button } from '../../components';
+import { lifestyleQuestions as LIFESTYLEQUESTIONSCONSTANTS } from '../../constants/lifestyleQuestions';
 import { useAuth } from '../../context/AuthContext';
 import { getLifestyleQuestions, submitLifestyleAnswers, type CarePlanQuestion } from '../../services/carePlanService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
-import { AppText, BackButton, Button } from '../../components';
-import { lifestyleQuestions as LIFESTYLEQUESTIONSCONSTANTS } from '../../constants/lifestyleQuestions';
 
 export default function LifestyleQuestions() {
   const router  = useRouter();
+  const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const insets  = useSafeAreaInsets();
   const { accessToken } = useAuth();
 
@@ -65,7 +64,11 @@ export default function LifestyleQuestions() {
     setSubmitting(true);
     await submitLifestyleAnswers(accessToken ?? '', answers);
     setSubmitting(false);
-    router.back();
+    if (returnTo) {
+      router.navigate(returnTo as any);
+    } else {
+      router.back();
+    }
   };
 
   const progress = ((current + 1) / total) * 100;
@@ -74,72 +77,61 @@ export default function LifestyleQuestions() {
     <SafeAreaView style={s.safe} edges={['top']}>
       {/* Header */}
       <View style={s.header}>
-        <BackButton />
+        <BackButton color={colors.primaryBackground}/>
         <AppText variant="semibold" style={s.headerTitle}>{LIFESTYLEQUESTIONSCONSTANTS.pageTitle}</AppText>
-        {/* Notification-like icon */}
-        <View style={s.headerActions}>
-          <View style={s.headerIcon}>
-            <SvgIcon source={require('../../../assets/svgs/medication_reminder.svg')} size={46} />
-          </View>
-          <View style={s.headerIcon}>
-            <SvgIcon source={require('../../../assets/svgs/notification.svg')} size={46} />
-          </View>
-        </View>
-      </View>
-
-      {/* Progress bar */}
-      <View style={s.progressTrack}>
-        <View style={[s.progressFill, { width: `${progress}%` }]} />
       </View>
 
       <ScrollView
-        contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 40 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Question number */}
-        <AppText style={s.questionNum}>{current + 1}/{total}</AppText>
-        <AppText variant="semibold" style={s.questionText}>{q.question}</AppText>
+        <View style={s.card}>
+          {/* Question number */}
+          <AppText style={s.questionNum}>{current + 1}/{total}</AppText>
+          <AppText variant="semibold" style={s.questionText}>{q.question}</AppText>
 
-        {/* Options */}
-        <View style={s.options}>
-          {q.options.map(option => {
-            const isSelected = selected.includes(option);
-            return (
-              <Pressable
-                key={option}
-                style={[s.option, isSelected && s.optionSelected]}
-                onPress={() => toggleOption(option)}
-              >
-                <View style={[s.radio, isSelected && s.radioSelected]}>
-                  {isSelected && <View style={s.radioInner} />}
-                </View>
-                <AppText style={[s.optionText, isSelected && s.optionTextSelected]}>
-                  {option}
-                </AppText>
-              </Pressable>
-            );
-          })}
+          {/* Options */}
+          <View style={s.options}>
+            {q.options.map(option => {
+              const isSelected = selected.includes(option);
+              return (
+                <Pressable
+                  key={option}
+                  style={s.option}
+                  onPress={() => toggleOption(option)}
+                >
+                  <View style={[s.radio, isSelected && s.radioSelected]}>
+                    {isSelected && <View style={s.radioInner} />}
+                  </View>
+                  <AppText style={s.optionText}>
+                    {option}
+                  </AppText>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Footer nav inside card */}
+          <View style={s.footer}>
+            {current > 0 ? (
+              <Button
+                variant="outline"
+                title={LIFESTYLEQUESTIONSCONSTANTS.previousBtn}
+                onPress={() => setCurrent(c => Math.max(0, c - 1))}
+                style={s.navBtn}
+              />
+            ) : <View style={{ flex: 1 }} />}
+            <Button
+              variant="primary"
+              title={current === total - 1 ? LIFESTYLEQUESTIONSCONSTANTS.submitBtn : LIFESTYLEQUESTIONSCONSTANTS.nextBtn}
+              onPress={handleNext}
+              disabled={!canGoNext || submitting}
+              loading={submitting}
+              style={s.navBtn}
+            />
+          </View>
         </View>
       </ScrollView>
-
-      {/* Footer nav */}
-      <View style={[s.footer, { paddingBottom: insets.bottom + spacing.md }]}>
-        <Button
-          variant="outline"
-          title={LIFESTYLEQUESTIONSCONSTANTS.previousBtn}
-          onPress={() => setCurrent(c => Math.max(0, c - 1))}
-          disabled={current === 0}
-          style={s.navBtn}
-        />
-        <Button
-          variant="primary"
-          title={current === total - 1 ? LIFESTYLEQUESTIONSCONSTANTS.submitBtn : LIFESTYLEQUESTIONSCONSTANTS.nextBtn}
-          onPress={handleNext}
-          disabled={!canGoNext || submitting}
-          loading={submitting}
-          style={s.navBtn}
-        />
-      </View>
     </SafeAreaView>
   );
 }
@@ -159,39 +151,34 @@ const s = StyleSheet.create({
     backgroundColor: colors.secondary,
     alignItems: 'center', justifyContent: 'center',
   },
-  progressTrack: {
-    height: 4, backgroundColor: colors.border,
-    marginHorizontal: spacing.lg, borderRadius: 2, marginBottom: spacing.lg,
-  },
-  progressFill: {
-    height: 4, backgroundColor: colors.primary, borderRadius: 2,
-  },
   scroll: { paddingHorizontal: spacing.lg },
-  questionNum: { fontSize: fontSize.sm, color: colors.textTertiary, marginBottom: spacing.sm },
-  questionText: { fontSize: fontSize.lg, color: colors.textPrimary, lineHeight: 24, marginBottom: spacing.xl },
-  options: { gap: spacing.sm },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#72C2E9', // from the dashed border mockup, keeping it solid or standard light blue
+    padding: spacing.xl,
+    ...shadows.sm,
+    marginTop: spacing.md,
+  },
+  questionNum: { fontSize: fontSize.md, color: colors.textTertiary, marginBottom: spacing.sm },
+  questionText: { fontSize: fontSize.xl, color: colors.textPrimary, lineHeight: 28, marginBottom: spacing.xxl },
+  options: { gap: spacing.lg, marginBottom: spacing.xxl },
   option: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg, borderWidth: 1, borderColor: colors.border,
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    ...shadows.sm,
+    paddingVertical: spacing.xs,
   },
-  optionSelected: { borderColor: colors.primary, backgroundColor: '#FFF5F2' },
   radio: {
-    width: 20, height: 20, borderRadius: 10, borderWidth: 2,
-    borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
+    width: 22, height: 22, borderRadius: 11, borderWidth: 1,
+    borderColor: '#A16A54', alignItems: 'center', justifyContent: 'center', // brownish border from mockup
   },
   radioSelected: { borderColor: colors.primary },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
-  optionText: { fontSize: fontSize.md, color: colors.textPrimary, flex: 1 },
-  optionTextSelected: { color: colors.primary, fontWeight: '600' },
+  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.primary },
+  optionText: { fontSize: fontSize.md, color: colors.textSecondary, flex: 1 },
   footer: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
     flexDirection: 'row', gap: spacing.md,
-    paddingHorizontal: spacing.lg, paddingTop: spacing.md,
-    backgroundColor: colors.background,
-    borderTopWidth: 1, borderTopColor: colors.border,
+    paddingTop: spacing.lg,
   },
   navBtn: {
     flex: 1, borderRadius: borderRadius.full,

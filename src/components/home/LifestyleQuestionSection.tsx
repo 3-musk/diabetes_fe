@@ -3,9 +3,13 @@ import { StyleSheet } from "react-native";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
 import AppText from "../ui/AppText";
 import Button from "../ui/Button";
+import { useRouter } from "expo-router";
+import { ROUTES } from "../../constants/routes";
 import type { LifestyleQuestionData } from "./types";
 
 export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData | null }) {
+  const router = useRouter();
+
   if (!data) return null;
 
   return (
@@ -16,16 +20,16 @@ export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData
       style={styles.questionCard}
     >
       <AppText variant="semibold" style={styles.questionTitle}>
-        Lifestyle Questions ({data.current}/{data.total})
+        {data.isCompleted ? "Lifestyle Questions Answered" : `Lifestyle Questions (${data.current}/${data.total})`}
       </AppText>
       <AppText style={styles.questionText}>
         {data.question}
       </AppText>
       <Button
-        onPress={()=>{}}
+        onPress={() => router.push(ROUTES.appLifestyleQuestions as any)}
       >
         <AppText variant="semibold" style={styles.primaryPillText}>
-          View Lifestyle Questions
+          {data.isCompleted ? "View Answers" : "View Lifestyle Questions"}
         </AppText>
       </Button>
     </LinearGradient>
@@ -53,7 +57,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   primaryPillText: {
-    color: colors.primaryForeground,
+    color: colors.primaryBackground,
     fontSize: fontSize.lg,
   },
 });

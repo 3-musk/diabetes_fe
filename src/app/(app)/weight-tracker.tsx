@@ -20,11 +20,9 @@ import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type TimeFilter = '7 Days' | '1 Month' | '6 Months' | '1 Year' | 'Custom';
+import { TIME_FILTERS } from '../../constants/uiConstants';
 
-// ─── Config ───────────────────────────────────────────────────────────────────
-
-const TIME_FILTERS: TimeFilter[] = ['7 Days', '1 Month', '6 Months', '1 Year', 'Custom'];
+type TimeFilter = typeof TIME_FILTERS[number];
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 

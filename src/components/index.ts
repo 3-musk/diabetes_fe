@@ -22,3 +22,7 @@ export { default as GlucoseGauge } from "./features/GlucoseGauge";
 export { GlucoseEscalationModal, NextStepsData } from "./features/GlucoseEscalationModal";
 export { AddActivityModal, NewActivityData } from "./features/AddActivityModal";
 export { DateStrip } from "./ui/DateStrip";
+export { AppModal } from "./ui/AppModal";
+export { PillTabs } from "./ui/PillTabs";
+export { LineChart } from "./ui/LineChart";
+export { TrendChartCard } from "./features/TrendChartCard";

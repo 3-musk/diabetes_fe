@@ -1,5 +1,4 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
-import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -17,7 +16,6 @@ import { deleteReminder, getReminders, saveReminder } from '../../services/remin
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
 
 export default function RemindersScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
@@ -108,7 +106,7 @@ export default function RemindersScreen() {
     <SafeAreaView style={s.safe} edges={['top']}>
       {/* Header */}
       <View style={s.header}>
-        <BackButton />
+        <BackButton color={colors.primaryBackground} />
         <AppText variant="semibold" style={s.headerTitle}>{REMINDERSCONSTANTS.pageTitle}</AppText>
       </View>
 
@@ -160,7 +158,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
-    backgroundColor: colors.surface,
+    gap: spacing.md
   },
   headerTitle: { fontSize: fontSize.lg, color: colors.textPrimary },
   listContent: {

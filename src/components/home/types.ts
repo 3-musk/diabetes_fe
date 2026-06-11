@@ -60,15 +60,19 @@ export type Hba1cData = {
 };
 
 export type MedicationData = {
+  id: string;
   name: string;
   dose: string;
   icon: IconName;
+  isSystemGenerated?: boolean;
+  isTaken?: boolean;
 };
 
 export type LifestyleQuestionData = {
   current: number;
   total: number;
   question: string;
+  isCompleted?: boolean;
 };
 
 export type HomeDashboardData = {

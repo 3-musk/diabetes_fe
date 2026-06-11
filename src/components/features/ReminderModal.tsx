@@ -1,9 +1,6 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,22 +8,21 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
+import { borderRadius, colors, fontSize, spacing } from '../../theme';
+import { AppModal } from '../ui/AppModal';
 import AppText from '../ui/AppText';
+import { Button } from '../ui/Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type FrequencyType = 'Only Once' | 'Daily' | 'Custom';
+import { FREQUENCIES, DAYS_OF_WEEK, PERIODS } from '../../constants/uiConstants';
 
-const FREQUENCIES: FrequencyType[] = ['Only Once', 'Daily', 'Custom'];
-
-const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+type FrequencyType = typeof FREQUENCIES[number];
 
 // ─── Drum-roll picker helpers ─────────────────────────────────────────────────
 
 const HOURS   = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
-const PERIODS = ['AM', 'PM'];
 
 const ITEM_H = 44;
 
@@ -220,117 +216,92 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
     : 'No days selected';
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <Pressable style={s.overlay} onPress={onClose}>
-          <Pressable style={[s.sheet, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
-            {/* Handle */}
-          <View style={s.handle} />
+    <AppModal visible={visible} onClose={onClose} closeOnOverlayPress={true}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[s.scrollContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}
+      >
+        <AppText variant="semibold" style={s.sheetTitle}>Reminder</AppText>
 
-          <AppText variant="semibold" style={s.sheetTitle}>Reminder</AppText>
+        {/* Title */}
+        <AppText variant='medium' style={s.label}>
+          Title <AppText style={s.required}>*</AppText>
+        </AppText>
+        <TextInput
+          style={s.input}
+          placeholder="Enter Title"
+          placeholderTextColor={colors.textTertiary}
+          value={title}
+          onChangeText={setTitle}
+        />
 
-          {/* Title */}
-          <AppText style={s.label}>
-            Title <AppText style={s.required}>*</AppText>
-          </AppText>
-          <TextInput
-            style={s.input}
-            placeholder="Enter Title"
-            placeholderTextColor={colors.textTertiary}
-            value={title}
-            onChangeText={setTitle}
-          />
+        {/* Frequency tabs */}
+        <View style={s.freqRow}>
+          {FREQUENCIES.map(f => (
+            <Pressable
+              key={f}
+              style={[s.freqChip, frequency === f && s.freqChipActive]}
+              onPress={() => setFrequency(f)}
+            >
+              <AppText style={[s.freqText, frequency === f && s.freqTextActive]}>
+                {f}
+              </AppText>
+            </Pressable>
+          ))}
+        </View>
 
-          {/* Frequency tabs */}
-          <View style={s.freqRow}>
-            {FREQUENCIES.map(f => (
-              <Pressable
-                key={f}
-                style={[s.freqChip, frequency === f && s.freqChipActive]}
-                onPress={() => setFrequency(f)}
-              >
-                <AppText style={[s.freqText, frequency === f && s.freqTextActive]}>
-                  {f}
-                </AppText>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* Custom-only: day selection + dates */}
-          {frequency === 'Custom' && (
-            <>
-              <AppText style={s.selectedDaysLabel}>{selectedDaysLabel}</AppText>
-              <View style={s.daysRow}>
-                {DAYS_OF_WEEK.map(day => (
-                  <Pressable
-                    key={day}
-                    style={[s.dayChip, days.includes(day) && s.dayChipActive]}
-                    onPress={() => toggleDay(day)}
-                  >
-                    <AppText style={[s.dayText, days.includes(day) && s.dayTextActive]}>
-                      {day}
-                    </AppText>
-                  </Pressable>
-                ))}
-              </View>
-              <DateInputRow label="Start Date" value={startDate} onChange={setStartDate} />
-              <DateInputRow label="End Date"   value={endDate}   onChange={setEndDate} />
-            </>
-          )}
-
-          {/* Time picker */}
-          <View style={s.timeCard}>
-            <AppText variant="semibold" style={s.timeTitle}>Scheduled Time</AppText>
-            <View style={s.pickerRow}>
-              <DrumPicker items={HOURS}   selected={hour}   onSelect={setHour}   width={70} />
-              <DrumPicker items={MINUTES} selected={minute} onSelect={setMinute} width={70} />
-              <DrumPicker items={PERIODS} selected={period} onSelect={setPeriod} width={60} />
+        {/* Custom-only: day selection + dates */}
+        {frequency === 'Custom' && (
+          <>
+            <AppText style={s.selectedDaysLabel}>{selectedDaysLabel}</AppText>
+            <View style={s.daysRow}>
+              {DAYS_OF_WEEK.map(day => (
+                <Pressable
+                  key={day}
+                  style={[s.dayChip, days.includes(day) && s.dayChipActive]}
+                  onPress={() => toggleDay(day)}
+                >
+                  <AppText style={[s.dayText, days.includes(day) && s.dayTextActive]}>
+                    {day}
+                  </AppText>
+                </Pressable>
+              ))}
             </View>
-          </View>
+            <DateInputRow label="Start Date" value={startDate} onChange={setStartDate} />
+            <DateInputRow label="End Date"   value={endDate}   onChange={setEndDate} />
+          </>
+        )}
 
-          {/* Actions */}
-          <View style={s.actions}>
-            <Pressable style={s.cancelBtn} onPress={onClose}>
-              <AppText style={s.cancelText}>Cancel</AppText>
-            </Pressable>
-            <Pressable style={s.saveBtn} onPress={handleSave}>
-              <AppText style={s.saveText}>Save</AppText>
-            </Pressable>
+        {/* Time picker */}
+        <View style={s.timeCard}>
+          <AppText variant="semibold" style={s.timeTitle}>Scheduled Time</AppText>
+          <View style={s.pickerRow}>
+            <DrumPicker items={HOURS}   selected={hour}   onSelect={setHour}   width={70} />
+            <DrumPicker items={MINUTES} selected={minute} onSelect={setMinute} width={70} />
+            <DrumPicker items={PERIODS} selected={period} onSelect={setPeriod} width={60} />
           </View>
-        </Pressable>
-      </Pressable>
-      </KeyboardAvoidingView>
-    </Modal>
+        </View>
+
+        {/* Actions */}
+        <View style={s.actions}>
+          <Button variant="outline" style={s.cancelBtn} title="Cancel" onPress={onClose} />
+          <Button variant="primary" style={s.saveBtn} title="Save" onPress={handleSave} />
+        </View>
+      </ScrollView>
+    </AppModal>
   );
 }
 
 const s = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: borderRadius.xxl,
-    borderTopRightRadius: borderRadius.xxl,
+  scrollContent: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.xxxl,
-    ...shadows.lg,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginBottom: spacing.lg,
+    paddingTop: spacing.lg,
   },
   sheetTitle: {
-    fontSize: fontSize.xl,
+    fontSize: fontSize.lg,
     color: colors.textPrimary,
-    marginBottom: spacing.lg,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xxl
   },
   label: {
     fontSize: fontSize.md,
@@ -351,7 +322,8 @@ const s = StyleSheet.create({
   freqRow: {
     flexDirection: 'row',
     gap: spacing.sm,
-    marginBottom: spacing.lg,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xxxl,
   },
   freqChip: {
     paddingHorizontal: spacing.lg,
@@ -365,8 +337,14 @@ const s = StyleSheet.create({
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  freqText: { fontSize: fontSize.md, color: colors.textSecondary },
-  freqTextActive: { color: colors.primaryForeground, fontWeight: '600' },
+  freqText: { 
+    fontSize: fontSize.md, 
+    color: colors.textSecondary 
+  },
+  freqTextActive: { 
+    color: colors.primaryBackground, 
+    fontWeight: '600' 
+  },
   selectedDaysLabel: {
     fontSize: fontSize.sm,
     color: colors.textTertiary,
@@ -412,22 +390,11 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.lg,
   },
-  actions: { flexDirection: 'row', gap: spacing.md },
-  cancelBtn: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: borderRadius.full,
-    alignItems: 'center',
-    paddingVertical: spacing.md,
+  actions: { 
+    flexDirection: 'row', 
+    marginTop: spacing.lg,
+    gap: spacing.xl
   },
-  cancelText: { color: colors.primary, fontSize: fontSize.md, fontWeight: '600' },
-  saveBtn: {
-    flex: 1,
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.full,
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-  },
-  saveText: { color: colors.primaryForeground, fontSize: fontSize.md, fontWeight: '600' },
+  cancelBtn: { flex: 1 },
+  saveBtn: { flex: 1 },
 });

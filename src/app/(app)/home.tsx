@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect } from "expo-router";
 import {
   GlucoseSection,
   GlucoseSummarySection,
@@ -29,26 +30,28 @@ export default function Home() {
   const [medication, setMedication] = useState<MedicationData[] | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchHomeData = async () => {
-      try {
-        const data = await getHomeDashboardData();
-        setHomeData(data);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchHomeData = async () => {
+        try {
+          const data = await getHomeDashboardData();
+          setHomeData(data);
 
-        const medicationData = await getMedication();
-        setMedication(medicationData?.data || null)
+          const medicationData = await getMedication();
+          setMedication(medicationData?.data || null)
 
-        const lifestyleqnaData = await getLifestyleQuestions();
-        setLifestyleQuestions(lifestyleqnaData?.data || null)
-      } catch (error) {
-        console.error("Error fetching home data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+          const lifestyleqnaData = await getLifestyleQuestions();
+          setLifestyleQuestions(lifestyleqnaData?.data || null)
+        } catch (error) {
+          console.error("Error fetching home data:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchHomeData();
-  }, []);
+      fetchHomeData();
+    }, [])
+  );
 
   // Show loading state or actual data
   if (loading) {
@@ -67,6 +70,15 @@ export default function Home() {
       </SafeAreaView>
     );
   }
+
+  const refreshMedication = async () => {
+    try {
+      const medicationData = await getMedication();
+      setMedication(medicationData?.data || null);
+    } catch (error) {
+      console.error("Error refreshing medication:", error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -90,7 +102,7 @@ export default function Home() {
           />
           <Hba1cSection data={homeData?.hba1c || null} />
           <LifestyleQuestionSection data={lifestyleQuestions || null} />
-          <MedicationSection data={medication || []} />
+          <MedicationSection data={medication || []} onRefresh={refreshMedication} />
         </HomeSectionStack>
       </ScrollView>
     </SafeAreaView>

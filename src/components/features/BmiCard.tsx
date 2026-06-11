@@ -1,20 +1,14 @@
 import { StyleSheet, View } from 'react-native';
 import { colors, shadows, spacing } from '../../theme';
 import AppText from '../ui/AppText';
+import { BMI_SEGMENTS } from '../../constants/uiConstants';
 
 interface BmiCardProps {
     bmi: number;
 }
 
 function BmiBar({ bmi }: { bmi: number }) {
-    const segments = [
-        { color: '#73BFE3', label: '10', min: 10, end: 18.5, width: 18 },
-        { color: '#7ED987', label: '18.5', min: 18.5, end: 25, width: 22 },
-        { color: '#F1C54C', label: '25.0', min: 25, end: 30, width: 20 },
-        { color: '#F4A452', label: '30.0', min: 30, end: 35, width: 20 },
-        { color: '#F27A7A', label: '35.0', min: 35, end: 40, width: 10 },
-        { color: '#E66A9A', label: '40+', min: 40, end: 50, width: 10 },
-    ];
+    const segments = BMI_SEGMENTS;
 
     const min = 10;
     const max = 40;

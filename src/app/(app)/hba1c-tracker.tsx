@@ -4,9 +4,6 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton, Button, DateInput, Input } from '../../components';
+import { AppText, AppModal, BackButton, Button, DateInput, Input } from '../../components';
 import { hba1cTracker as HBA1CTRACKERCONSTANTS, STATUS_CONFIG } from '../../constants/hba1cTracker';
 import { getHba1cHistory, saveHba1cEntry, type HbA1cEntry, type HbA1cStatus } from '../../services/trackerService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -67,75 +64,38 @@ function AddHba1cModal({ visible, onClose, onSave }: AddHba1cModalProps) {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={modal.overlay}>
-          <View style={[modal.card, { marginTop: insets.top + 60, paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
-            <Pressable style={modal.closeBtnOuter} onPress={onClose}>
-              <View style={modal.closeBtn}>
-                <FontAwesome name="times" size={16} color={colors.textPrimary} />
-              </View>
-            </Pressable>
+    <AppModal visible={visible} onClose={onClose}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[modal.scrollContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
+        <AppText variant="semibold" style={modal.sheetTitle}>Add HbA1c</AppText>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={modal.scrollContent}>
-              <AppText variant="semibold" style={modal.sheetTitle}>Add HbA1c</AppText>
+        <Input
+          label={HBA1CTRACKERCONSTANTS.valueLabel}
+          required
+          placeholder={HBA1CTRACKERCONSTANTS.placeholder}
+          keyboardType="decimal-pad"
+          value={value}
+          onChangeText={setValue}
+        />
 
-              <Input
-                label={HBA1CTRACKERCONSTANTS.valueLabel}
-                required
-                placeholder={HBA1CTRACKERCONSTANTS.placeholder}
-                keyboardType="decimal-pad"
-                value={value}
-                onChangeText={setValue}
-              />
+        <DateInput
+          label={HBA1CTRACKERCONSTANTS.dateLabel}
+          required
+          value={date}
+          onChange={setDate}
+          dateFormat="yy/mm/dd"
+          placeholder={HBA1CTRACKERCONSTANTS.placeholder}
+        />
 
-              <DateInput
-                label={HBA1CTRACKERCONSTANTS.dateLabel}
-                required
-                value={date}
-                onChange={setDate}
-                dateFormat="yy/mm/dd"
-                placeholder={HBA1CTRACKERCONSTANTS.placeholder}
-              />
-
-              <View style={modal.actions}>
-                <Button variant="outline" style={modal.cancelBtn} title={HBA1CTRACKERCONSTANTS.cancelBtn} onPress={onClose} />
-                <Button variant="primary" style={modal.saveBtn} title={HBA1CTRACKERCONSTANTS.saveBtn} onPress={handleSave} />
-              </View>
-            </ScrollView>
-          </View>
+        <View style={modal.actions}>
+          <Button variant="outline" style={modal.cancelBtn} title={HBA1CTRACKERCONSTANTS.cancelBtn} onPress={onClose} />
+          <Button variant="primary" style={modal.saveBtn} title={HBA1CTRACKERCONSTANTS.saveBtn} onPress={handleSave} />
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      </ScrollView>
+    </AppModal>
   );
 }
 
 const modal = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-start',
-    paddingHorizontal: spacing.lg,
-  },
-  card: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.xxl,
-    ...shadows.lg,
-  },
-  closeBtnOuter: {
-    alignSelf: 'center',
-    marginTop: -48,
-    marginBottom: 16,
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scrollContent: {
     padding: spacing.xl,
     paddingTop: spacing.xxxxl,
@@ -152,21 +112,10 @@ const modal = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: borderRadius.full,
-    alignItems: 'center',
-    paddingVertical: spacing.md,
   },
-  cancelText: { color: colors.primary, fontSize: fontSize.md, fontWeight: '600' },
   saveBtn: {
     flex: 1,
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.full,
-    alignItems: 'center',
-    paddingVertical: spacing.md,
   },
-  saveText: { color: colors.primaryForeground, fontSize: fontSize.md, fontWeight: '600' },
 });
 
 // ─── Main screen ──────────────────────────────────────────────────────────────

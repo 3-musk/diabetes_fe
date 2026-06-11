@@ -1,6 +1,6 @@
 export const lifestyleQuestions = {
-  pageTitle: "Care Plan",
+  pageTitle: "Lifestyle QnA",
   previousBtn: "Previous",
   nextBtn: "Next",
-  submitBtn: "Submit"
+  submitBtn: "Submit",
 };

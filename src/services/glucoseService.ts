@@ -1,3 +1,5 @@
+import { glucoseReadings } from "../constants/mockDb";
+
 export type ReadingSession = { id: string; label: string };
 export type ReadingType = { id: string; label: string };
 export type Symptom = { id: string; label: string };
@@ -7,6 +9,16 @@ export const getGlucoseInitialData = async () => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 800));
   
+  if (glucoseReadings.length > 0) {
+    const last = glucoseReadings[glucoseReadings.length - 1];
+    return {
+      recentGlucoseValue: last.glucoseValue,
+      recentSession: last.session,
+      recentReadingType: last.readingType,
+      recentSymptoms: [...last.symptoms],
+    };
+  }
+
   return {
     recentGlucoseValue: 165,
     recentSession: 'morning',
@@ -20,6 +32,17 @@ export const saveGlucoseReading = async (data: any) => {
   await new Promise(resolve => setTimeout(resolve, 800));
   
   const value = data.glucoseValue;
+  const newReading = {
+    id: Math.random().toString(36).substring(2, 9),
+    glucoseValue: value,
+    session: data.session,
+    readingType: data.readingType,
+    symptoms: data.symptoms || [],
+    timestamp: new Date().toISOString(),
+  };
+
+  glucoseReadings.push(newReading);
+
   if (value < 70) {
     return {
       success: true,

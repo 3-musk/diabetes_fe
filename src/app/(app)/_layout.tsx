@@ -74,7 +74,7 @@ export default function AppLayout() {
                     ),
                 }}
             />
-            <Tabs.Screen name="profile"        options={{ href: null }} />
+
             <Tabs.Screen name="settings"       options={{ href: null }} />
             <Tabs.Screen name="log-glucose"    options={{ href: null, tabBarStyle: { display: 'none' } }} />
             <Tabs.Screen name="hba1c-tracker"  options={{ href: null, tabBarStyle: { display: 'none' } }} />

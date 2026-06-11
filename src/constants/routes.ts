@@ -5,7 +5,7 @@ export const ROUTES = {
   subscription: "/subscription",
   payment: "/payment",
   appHome:           "/(app)/home",
-  appProfile:        "/(app)/profile",
+  appProfile:        "/profile",
   appSettings:       "/(app)/settings",
   appLogGlucose:     "/log-glucose",
   appHba1cTracker:   "/hba1c-tracker",

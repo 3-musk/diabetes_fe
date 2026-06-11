@@ -1,3 +1,4 @@
+import { SvgIcon } from '@/utils/icon';
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -9,47 +10,16 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton, Button } from '../../components';
-import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
+import { AppText, BackButton, Button, DateInput } from '../../components';
 import { medication as MEDICATIONCONSTANTS } from '../../constants/medication';
 import { saveMedication } from '../../services/medicationService';
+import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
 
 // ─── Medicine categories ───────────────────────────────────────────────────────
 
 type MedCategory = 'Capsules' | 'Pills' | 'Liquid' | 'Others';
 
-// ─── Date input ───────────────────────────────────────────────────────────────
 
-function DateField({
-  label,
-  required,
-  value,
-  onChange,
-}: {
-  label: string;
-  required?: boolean;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <View style={s.fieldWrap}>
-      <AppText style={s.fieldLabel}>
-        {label}
-        {required && <AppText style={s.required}> *</AppText>}
-      </AppText>
-      <View style={s.inputRow}>
-        <TextInput
-          style={s.input}
-          placeholder={MEDICATIONCONSTANTS.selectDatePlaceholder}
-          placeholderTextColor={colors.textTertiary}
-          value={value}
-          onChangeText={onChange}
-        />
-        <FontAwesome name="calendar" size={18} color={colors.textTertiary} style={s.calIcon} />
-      </View>
-    </View>
-  );
-}
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
@@ -61,8 +31,8 @@ export default function AddMedication() {
   const [medName,   setMedName]   = useState('');
   const [strength,  setStrength]  = useState('');
   const [frequency, setFrequency] = useState(0);
-  const [startDate, setStartDate] = useState('');
-  const [endDate,   setEndDate]   = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate,   setEndDate]   = useState<Date | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
 
   const decreaseFreq = () => setFrequency(f => Math.max(0, f - 1));
@@ -70,7 +40,8 @@ export default function AddMedication() {
 
   const handleSave = async () => {
     setSubmitting(true);
-    await saveMedication({ category, medName, strength, frequency, startDate, endDate });
+    const format = (d?: Date) => d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : '';
+    await saveMedication({ category, medName, strength, frequency, startDate: format(startDate), endDate: format(endDate), isSystemGenerated: false });
     setSubmitting(false);
     router.back();
   };
@@ -79,7 +50,7 @@ export default function AddMedication() {
     <SafeAreaView style={s.safe} edges={['top']}>
       {/* Header */}
       <View style={s.header}>
-        <BackButton />
+        <BackButton color={colors.primaryBackground} />
         <AppText variant="semibold" style={s.headerTitle}>{MEDICATIONCONSTANTS.pageTitle}</AppText>
       </View>
 
@@ -101,13 +72,9 @@ export default function AddMedication() {
                   onPress={() => setCategory(cat.id)}
                 >
                   <View style={[s.categoryCircle, active && s.categoryCircleActive]}>
-                    <FontAwesome
-                      name={cat.icon}
-                      size={20}
-                      color={active ? colors.primaryForeground : colors.textTertiary}
-                    />
+                    <SvgIcon color={active ? '#FFFFFF' :'#7c7b7b'} source={cat.icon} />
                   </View>
-                  <AppText style={[s.categoryLabel, active && s.categoryLabelActive]}>
+                  <AppText variant='semibold' style={[s.categoryLabel, active && s.categoryLabelActive]}>
                     {cat.id}
                   </AppText>
                 </Pressable>
@@ -117,7 +84,7 @@ export default function AddMedication() {
 
           {/* Medication Name */}
           <View style={s.fieldWrap}>
-            <AppText style={s.fieldLabel}>
+            <AppText style={s.fieldLabel} variant='medium'>
               {MEDICATIONCONSTANTS.medicationNameLabel}<AppText style={s.required}> *</AppText>
             </AppText>
             <TextInput
@@ -131,7 +98,7 @@ export default function AddMedication() {
 
           {/* Strength */}
           <View style={s.fieldWrap}>
-            <AppText style={s.fieldLabel}>
+            <AppText style={s.fieldLabel} variant='medium'>
               {MEDICATIONCONSTANTS.strengthLabel}<AppText style={s.required}> *</AppText>
             </AppText>
             <TextInput
@@ -144,15 +111,24 @@ export default function AddMedication() {
           </View>
 
           {/* Frequency */}
-          <View style={s.fieldWrap}>
-            <AppText style={s.fieldLabel}>
+          <View style={[
+            s.fieldWrap, 
+            {
+              flex: 1,
+              flexDirection: 'row',
+              alignContent: 'center',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }
+          ]}>
+            <AppText style={s.fieldLabel} variant='medium'>
               {MEDICATIONCONSTANTS.frequencyLabel} <AppText style={s.required}>*</AppText>
             </AppText>
             <View style={s.frequencyRow}>
               <Pressable style={s.freqBtn} onPress={decreaseFreq}>
                 <FontAwesome name="minus" size={14} color={colors.secondaryForeground} />
               </Pressable>
-              <AppText variant="semibold" style={s.freqValue}>{frequency}</AppText>
+              <AppText variant="medium" style={s.freqValue}>{frequency}</AppText>
               <Pressable style={[s.freqBtn, s.freqBtnAdd]} onPress={increaseFreq}>
                 <FontAwesome name="plus" size={14} color={colors.secondaryForeground} />
               </Pressable>
@@ -160,10 +136,24 @@ export default function AddMedication() {
           </View>
 
           {/* Start Date */}
-          <DateField label={MEDICATIONCONSTANTS.startDateLabel} value={startDate} onChange={setStartDate} />
+          <DateInput 
+            containerStyle={s.fieldWrap}
+            label={MEDICATIONCONSTANTS.startDateLabel} 
+            value={startDate} 
+            onChange={setStartDate} 
+            placeholder={MEDICATIONCONSTANTS.selectDatePlaceholder}
+            dateFormat="yy/mm/dd"
+          />
 
           {/* End Date */}
-          <DateField label={MEDICATIONCONSTANTS.endDateLabel} value={endDate} onChange={setEndDate} />
+          <DateInput 
+            containerStyle={s.fieldWrap}
+            label={MEDICATIONCONSTANTS.endDateLabel} 
+            value={endDate} 
+            onChange={setEndDate} 
+            placeholder={MEDICATIONCONSTANTS.selectDatePlaceholder}
+            dateFormat="yy/mm/dd"
+          />
 
           {/* Save */}
           <Button style={s.saveBtn} title={MEDICATIONCONSTANTS.saveBtn} onPress={handleSave} loading={submitting} />
@@ -186,7 +176,7 @@ const s = StyleSheet.create({
   scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
 
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primaryBackground,
     borderRadius: borderRadius.xl,
     borderWidth: 1,
     borderColor: colors.secondary,
@@ -196,7 +186,8 @@ const s = StyleSheet.create({
   cardTitle: {
     fontSize: fontSize.lg,
     color: colors.textPrimary,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
+    marginTop: spacing.xl
   },
 
   // Categories
@@ -224,9 +215,18 @@ const s = StyleSheet.create({
   categoryLabelActive: { color: colors.primary, fontWeight: '600' },
 
   // Fields
-  fieldWrap: { marginBottom: spacing.lg },
-  fieldLabel: { fontSize: fontSize.md, color: colors.textPrimary, marginBottom: spacing.xs },
-  required: { color: colors.error },
+  fieldWrap: { 
+    marginBottom: spacing.md,
+    marginTop: spacing.md
+  },
+  fieldLabel: { 
+    fontSize: fontSize.md, 
+    color: colors.textPrimary, 
+    marginBottom: spacing.xs 
+  },
+  required: { 
+    color: colors.error 
+  },
   input: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -244,6 +244,10 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xl,
+    padding: 4,
+    borderWidth: 1,
+    borderRadius: borderRadius.full,
+    borderColor: '#ddd6d6'
   },
   freqBtn: {
     width: 36, height: 36,
@@ -251,7 +255,9 @@ const s = StyleSheet.create({
     backgroundColor: colors.secondary,
     alignItems: 'center', justifyContent: 'center',
   },
-  freqBtnAdd: { backgroundColor: colors.secondary },
+  freqBtnAdd: { 
+    backgroundColor: colors.secondary 
+  },
   freqValue: {
     fontSize: fontSize.xl,
     color: colors.textPrimary,

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { colors, fontSize, spacing } from '../../theme';
 import AppText from './AppText';
 
@@ -9,11 +9,7 @@ interface DateStripProps {
 }
 
 export function DateStrip({ selectedDate, onSelectDate }: DateStripProps) {
-  const [dates, setDates] = useState<Date[]>([]);
-  const scrollRef = useRef<ScrollView>(null);
-
-  useEffect(() => {
-    // Generate dates: 7 days before, today, 7 days after
+  const [dates] = useState<Date[]>(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const newDates = [];
@@ -22,22 +18,37 @@ export function DateStrip({ selectedDate, onSelectDate }: DateStripProps) {
       d.setDate(today.getDate() + i);
       newDates.push(d);
     }
-    setDates(newDates);
-
-    // Try to scroll to center (today) after a short delay to ensure layout
-    setTimeout(() => {
-      if (scrollRef.current) {
-        // Roughly center the current date (index 7 out of 15)
-        scrollRef.current.scrollTo({ x: 7 * 60 - 120, animated: false });
-      }
-    }, 100);
-  }, []);
+    return newDates;
+  });
+  
+  const scrollRef = useRef<ScrollView>(null);
+  const { width } = useWindowDimensions();
 
   const isSameDay = (d1: Date, d2: Date) => {
     return d1.getFullYear() === d2.getFullYear() &&
       d1.getMonth() === d2.getMonth() &&
       d1.getDate() === d2.getDate();
   };
+
+  useEffect(() => {
+    // Try to scroll to center the selected date (or today) after a short delay
+    setTimeout(() => {
+      if (scrollRef.current) {
+        const index = dates.findIndex(d => isSameDay(d, selectedDate));
+        const targetIndex = index >= 0 ? index : 7;
+        
+        // paddingHorizontal is spacing.md (12)
+        // gap is spacing.sm (8)
+        // item width is 60
+        const itemCenter = spacing.md + targetIndex * (60 + spacing.sm) + 30;
+        const scrollX = Math.max(0, itemCenter - width / 2);
+        
+        scrollRef.current.scrollTo({ x: scrollX, animated: true });
+      }
+    }, 100);
+  }, [width, selectedDate, dates]);
+
+
 
   const formattedMonthYear = selectedDate.toLocaleDateString('en-US', {
     month: 'long',

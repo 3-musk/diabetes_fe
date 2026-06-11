@@ -3,7 +3,8 @@ import {
     StyleSheet,
     TextStyle,
     TouchableOpacity,
-    View
+    View,
+    ViewStyle
 } from 'react-native';
 import { colors, fontSize, fontWeight, spacing } from '../../theme';
 import AppText from '../ui/AppText';
@@ -11,12 +12,13 @@ import AppText from '../ui/AppText';
 interface CheckboxProps {
     checked: boolean;
     onChange: (checked: boolean) => void;
-    title: string;
+    title?: string;
     description?: string;
     labelStyle?: TextStyle;
     labelCheckedStyle?: TextStyle;
-    titleStyle?: TextStyle
-    descriptionStyle?: TextStyle
+    titleStyle?: TextStyle;
+    descriptionStyle?: TextStyle;
+    containerStyle?: ViewStyle;
 }
 
 export default function Checkbox({
@@ -27,12 +29,13 @@ export default function Checkbox({
     labelStyle,
     labelCheckedStyle,
     titleStyle,
-    descriptionStyle
+    descriptionStyle,
+    containerStyle
 }: CheckboxProps) {
     return (
         <TouchableOpacity
             activeOpacity={0.8}
-            style={styles.container}
+            style={[styles.container, containerStyle]}
             onPress={() => onChange(!checked)}
         >
             <View
@@ -41,18 +44,20 @@ export default function Checkbox({
                     checked && styles.checkboxChecked,
                 ]}
             >
-                {checked && <FontAwesome name="check" size={20} color={colors.primaryBackground} />}
+                {checked && <FontAwesome name="check" size={14} color={colors.primaryBackground} />}
             </View>
 
-            <View style={styles.content}>
-                <AppText style={[styles.title, titleStyle]}>{title}</AppText>
+            {title ? (
+                <View style={styles.content}>
+                    <AppText style={[styles.title, titleStyle]}>{title}</AppText>
 
-                {description && (
-                    <AppText style={styles.description}>
-                        {description}
-                    </AppText>
-                )}
-            </View>
+                    {description && (
+                        <AppText style={styles.description}>
+                            {description}
+                        </AppText>
+                    )}
+                </View>
+            ) : null}
         </TouchableOpacity>
     );
 }

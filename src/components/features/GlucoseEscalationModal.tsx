@@ -1,9 +1,10 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import React from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
 import AppText from '../ui/AppText';
+import { AppModal } from '../ui/AppModal';
 
 export type NextStepsData = {
   title: string;
@@ -44,122 +45,79 @@ export function GlucoseEscalationModal({
     : '';
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={[styles.container, { marginTop: insets.top + 40, marginBottom: insets.bottom + 40 }]}>
-          
-          {/* Close Button above the card */}
-          <Pressable style={styles.closeBtnOuter} onPress={onClose}>
-            <View style={styles.closeBtn}>
-              <FontAwesome name="times" size={16} color={colors.textPrimary} />
-            </View>
-          </Pressable>
+    <AppModal visible={visible} onClose={onClose} cardStyle={styles.card}>
+      {/* Top Pink Section */}
+      <View style={[styles.headerSection, { backgroundColor: headerBg }]}>
+        <AppText variant="bold" style={[styles.title, { color: titleColor }]}>
+          {title}
+        </AppText>
+        <AppText style={styles.subtitle}>
+          {value} mg/dl - {formattedReadingType}
+        </AppText>
 
-          <View style={styles.card}>
-            {/* Top Pink Section */}
-            <View style={[styles.headerSection, { backgroundColor: headerBg }]}>
-              <AppText variant="bold" style={[styles.title, { color: titleColor }]}>
-                {title}
-              </AppText>
-              <AppText style={styles.subtitle}>
-                {value} mg/dl - {formattedReadingType}
-              </AppText>
-
-              {/* Range Bar */}
-              <View style={styles.rangeContainer}>
-                <View style={styles.rangeBar}>
-                  <View style={[styles.rangeSegment, { backgroundColor: '#FF3B30', flex: isHigh ? 1 : 1.5 }]} />
-                  <View style={[styles.rangeSegment, { backgroundColor: '#FF9500', flex: 1 }]} />
-                  <View style={[styles.rangeSegment, { backgroundColor: '#34C759', flex: isHigh ? 2 : 4 }]} />
-                  <View style={[styles.rangeSegment, { backgroundColor: '#FF3B30', flex: isHigh ? 1.5 : 1 }]} />
-                  
-                  {/* Thumb Indicator */}
-                  <View style={[
-                    styles.rangeThumb, 
-                    { left: isHigh ? '85%' : '15%' } // Approximate thumb position
-                  ]} />
-                </View>
-                <View style={styles.rangeLabels}>
-                  <AppText style={styles.rangeLabelText}>Critical &lt; {isHigh ? '54' : '40'}</AppText>
-                  <AppText style={styles.rangeLabelText}>Low &lt; {isHigh ? '70' : '54'}</AppText>
-                  <AppText style={styles.rangeLabelText}>High {isHigh ? '' : '> 250'}</AppText>
-                </View>
-              </View>
-
-              {/* Warning Banner */}
-              <View style={styles.warningBanner}>
-                <FontAwesome name="play-circle" size={16} color="#FF3B30" style={{ marginRight: 8 }} />
-                <AppText style={styles.warningText}>You have 10-15 mins to act</AppText>
-              </View>
-            </View>
-
-            {/* Bottom Content Section */}
-            <View style={styles.contentSection}>
-              {nextSteps && (
-                <>
-                  <AppText variant="semibold" style={styles.stepsTitle}>
-                    {nextSteps.title}
-                  </AppText>
-                  <AppText style={styles.stepsSubtitle}>
-                    Choose ONE - consume immediately
-                  </AppText>
-
-                  <View style={styles.pillsContainer}>
-                    {nextSteps.steps.map((step, idx) => (
-                      <View key={idx} style={styles.pill}>
-                        <AppText style={styles.pillText}>{step}</AppText>
-                      </View>
-                    ))}
-                  </View>
-                </>
-              )}
-
-              <View style={{ flex: 1 }} />
-
-              <Pressable style={styles.recheckBtn} onPress={onRecheck}>
-                <AppText variant="semibold" style={styles.recheckText}>
-                  Continue to recheck
-                </AppText>
-              </Pressable>
-            </View>
-
+        {/* Range Bar */}
+        <View style={styles.rangeContainer}>
+          <View style={styles.rangeBar}>
+            <View style={[styles.rangeSegment, { backgroundColor: '#FF3B30', flex: isHigh ? 1 : 1.5 }]} />
+            <View style={[styles.rangeSegment, { backgroundColor: '#FF9500', flex: 1 }]} />
+            <View style={[styles.rangeSegment, { backgroundColor: '#34C759', flex: isHigh ? 2 : 4 }]} />
+            <View style={[styles.rangeSegment, { backgroundColor: '#FF3B30', flex: isHigh ? 1.5 : 1 }]} />
+            
+            {/* Thumb Indicator */}
+            <View style={[
+              styles.rangeThumb, 
+              { left: isHigh ? '85%' : '15%' } // Approximate thumb position
+            ]} />
+          </View>
+          <View style={styles.rangeLabels}>
+            <AppText style={styles.rangeLabelText}>Critical &lt; {isHigh ? '54' : '40'}</AppText>
+            <AppText style={styles.rangeLabelText}>Low &lt; {isHigh ? '70' : '54'}</AppText>
+            <AppText style={styles.rangeLabelText}>High {isHigh ? '' : '> 250'}</AppText>
           </View>
         </View>
+
+        {/* Warning Banner */}
+        <View style={styles.warningBanner}>
+          <FontAwesome name="play-circle" size={16} color="#FF3B30" style={{ marginRight: 8 }} />
+          <AppText style={styles.warningText}>You have 10-15 mins to act</AppText>
+        </View>
       </View>
-    </Modal>
+
+      {/* Bottom Content Section */}
+      <View style={styles.contentSection}>
+        {nextSteps && (
+          <>
+            <AppText variant="semibold" style={styles.stepsTitle}>
+              {nextSteps.title}
+            </AppText>
+            <AppText style={styles.stepsSubtitle}>
+              Choose ONE - consume immediately
+            </AppText>
+
+            <View style={styles.pillsContainer}>
+              {nextSteps.steps.map((step, idx) => (
+                <View key={idx} style={styles.pill}>
+                  <AppText style={styles.pillText}>{step}</AppText>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
+
+        <View style={{ flex: 1 }} />
+
+        <Pressable style={styles.recheckBtn} onPress={onRecheck}>
+          <AppText variant="semibold" style={styles.recheckText}>
+            Continue to recheck
+          </AppText>
+        </Pressable>
+      </View>
+    </AppModal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-  },
-  container: {
-    width: '100%',
-    maxWidth: 400,
-    alignItems: 'center',
-  },
-  closeBtnOuter: {
-    alignSelf: 'center',
-    marginBottom: spacing.md,
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   card: {
-    width: '100%',
-    backgroundColor: '#FFF',
-    borderRadius: 24,
-    overflow: 'hidden',
     minHeight: 500,
   },
   headerSection: {

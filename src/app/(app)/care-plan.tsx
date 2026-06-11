@@ -1,19 +1,16 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, Button, HeaderActionIcons, PlanCard } from '../../components';
+import { AppModal, AppText, Button, DateStrip, HeaderActionIcons } from '../../components';
 import { carePlan as CAREPLANCONSTANTS } from '../../constants/carePlan';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
@@ -24,101 +21,11 @@ import {
   type CarePlan,
   type ProfileCompletion
 } from '../../services/carePlanService';
-import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
+import { borderRadius, colors, fontSize, spacing } from '../../theme';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { MOCK_MEAL_SLOTS, MealSlot } from '../../constants/uiConstants';
 
-type MealSlot = {
-  id: string;
-  label: string;
-  icon: React.ComponentProps<typeof FontAwesome>['name'];
-  diet?: string;
-  physicalActivity?: string;
-  medications?: string;
-};
-
-// ─── Mock care plan data ──────────────────────────────────────────────────────
-
-const MOCK_MEAL_SLOTS: MealSlot[] = [
-  {
-    id: 'morning',
-    label: 'Morning',
-    icon: 'coffee',
-    diet: 'Oats porridge with milk and mixed fruits',
-    physicalActivity: '20-minute morning walk',
-    medications: 'Metformin 500mg after meal',
-  },
-  { id: 'afternoon', label: 'Afternoon', icon: 'cutlery' },
-  { id: 'evening',   label: 'Evening',   icon: 'leaf' },
-  { id: 'dinner',    label: 'Dinner',    icon: 'moon-o' },
-];
-
-// ─── Week Calendar ────────────────────────────────────────────────────────────
-
-const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-function WeekCalendar() {
-  const today     = new Date();
-  const dayOfWeek = today.getDay(); // 0=Sun … 6=Sat
-  // ISO week: Mon=0 … Sun=6
-  const isoDay    = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-
-  // Generate Mon–Sun dates for this week
-  const weekDates = DAY_LABELS.map((_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - isoDay + i);
-    return d;
-  });
-
-  const monthLabel = today.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-
-  return (
-    <View style={cal.wrap}>
-      <AppText variant="semibold" style={cal.month}>{monthLabel}</AppText>
-      <View style={cal.row}>
-        {weekDates.map((date, i) => {
-          const isToday = date.toDateString() === today.toDateString();
-          return (
-            <Pressable key={i} style={cal.dayCol}>
-              <AppText style={[cal.dayLabel, isToday && cal.dayLabelActive]}>
-                {DAY_LABELS[i]}
-              </AppText>
-              <View style={[cal.dayCircle, isToday && cal.dayCircleActive]}>
-                <AppText style={[cal.dayNum, isToday && cal.dayNumActive]}>
-                  {date.getDate()}
-                </AppText>
-              </View>
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
-const cal = StyleSheet.create({
-  wrap: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  month: {
-    fontSize: fontSize.lg,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: spacing.md,
-  },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  dayCol: { alignItems: 'center', gap: spacing.xs },
-  dayLabel: { fontSize: fontSize.sm, color: colors.textTertiary },
-  dayLabelActive: { color: colors.primary, fontWeight: '700' },
-  dayCircle: {
-    width: 34, height: 34, borderRadius: 17,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  dayCircleActive: { backgroundColor: colors.primary },
-  dayNum: { fontSize: fontSize.md, color: colors.textPrimary, fontWeight: '600' },
-  dayNumActive: { color: colors.primaryForeground },
-});
+// ─── Removed WeekCalendar in favor of DateStrip ────────────────────────────────
 
 // ─── Accordion slot card ──────────────────────────────────────────────────────
 
@@ -170,11 +77,10 @@ function SlotCard({ slot }: { slot: MealSlot }) {
 
 const card = StyleSheet.create({
   wrap: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
+    backgroundColor: '#F9F6F0',
+    borderRadius: borderRadius.lg,
     overflow: 'hidden',
     marginBottom: spacing.md,
-    ...shadows.sm,
   },
   header: {
     flexDirection: 'row',
@@ -185,23 +91,23 @@ const card = StyleSheet.create({
   },
   iconCircle: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#FEF3E2',
+    backgroundColor: '#EDDBBC', // slightly darker beige for icon bg
     alignItems: 'center', justifyContent: 'center',
   },
-  label: { flex: 1, fontSize: fontSize.lg, color: colors.textPrimary },
+  label: { flex: 1, fontSize: fontSize.md, color: colors.textPrimary },
   toggleBtn: {
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#FEF3E2',
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: '#FCE4A8', // yellow toggle circle
     alignItems: 'center', justifyContent: 'center',
   },
   body: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
-    gap: spacing.sm,
+    gap: spacing.md, // slightly more gap
   },
-  detailBlock: { gap: 2 },
-  detailTitle: { fontSize: fontSize.sm, color: colors.textPrimary },
-  detailText: { fontSize: fontSize.sm, color: colors.textSecondary, lineHeight: 18 },
+  detailBlock: { gap: 4 }, // slight gap between title and value
+  detailTitle: { fontSize: 13, color: colors.textPrimary, fontWeight: 'bold' },
+  detailText: { fontSize: 14, color: '#4E3A32', lineHeight: 20 }, // slightly larger text like mockup
 });
 
 // ─── "Complete Profile" popup ─────────────────────────────────────────────────
@@ -218,43 +124,33 @@ function CompleteProfilePopup({
   const insets = useSafeAreaInsets();
   
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <Pressable style={popup.overlay} onPress={onClose}>
-          <Pressable style={[popup.card, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
-            <Pressable style={popup.closeBtn} onPress={onClose}>
-              <FontAwesome name="times" size={18} color={colors.textSecondary} />
-            </Pressable>
-            <AppText style={popup.message}>
-              {CAREPLANCONSTANTS.popupMessage}
-            </AppText>
-            <Button style={popup.actionBtn} title={CAREPLANCONSTANTS.popupBtn} onPress={onGoToProfile} />
-          </Pressable>
-        </Pressable>
-      </KeyboardAvoidingView>
-    </Modal>
+    <AppModal 
+      visible={visible} 
+      onClose={onClose} 
+      closeOnOverlayPress={true} 
+      maxHeight={'20%'}
+      containerStyle={{
+        flex: 1,
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
+        paddingHorizontal: spacing.lg,
+        marginBottom: insets.bottom + 60
+      }}
+    >
+      <View style={[popup.cardContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
+        <AppText style={popup.message}>
+          {CAREPLANCONSTANTS.popupMessage}
+        </AppText>
+        <Button style={popup.actionBtn} title={CAREPLANCONSTANTS.popupBtn} onPress={onGoToProfile} />
+      </View>
+    </AppModal>
   );
 }
 
 const popup = StyleSheet.create({
-  overlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: borderRadius.xxl,
-    borderTopRightRadius: borderRadius.xxl,
+  cardContent: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    ...shadows.lg,
-  },
-  closeBtn: {
-    alignSelf: 'center',
-    width: 32, height: 32, borderRadius: 16,
-    backgroundColor: colors.background,
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: spacing.lg,
+    paddingTop: spacing.xl,
   },
   message: {
     fontSize: fontSize.md,
@@ -270,7 +166,6 @@ const popup = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.lg,
   },
-  actionText: { color: colors.primaryForeground, fontSize: fontSize.lg },
 });
 
 // ─── "Personalise" section ────────────────────────────────────────────────────
@@ -345,45 +240,77 @@ export default function CarePlanScreen() {
   const [carePlan,         setCarePlan]         = useState<CarePlan | null>(null);
   const [profileStatus,    setProfileStatus]    = useState<ProfileCompletion | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [selectedDate,     setSelectedDate]     = useState(new Date());
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      (async () => {
+        try {
+          const token = accessToken ?? '';
+          const plan  = await getCarePlan(token);
+
+          if (!active) return;
+
+          if (plan) {
+            setCarePlan(plan);
+            setScreenState('has_care_plan');
+            return;
+          }
+
+          const [profile, lifestyle] = await Promise.all([
+            getProfileCompletion(token),
+            getLifestyleQuestionsStatus(token),
+          ]);
+
+          if (!active) return;
+
+          setProfileStatus(profile);
+
+          if (!profile.isComplete) {
+            setScreenState('needs_profile');
+          } else if (!lifestyle.answered) {
+            setScreenState('needs_lifestyle');
+          } else {
+            setScreenState('pending');
+          }
+        } catch (e) {
+          console.error('Care plan load error:', e);
+          if (active) {
+            setScreenState('needs_profile');
+          }
+        }
+      })();
+
+      return () => {
+        active = false;
+      };
+    }, [accessToken])
+  );
 
   useEffect(() => {
-    (async () => {
-      try {
-        const token = accessToken ?? '';
-        const plan  = await getCarePlan(token);
-
-        if (plan) {
-          setCarePlan(plan);
+    let timeout: number;
+    if (screenState === 'pending') {
+      timeout = setTimeout(() => {
+        // Automatically finish pending generation after 10s
+        import('../../services/carePlanService').then((m) => {
+          m.markCarePlanGenerated();
           setScreenState('has_care_plan');
-          return;
-        }
-
-        const [profile, lifestyle] = await Promise.all([
-          getProfileCompletion(token),
-          getLifestyleQuestionsStatus(token),
-        ]);
-
-        setProfileStatus(profile);
-
-        if (!profile.isComplete) {
-          setScreenState('needs_profile');
-        } else if (!lifestyle.answered) {
-          setScreenState('needs_lifestyle');
-        } else {
-          setScreenState('pending');
-        }
-      } catch (e) {
-        console.error('Care plan load error:', e);
-        setScreenState('needs_profile');
-      }
-    })();
-  }, []);
+        });
+      }, 10000);
+    }
+    return () => clearTimeout(timeout);
+  }, [screenState]);
 
   const handlePersonalisePress = () => {
     if (!profileStatus?.isComplete) {
       setShowProfilePopup(true);
     } else {
-      router.push(ROUTES.appLifestyleQuestions as any);
+      router.push({
+        pathname: ROUTES.appLifestyleQuestions as any,
+        params: { returnTo: '/(app)/care-plan' },
+      });
     }
   };
 
@@ -420,7 +347,7 @@ export default function CarePlanScreen() {
           <HeaderActionIcons />
         </View>
 
-        <WeekCalendar />
+        <DateStrip selectedDate={selectedDate} onSelectDate={setSelectedDate} />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -461,24 +388,25 @@ export default function CarePlanScreen() {
 }
 
 const s = StyleSheet.create({
-  safe:         { flex: 1, backgroundColor: colors.background },
+  safe:         { flex: 1, backgroundColor: '#F9F6F0' }, // Overall beige background
   center:       { flex: 1, alignItems: 'center', justifyContent: 'center' },
   pageHeader: {
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
+    marginTop: spacing.md,
   },
-  pageTitle: { fontSize: fontSize.xl, color: colors.textPrimary },
+  pageTitle: { fontSize: fontSize.xxl, color: '#4E3A32', fontWeight: 'bold' }, // Dark brown
   carePlanScroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
   },
   slotsCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: '#FFFFFF',
     borderRadius: borderRadius.xl,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#FDE4C3',
     padding: spacing.md,
-    ...shadows.sm,
+    paddingBottom: spacing.sm,
   },
 });

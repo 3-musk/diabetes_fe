@@ -10,11 +10,23 @@ export const medication = {
   startDateLabel: "Start Date",
   endDateLabel: "End Date",
   saveBtn: "Save",
-  
+
   categories: [
-    { id: 'Capsules', icon: 'medkit' },
-    { id: 'Pills',    icon: 'circle-o' },
-    { id: 'Liquid',   icon: 'flask' },
-    { id: 'Others',   icon: 'user-md' },
-  ] as const
+    {
+      id: "Capsules",
+      icon: require("../../assets/svgs/medicine_category/capsule.svg"),
+    },
+    {
+      id: "Pills",
+      icon: require("../../assets/svgs/medicine_category/pill.svg"),
+    },
+    {
+      id: "Liquid",
+      icon: require("../../assets/svgs/medicine_category/liquid.svg"),
+    },
+    {
+      id: "Others",
+      icon: require("../../assets/svgs/medicine_category/others.svg"),
+    },
+  ] as const,
 };

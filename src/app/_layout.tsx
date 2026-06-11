@@ -101,6 +101,7 @@ function RootLayoutNav() {
       <Stack.Screen name="register" />
       <Stack.Screen name="subscription" />
       <Stack.Screen name="(app)" />
+      <Stack.Screen name="profile" options={{ presentation: 'transparentModal' }} />
     </Stack>
   );
 }
