@@ -1,18 +1,17 @@
-import { StyleSheet, View } from "react-native";
-import { AppText } from "../../components";
+import { StyleSheet } from "react-native";
+import { AppText, ScreenContainer } from "../../components";
 
 export default function Chat() {
   return (
-    <View style={styles.container}>
+    <ScreenContainer edges={['top']} contentStyle={styles.container}>
       <AppText variant="bold" style={styles.title}>Chat</AppText>
       <AppText style={styles.text}>This is the chat screen</AppText>
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,

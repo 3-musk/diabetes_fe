@@ -9,8 +9,8 @@ import {
   StyleSheet,
   View
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton, Button } from '../../components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppText, BackButton, Button, ScreenContainer } from '../../components';
 import { AddWeightModal } from '../../components/features/AddWeightModal';
 import { BmiCard } from '../../components/features/BmiCard';
 import { WeightGauge } from '../../components/features/WeightGauge';
@@ -59,7 +59,7 @@ export default function WeightTracker() {
   };
 
   return (
-    <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
+    <ScreenContainer edges={['top', 'bottom']}>
       {/* Header */}
       <View style={s.header}>
         <BackButton color={colors.primaryBackground} />
@@ -180,7 +180,7 @@ export default function WeightTracker() {
         onClose={() => setShowModal(false)}
         onSave={handleSave}
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

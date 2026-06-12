@@ -1,7 +1,9 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { StyleSheet, View } from 'react-native';
 import { borderRadius, colors, shadows, spacing } from '../../theme';
-import { AppText, LineChart, PillTabs } from '../index';
+import AppText from '../ui/AppText';
+import { LineChart } from '../ui/LineChart';
+import { PillTabs } from '../ui/PillTabs';
 
 export interface TrendChartCardProps {
   title: string;

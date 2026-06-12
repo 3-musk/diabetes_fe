@@ -8,9 +8,9 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppText, BackButton, Button, ReminderData, ReminderModal } from '../../components';
+import { AppText, BackButton, Button, ReminderData, ReminderModal, ScreenContainer } from '../../components';
 import { reminders as REMINDERSCONSTANTS } from '../../constants/reminders';
 import { deleteReminder, getReminders, saveReminder } from '../../services/reminderService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -103,7 +103,7 @@ export default function RemindersScreen() {
   );
 
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+    <ScreenContainer edges={['top']}>
       {/* Header */}
       <View style={s.header}>
         <BackButton color={colors.primaryBackground} />
@@ -146,7 +146,7 @@ export default function RemindersScreen() {
         onSave={handleSaveReminder}
         initialData={editingItem}
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

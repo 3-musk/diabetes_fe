@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
+import { ScreenContainer } from "../../components";
 import {
   GlucoseSection,
   GlucoseSummarySection,
@@ -56,7 +57,7 @@ export default function Home() {
   // Show loading state or actual data
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <ScreenContainer edges={["top"]}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
@@ -67,7 +68,7 @@ export default function Home() {
           <HomeHeader name={firstName} />
           {/* Loading indicator could be added here */}
         </ScrollView>
-      </SafeAreaView>
+      </ScreenContainer>
     );
   }
 
@@ -81,7 +82,7 @@ export default function Home() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <ScreenContainer edges={["top"]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
@@ -105,15 +106,11 @@ export default function Home() {
           <MedicationSection data={medication || []} onRefresh={refreshMedication} />
         </HomeSectionStack>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   scrollContent: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,

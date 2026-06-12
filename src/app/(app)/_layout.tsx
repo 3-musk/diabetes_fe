@@ -1,5 +1,6 @@
 import { MoreTabIcon, SvgIcon } from '@/utils/icon';
 import { Tabs } from 'expo-router';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '../../theme';
 
@@ -14,6 +15,7 @@ export default function AppLayout() {
     const insets = useSafeAreaInsets();
 
     return (
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
         <Tabs
             screenOptions={{
                 tabBarStyle: {
@@ -84,5 +86,6 @@ export default function AppLayout() {
             <Tabs.Screen name="reminders"            options={{ href: null, tabBarStyle: { display: 'none' } }} />
             <Tabs.Screen name="activity-tracker"     options={{ href: null, tabBarStyle: { display: 'none' } }} />
         </Tabs>
+        </View>
     );
 }

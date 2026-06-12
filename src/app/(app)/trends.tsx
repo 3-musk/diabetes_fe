@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { AppText, DateStrip, HeaderActionIcons, PillTabs, TrendChartCard } from '../../components';
+import { AppText, DateStrip, HeaderActionIcons, PillTabs, ScreenContainer, TrendChartCard } from '../../components';
 import { getTrendData, TrendDataResponse, TrendMetric } from '../../services/trendService';
 import { colors, fontSize, spacing } from '../../theme';
 
@@ -45,7 +43,7 @@ export default function TrendsScreen() {
   }, [selectedMetric, glucoseFilter, selectedDate]);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <ScreenContainer edges={['top']}>
       {/* Custom Header */}
       <View style={styles.header}>
         <AppText variant="bold" style={styles.headerTitle}>Trends</AppText>
@@ -88,15 +86,11 @@ export default function TrendsScreen() {
           />
         )}
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

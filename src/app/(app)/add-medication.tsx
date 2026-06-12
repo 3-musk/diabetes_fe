@@ -9,8 +9,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton, Button, DateInput } from '../../components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppText, BackButton, Button, DateInput, ScreenContainer } from '../../components';
 import { medication as MEDICATIONCONSTANTS } from '../../constants/medication';
 import { saveMedication } from '../../services/medicationService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -47,7 +47,7 @@ export default function AddMedication() {
   };
 
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+    <ScreenContainer edges={['top']}>
       {/* Header */}
       <View style={s.header}>
         <BackButton color={colors.primaryBackground} />
@@ -159,7 +159,7 @@ export default function AddMedication() {
           <Button style={s.saveBtn} title={MEDICATIONCONSTANTS.saveBtn} onPress={handleSave} loading={submitting} />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

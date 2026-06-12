@@ -18,6 +18,7 @@ import {
   Button,
   LoadingSpinner,
   PlanCard,
+  ScreenContainer,
 } from '../components';
 
 import { ROUTES } from '../constants/routes';
@@ -128,7 +129,7 @@ export default function SubscriptionScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer edges={[]} style={styles.container}>
       {isFirstTimeUser === false && (
         <Pressable
           style={[styles.closeButton, { top: insets.top + spacing.sm }]}
@@ -205,13 +206,12 @@ export default function SubscriptionScreen() {
           />
         </View>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: colors.secondarybackground,
   },
   closeButton: {

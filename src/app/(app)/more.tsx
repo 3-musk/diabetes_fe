@@ -1,8 +1,8 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { useRouter } from 'expo-router';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton } from '../../components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppText, BackButton, ScreenContainer } from '../../components';
 import { more as MORECONSTANTS } from '../../constants/more';
 import { useAuth } from '../../context/AuthContext';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -60,7 +60,7 @@ export default function More() {
   const displayName = user?.name || 'User';
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <ScreenContainer edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <BackButton color={colors.primaryBackground}/>
@@ -106,15 +106,11 @@ export default function More() {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
