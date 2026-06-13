@@ -33,6 +33,7 @@ export function TrackingSummarySection({
         icon={<SvgIcon source={require("../../../assets/svgs/tabs/meal.svg")} size={60} />}
         title="Log Meal"
         subtitle={meals ? `${meals?.logged ?? 0}/${meals?.total ?? 0}` : ''}
+        onPress={() => router.push(ROUTES.appMeals as any)}
       />
 
       <TrackingTile

@@ -4,6 +4,7 @@ import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText, BackButton, ScreenContainer } from '../../components';
 import { more as MORECONSTANTS } from '../../constants/more';
+import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
 
@@ -39,14 +40,22 @@ export default function More() {
       label: MORECONSTANTS.menuUserProfile,
       icon: 'user-circle-o',
       iconBg: colors.secondary,
-      onPress: () => router.push('/profile'),
+      onPress: () =>
+        router.push({
+          pathname: ROUTES.appProfile as any,
+          params: { returnTo: ROUTES.appMore },
+        }),
     },
     {
       id: 'notifications',
       label: MORECONSTANTS.menuPushNotifications,
       icon: 'bell-o',
       iconBg: colors.secondary,
-      onPress: () => router.push('/(app)/settings'),
+      onPress: () =>
+        router.push({
+          pathname: ROUTES.appNotifications as any,
+          params: { returnTo: ROUTES.appMore },
+        }),
     },
     {
       id: 'logout',
@@ -78,7 +87,7 @@ export default function More() {
               style={styles.avatar}
             />
             <Pressable style={styles.editBadge}>
-              <FontAwesome name="pencil" size={12} color={colors.primaryForeground} />
+              <FontAwesome name="pencil" size={12} color={colors.primaryBackground} />
             </Pressable>
           </View>
           <AppText variant="semibold" style={styles.userName}>{displayName}</AppText>

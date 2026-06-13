@@ -55,20 +55,21 @@ const styles = StyleSheet.create({
   pill: {
     minWidth: 50,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pillInactive: {
-    // backgroundColor: '#FFFFFF',
-    // ...shadows.sm,
-    // Add a very subtle border instead of full shadow if needed, but shadow is good
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   pillActive: {
     backgroundColor: colors.primary,
     ...shadows.sm,
   },
   text: {
-    flex:1,
     textAlign: 'center',
     fontSize: 14,
   },

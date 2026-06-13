@@ -17,7 +17,7 @@ export function HeaderActionIcons() {
         <Pressable style={styles.icon} onPress={() => router.push(ROUTES.appReminders as any)}>
           <SvgIcon source={require('../../../assets/svgs/medication_reminder.svg')} size={46} />
         </Pressable>
-        <Pressable style={styles.icon}>
+        <Pressable style={styles.icon} onPress={() => router.push(ROUTES.appNotifications as any)}>
           <SvgIcon source={require('../../../assets/svgs/notification.svg')} size={46} />
         </Pressable>
       </View>

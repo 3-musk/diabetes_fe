@@ -9,6 +9,7 @@ export interface LineChartProps {
   optimalRange?: [number, number]; // [min, max]
   height?: number;
   width?: number; // Optional override
+  color?: string;
 }
 
 export function LineChart({
@@ -18,6 +19,7 @@ export function LineChart({
   optimalRange,
   height = 200,
   width: propWidth,
+  color = '#4CAF50',
 }: LineChartProps) {
   const { width: screenWidth } = useWindowDimensions();
   // Subtracting horizontal padding of the card container (e.g. 24 on each side)
@@ -76,9 +78,9 @@ export function LineChart({
           noOfSections={noOfSections}
           stepValue={stepValue}
           yAxisLabelWidth={yAxisLabelWidth}
-          color="#4CAF50"
+          color={color}
           thickness={2}
-          dataPointsColor="#4CAF50"
+          dataPointsColor={color}
           dataPointsRadius={4}
           textFontSize={10}
           textColor={colors.textSecondary}
