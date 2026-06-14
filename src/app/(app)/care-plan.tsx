@@ -22,6 +22,7 @@ import {
   type ProfileCompletion
 } from '../../services/carePlanService';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
+import { SvgIcon } from '../../utils/icon';
 
 import { MOCK_MEAL_SLOTS, MealSlot } from '../../constants/uiConstants';
 
@@ -36,15 +37,13 @@ function SlotCard({ slot }: { slot: MealSlot }) {
   return (
     <View style={card.wrap}>
       <Pressable style={card.header} onPress={() => setOpen(o => !o)}>
-        <View style={card.iconCircle}>
-          <FontAwesome name={slot.icon} size={18} color={colors.primary} />
-        </View>
+        <SvgIcon source={slot.icon} size={42} />
         <AppText variant="medium" style={card.label}>{slot.label}</AppText>
         <View style={card.toggleBtn}>
           <FontAwesome
             name={open ? 'minus' : 'plus'}
-            size={14}
-            color={colors.primary}
+            size={12}
+            color={colors.secondaryForeground}
           />
         </View>
       </Pressable>
@@ -88,11 +87,6 @@ const card = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     gap: spacing.md,
-  },
-  iconCircle: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#EDDBBC', // slightly darker beige for icon bg
-    alignItems: 'center', justifyContent: 'center',
   },
   label: { flex: 1, fontSize: fontSize.md, color: colors.textPrimary },
   toggleBtn: {

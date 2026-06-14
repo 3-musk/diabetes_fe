@@ -41,7 +41,7 @@ export const BMI_SEGMENTS = [
 export type MealSlot = {
   id: string;
   label: string;
-  icon: React.ComponentProps<typeof FontAwesome>["name"];
+  icon: any;
   diet?: string;
   physicalActivity?: string;
   medications?: string;
@@ -51,12 +51,12 @@ export const MOCK_MEAL_SLOTS: MealSlot[] = [
   {
     id: "morning",
     label: "Morning",
-    icon: "coffee",
+    icon: require("../../assets/svgs/care_plan/morning.svg"),
     diet: "Oats porridge with milk and mixed fruits",
     physicalActivity: "20-minute morning walk",
     medications: "Metformin 500mg after meal",
   },
-  { id: "afternoon", label: "Afternoon", icon: "cutlery" },
-  { id: "evening", label: "Evening", icon: "leaf" },
-  { id: "dinner", label: "Dinner", icon: "moon-o" },
+  { id: "afternoon", label: "Afternoon", icon: require("../../assets/svgs/care_plan/afternoon.svg") },
+  { id: "evening", label: "Evening", icon: require("../../assets/svgs/care_plan/evening.svg") },
+  { id: "dinner", label: "Dinner", icon: require("../../assets/svgs/care_plan/dinner.svg") },
 ];
