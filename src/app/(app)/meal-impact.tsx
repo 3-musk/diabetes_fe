@@ -17,7 +17,7 @@ import {
   MealImpactResponse,
   mealImpactTexts,
 } from '../../constants/mealImpact';
-import { MealSlotId } from '../../constants/meals';
+import { MealSlotId, getDefaultMealSlotByTime } from '../../constants/meals';
 import { ROUTES } from '../../constants/routes';
 import { getMealImpact } from '../../services/mealService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -39,7 +39,7 @@ function MealItemCard({
         contentFit="cover"
       />
       <View style={styles.mealContent}>
-        <AppText variant="semibold" style={styles.mealName}>{item.name}</AppText>
+        <AppText variant="regular" style={styles.mealName}>{item.name}</AppText>
         <AppText style={styles.mealCalories}>{item.calories} Cal</AppText>
       </View>
       {showSwap && onSwap && (
@@ -57,7 +57,7 @@ export default function MealImpactScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { slotId, date } = useLocalSearchParams<{ slotId: MealSlotId; date: string }>();
-  const activeSlotId = (slotId ?? 'breakfast') as MealSlotId;
+  const activeSlotId = (slotId ?? getDefaultMealSlotByTime()) as MealSlotId;
   const activeDate = date ?? new Date().toISOString().split('T')[0];
 
   const [impact, setImpact] = useState<MealImpactResponse | null>(null);
@@ -128,23 +128,25 @@ export default function MealImpactScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + spacing.xxl }]}
       >
-        <AppText variant="semibold" style={styles.sectionTitle}>
-          {mealImpactTexts.selectedMeal}
-        </AppText>
+        <View style={styles.card}>
+          <AppText variant="medium" style={styles.sectionTitle}>
+            {mealImpactTexts.selectedMeal}
+          </AppText>
 
-        <View style={styles.cardList}>
-          {selectedMeals.map(meal => (
-            <MealItemCard
-              key={meal.id}
-              item={meal}
-              showSwap
-              onSwap={() => handleSwapMeal(meal.id)}
-            />
-          ))}
+          <View style={styles.cardList}>
+            {selectedMeals.map(meal => (
+              <MealItemCard
+                key={meal.id}
+                item={meal}
+                showSwap
+                onSwap={() => handleSwapMeal(meal.id)}
+              />
+            ))}
+          </View>
         </View>
 
-        <View style={styles.chartCard}>
-          <AppText variant="semibold" style={styles.chartTitle}>
+        <View style={styles.card}>
+          <AppText variant="medium" style={styles.chartTitle}>
             {mealImpactTexts.combinedGlucoseCurve}
           </AppText>
           <LineChart
@@ -153,19 +155,28 @@ export default function MealImpactScreen() {
             yAxisLabels={impact.glucoseCurve.yAxisLabels}
             color="#7B5EA7"
             height={180}
+            displayDataPoints={false}
           />
 
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
-              <AppText style={styles.statLabel}>{mealImpactTexts.peakGlucose}</AppText>
+              <AppText variant="regular" style={styles.statLabel}>
+                {mealImpactTexts.peakGlucose}
+              </AppText>
               <AppText variant="semibold" style={styles.statValue}>
-                {impact.peakGlucose} {impact.peakGlucoseUnit}
+                {impact.peakGlucose} {""}
+                <AppText variant="semibold" style={styles.statUnit}>
+                  {impact.peakGlucoseUnit}
+                </AppText>
               </AppText>
             </View>
             <View style={styles.statBox}>
               <AppText style={styles.statLabel}>{mealImpactTexts.timeToPeak}</AppText>
               <AppText variant="semibold" style={styles.statValue}>
-                {impact.timeToPeak}
+                {impact.timeToPeak} {""}
+                <AppText variant="semibold" style={styles.statUnit}>
+                  hours
+                </AppText>
               </AppText>
             </View>
           </View>
@@ -174,16 +185,16 @@ export default function MealImpactScreen() {
         {impact.warningMessage && (
           <View style={styles.warningBanner}>
             <View style={styles.warningIcon}>
-              <FontAwesome name="exclamation" size={14} color={colors.primaryBackground} />
+              <FontAwesome name="exclamation" size={10} color={colors.primaryBackground} />
             </View>
-            <AppText variant="medium" style={styles.warningText}>
+            <AppText variant="regular" style={styles.warningText}>
               {impact.warningMessage}
             </AppText>
           </View>
         )}
 
         <View style={styles.suggestionsCard}>
-          <AppText variant="semibold" style={styles.suggestionsTitle}>
+          <AppText variant="medium" style={styles.suggestionsTitle}>
             {mealImpactTexts.bringWithinRange}
           </AppText>
           <AppText style={styles.suggestionsSubtitle}>
@@ -246,6 +257,19 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     marginTop: spacing.sm,
   },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.secondary,
+    padding: spacing.xl,
+    marginBottom: spacing.xl,
+  },
+  cardTitle: {
+    fontSize: fontSize.sm,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+  },
   cardList: {
     gap: spacing.md,
     marginBottom: spacing.lg,
@@ -254,7 +278,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: colors.secondary,
+    backgroundColor: '#FBF9EF',
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     ...shadows.sm,
@@ -266,6 +290,7 @@ const styles = StyleSheet.create({
   },
   mealContent: {
     flex: 1,
+    gap: spacing.xl,
   },
   mealName: {
     fontSize: fontSize.lg,
@@ -277,14 +302,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   swapBtn: {
-    backgroundColor: '#E8C547',
+    backgroundColor: '#FFDD89',
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   swapBtnText: {
     fontSize: fontSize.sm,
-    color: colors.textPrimary,
+    color: '#7B530C'
   },
   chartCard: {
     backgroundColor: colors.surface,
@@ -301,14 +326,14 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     gap: spacing.md,
-    marginTop: spacing.md,
+    marginTop: spacing.xs,
   },
   statBox: {
     flex: 1,
     backgroundColor: colors.secondarybackground,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   statLabel: {
     fontSize: fontSize.sm,
@@ -318,6 +343,16 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: fontSize.xl,
     color: '#5B4A7A',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  statUnit: {
+    fontSize: fontSize.sm,
+    color: '#5B4A7A',
+    flex: 1,
+    alignItems: 'baseline',
+    paddingLeft: 4
   },
   warningBanner: {
     flexDirection: 'row',
@@ -338,9 +373,9 @@ const styles = StyleSheet.create({
   },
   warningText: {
     flex: 1,
-    fontSize: fontSize.md,
+    fontSize: fontSize.sm,
     color: colors.textPrimary,
-    lineHeight: 20,
+    lineHeight: 15,
   },
   suggestionsCard: {
     backgroundColor: colors.surface,
@@ -379,7 +414,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   suggestionTitle: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.sm,
     color: colors.textPrimary,
   },
   suggestionPeak: {
@@ -388,14 +423,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   targetBadge: {
-    backgroundColor: colors.successLight,
+    backgroundColor: '#CCFFAD',
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
   targetBadgeText: {
     fontSize: fontSize.xs,
-    color: colors.success,
+    color: colors.primaryForeground,
     fontWeight: '600',
   },
   suggestionsFooter: {

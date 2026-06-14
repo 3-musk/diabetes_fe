@@ -1,18 +1,18 @@
+import type { NutritionData, NutritionRange } from '../components/home/types';
+import type { MealImpactResponse } from '../constants/mealImpact';
 import {
   DayMealsResponse,
   LoggedMeal,
+  MEAL_SLOT_META,
+  MEAL_SLOT_ORDER,
   MealPortionType,
   MealSearchResult,
   MealSearchSuggestion,
   MealSelectionItem,
-  MealSlotId,
-  MEAL_SLOT_META,
-  MEAL_SLOT_ORDER,
   MealSlotData,
+  MealSlotId,
 } from '../constants/meals';
-import type { MealImpactResponse } from '../constants/mealImpact';
 import type { MealCompareResponse, SwapMealResponse } from '../constants/swapMeal';
-import type { NutritionData, NutritionRange } from '../components/home/types';
 
 const EMPTY_RANGE: NutritionRange = {
   currentVal: null,
@@ -403,7 +403,7 @@ export const getMealImpact = async (
     },
     peakGlucose: 154,
     peakGlucoseUnit: 'mg/dl',
-    timeToPeak: '1.5 hours',
+    timeToPeak: '1.5',
     warningMessage: 'This meal may spike your Glucose above your target range',
     suggestions: [
       {

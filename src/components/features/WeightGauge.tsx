@@ -104,14 +104,13 @@ const gaugeS = StyleSheet.create({
         top: 78,
         left: 0,
         right: 0,
-        alignItems: 'center',
+        alignItems: 'center'
     },
     valueRow: { flexDirection: 'row', alignItems: 'center' },
     arrowIcon: { fontSize: 22, color: '#4CAF50', fontWeight: '700' },
     gapText: {
         fontSize: 34,
-        color: '#5B4035',
-        lineHeight: 28,
+        color: '#5B4035'
     },
     goalText: { fontSize: 16, color: '#8B7D75', marginTop: 2 },
 });

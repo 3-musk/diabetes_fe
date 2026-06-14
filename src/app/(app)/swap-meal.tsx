@@ -1,4 +1,3 @@
-import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -11,9 +10,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SvgIcon } from '@/utils/icon';
 import { AppText, BackButton, Button, RoundCheckBox, ScreenContainer } from '../../components';
+import { MealSlotId, getDefaultMealSlotByTime } from '../../constants/meals';
 import { ROUTES } from '../../constants/routes';
-import { MealSlotId } from '../../constants/meals';
 import { SwapMealOption, SwapMealResponse, swapMealTexts } from '../../constants/swapMeal';
 import { getSwapMealOptions, saveMealSwap } from '../../services/mealService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -81,7 +81,7 @@ export default function SwapMealScreen() {
     mealId: string;
   }>();
 
-  const activeSlotId = (slotId ?? 'breakfast') as MealSlotId;
+  const activeSlotId = (slotId ?? getDefaultMealSlotByTime()) as MealSlotId;
   const activeDate = date ?? new Date().toISOString().split('T')[0];
 
   const [swapData, setSwapData] = useState<SwapMealResponse | null>(null);
@@ -172,7 +172,7 @@ export default function SwapMealScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + spacing.xxl }]}
       >
-        <View style={styles.sectionCard}>
+        <View style={styles.card}>
           <AppText variant="semibold" style={styles.sectionTitle}>
             {swapMealTexts.pageTitle}
           </AppText>
@@ -199,12 +199,13 @@ export default function SwapMealScreen() {
         </View>
 
         <View style={styles.swapIconWrap}>
-          <View style={styles.swapIcon}>
-            <FontAwesome name="exchange" size={14} color={colors.primary} />
-          </View>
+          <SvgIcon 
+            source={require('../../../assets/svgs/meals/mealswap.svg')}
+            size={30}
+          />
         </View>
 
-        <View style={styles.sectionCard}>
+        <View style={styles.card}>
           <AppText variant="semibold" style={styles.sectionTitle}>
             {swapMealTexts.selectMeal}
           </AppText>
@@ -267,6 +268,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: spacing.lg,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.secondary,
+    padding: spacing.xl
   },
   sectionCard: {
     backgroundColor: colors.surface,

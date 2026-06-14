@@ -7,12 +7,14 @@ import { more as MORECONSTANTS } from '../../constants/more';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
+import { SvgIcon } from '../../utils/icon';
 
 type MenuItem = {
   id: string;
   label: string;
-  icon: React.ComponentProps<typeof FontAwesome>['name'];
+  icon: any;
   iconBg: string;
+  iconColor?: string;
   onPress: () => void;
 };
 
@@ -38,8 +40,9 @@ export default function More() {
     {
       id: 'profile',
       label: MORECONSTANTS.menuUserProfile,
-      icon: 'user-circle-o',
+      icon: require('../../../assets/svgs/more/user_profile.svg'),
       iconBg: colors.secondary,
+      // iconColor: colors.secondaryForeground,
       onPress: () =>
         router.push({
           pathname: ROUTES.appProfile as any,
@@ -47,10 +50,22 @@ export default function More() {
         }),
     },
     {
+      id: 'subscription',
+      label: MORECONSTANTS.menuMySubscription,
+      icon: require('../../../assets/svgs/more/subscription.svg'),
+      iconBg: colors.secondary,
+      // iconColor: colors.secondaryForeground,
+      onPress: () =>
+        router.push({
+          pathname: ROUTES.subscription as any,
+        }),
+    },
+    {
       id: 'notifications',
       label: MORECONSTANTS.menuPushNotifications,
-      icon: 'bell-o',
+      icon: require('../../../assets/svgs/more/notification.svg'),
       iconBg: colors.secondary,
+      // iconColor: colors.secondaryForeground,
       onPress: () =>
         router.push({
           pathname: ROUTES.appNotifications as any,
@@ -60,8 +75,9 @@ export default function More() {
     {
       id: 'logout',
       label: MORECONSTANTS.logoutBtn,
-      icon: 'sign-out',
+      icon: require('../../../assets/svgs/more/logout.svg'),
       iconBg: colors.primary,
+      // iconColor: colors.primaryBackground,
       onPress: handleLogout,
     },
   ];
@@ -105,7 +121,7 @@ export default function More() {
               onPress={item.onPress}
             >
               <View style={[styles.iconCircle, { backgroundColor: item.iconBg }]}>
-                <FontAwesome name={item.icon} size={18} color={colors.secondaryForeground} />
+                <SvgIcon source={item.icon} size={40} color={item.iconColor} />
               </View>
               <AppText variant="medium" style={styles.menuLabel}>{item.label}</AppText>
               {item.id !== 'logout' && (

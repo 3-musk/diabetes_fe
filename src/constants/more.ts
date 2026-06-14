@@ -5,5 +5,6 @@ export const more = {
   cancelBtn: "Cancel",
   logoutBtn: "Logout",
   menuUserProfile: "User Profile",
+  menuMySubscription: "My Subscription",
   menuPushNotifications: "Push Notifications",
 };

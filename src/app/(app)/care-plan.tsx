@@ -4,10 +4,11 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
-  View,
+  View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppModal, AppText, Button, DateStrip, HeaderActionIcons, ScreenContainer } from '../../components';
@@ -122,16 +123,21 @@ function CompleteProfilePopup({
       visible={visible} 
       onClose={onClose} 
       closeOnOverlayPress={true} 
-      maxHeight={'20%'}
+      maxHeight={'25%'}
       containerStyle={{
         flex: 1,
         justifyContent: 'flex-end',
         alignItems: 'flex-end',
         paddingHorizontal: spacing.lg,
-        marginBottom: insets.bottom + 60
+        marginBottom: Platform.OS === 'ios' ? 80 : insets.bottom + 60
       }}
     >
-      <View style={[popup.cardContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
+      <View style={[
+        popup.cardContent, 
+        { 
+          paddingBottom: Platform.OS === 'ios' ? 0 : Math.max(insets.bottom + 16, 24)
+        }
+      ]}>
         <AppText style={popup.message}>
           {CAREPLANCONSTANTS.popupMessage}
         </AppText>
@@ -284,7 +290,7 @@ export default function CarePlanScreen() {
   );
 
   useEffect(() => {
-    let timeout: number;
+    let timeout: NodeJS.Timeout;
     if (screenState === 'pending') {
       timeout = setTimeout(() => {
         // Automatically finish pending generation after 10s

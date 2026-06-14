@@ -4,6 +4,7 @@ import { colors, spacing } from '../../theme';
 
 export interface LineChartProps {
   data: number[];
+  displayDataPoints?: boolean,
   labels: string[];
   yAxisLabels: number[];
   optimalRange?: [number, number]; // [min, max]
@@ -20,6 +21,7 @@ export function LineChart({
   height = 200,
   width: propWidth,
   color = '#4CAF50',
+  displayDataPoints = true
 }: LineChartProps) {
   const { width: screenWidth } = useWindowDimensions();
   // Subtracting horizontal padding of the card container (e.g. 24 on each side)
@@ -81,7 +83,7 @@ export function LineChart({
           color={color}
           thickness={2}
           dataPointsColor={color}
-          dataPointsRadius={4}
+          dataPointsRadius={displayDataPoints ? 4 : 0}
           textFontSize={10}
           textColor={colors.textSecondary}
           xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 10 }}

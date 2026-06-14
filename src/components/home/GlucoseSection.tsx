@@ -8,9 +8,9 @@ import {
   GLUCOSE_STRINGS,
 } from "../../constants/glucoseConfig";
 import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
+import GlucoseGauge from "../features/GlucoseGauge";
 import AppText from "../ui/AppText";
 import Button from "../ui/Button";
-import GlucoseGauge from "../features/GlucoseGauge";
 import { Metric, OutlineAction, SetupCard } from "./Shared";
 import type { GlucoseReading } from "./types";
 
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   logButtonText: {
-    color: colors.primaryForeground,
+    color: colors.primaryBackground,
     fontSize: fontSize.sm,
   },
   summaryCard: {

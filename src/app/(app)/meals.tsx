@@ -1,4 +1,6 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
+import { Image } from 'expo-image';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -7,44 +9,58 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SvgIcon } from '@/utils/icon';
 import { AppText, BackButton, Button, DateStrip, ScreenContainer } from '../../components';
 import { NutritionSection } from '../../components/home/NutritionSection';
 import {
   DayMealsResponse,
+  getDefaultMealSlotByTime,
   MealSlotData,
+  MealSlotId,
   mealsTexts,
 } from '../../constants/meals';
+import { ROUTES } from '../../constants/routes';
 import { getMealsByDate } from '../../services/mealService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
-import { ROUTES } from '../../constants/routes';
+
+const MEAL_SLOT_IMAGES: Record<MealSlotId, any> = {
+  breakfast: require('../../../assets/images/meals/breakfast.png'),
+  lunch: require('../../../assets/images/meals/lunch.png'),
+  evening: require('../../../assets/images/meals/evening.png'),
+  dinner: require('../../../assets/images/meals/dinner.png'),
+};
 
 function CaloriesCard({ consumed, total }: { consumed: number; total: number }) {
   const progress = total > 0 ? Math.min(consumed / total, 1) : 0;
 
   return (
-    <View style={styles.caloriesCard}>
+    <>
       <AppText variant="semibold" style={styles.sectionTitle}>
         {mealsTexts.totalCalories}
       </AppText>
 
       <View style={styles.caloriesInner}>
-        <AppText style={styles.consumedLabel}>{mealsTexts.consumedToday}</AppText>
+        <AppText style={styles.consumedLabel}>
+          {mealsTexts.consumedToday}
+        </AppText>
         <View style={styles.caloriesValueRow}>
           <AppText variant="semibold" style={styles.consumedValue}>
             {consumed.toLocaleString()}
           </AppText>
-          <AppText style={styles.caloriesDivider}>
-            {' '}/ {total.toLocaleString()} {mealsTexts.caloriesUnit}
+          <AppText variant="medium" style={styles.caloriesDivider}>
+            {' '}/ {total.toLocaleString()} 
+            <AppText style={styles.caloriesText}>
+              {' '}{mealsTexts.caloriesUnit}
+            </AppText>
           </AppText>
         </View>
         <View style={styles.progressTrack}>
           <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
         </View>
       </View>
-    </View>
+    </>
   );
 }
 
@@ -54,16 +70,21 @@ function RecommendationCard({ recommendations }: { recommendations: string[] }) 
   return (
     <View style={styles.recommendationCard}>
       <View style={styles.recommendationHeader}>
-        <FontAwesome name="lightbulb-o" size={16} color={colors.secondaryForeground} />
-        <AppText variant="semibold" style={styles.recommendationTitle}>
-          {mealsTexts.ourRecommendation}
-        </AppText>
+        <SvgIcon 
+          source={require('../../../assets/svgs/meals/recommendation.svg')}
+          size={40}
+        />
+        <View>
+          <AppText variant="regular" style={styles.recommendationTitle}>
+            {mealsTexts.ourRecommendation}
+          </AppText>
+          {recommendations.map(item => (
+            <AppText key={item} style={styles.recommendationText}>
+              {item}
+            </AppText>
+          ))}
+        </View>
       </View>
-      {recommendations.map(item => (
-        <AppText key={item} style={styles.recommendationText}>
-          {item}
-        </AppText>
-      ))}
     </View>
   );
 }
@@ -82,10 +103,12 @@ function LoggedMealRow({
   return (
     <View style={styles.loggedMealRow}>
       <View style={styles.loggedMealHeader}>
-        <AppText style={styles.loggedMealTime}>{timeLabel}</AppText>
+        <AppText variant="medium" style={styles.loggedMealTime}>
+          {timeLabel}
+        </AppText>
         {approxCal != null && (
           <View style={styles.approxCalBadge}>
-            <AppText style={styles.approxCalText}>
+            <AppText variant="medium" style={styles.approxCalText}>
               {mealsTexts.approxCal} {approxCal}
             </AppText>
           </View>
@@ -118,7 +141,11 @@ function MealSlotCard({
     <View style={styles.slotCard}>
       <Pressable style={styles.slotHeader} onPress={onToggle}>
         <View style={styles.slotIconCircle}>
-          <FontAwesome name={slot.icon} size={18} color={colors.primary} />
+          <Image
+            source={MEAL_SLOT_IMAGES[slot.id]}
+            style={styles.slotIconImage}
+            contentFit="contain"
+          />
         </View>
         <View style={styles.slotHeaderText}>
           <AppText variant="semibold" style={styles.slotTitle}>
@@ -172,7 +199,7 @@ export default function MealsScreen() {
   });
   const [dayMeals, setDayMeals] = useState<DayMealsResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expandedSlotId, setExpandedSlotId] = useState<string | null>('breakfast');
+  const [expandedSlotId, setExpandedSlotId] = useState<string | null>(() => getDefaultMealSlotByTime());
 
   const loadMeals = useCallback(async (date: Date) => {
     setLoading(true);
@@ -237,27 +264,30 @@ export default function MealsScreen() {
           <DateStrip selectedDate={selectedDate} onSelectDate={handleDateChange} />
 
           <View style={styles.sectionWrap}>
-            <NutritionSection data={dayMeals.nutrition} />
+            <NutritionSection data={dayMeals.nutrition} leftBorder={false}/>
+          </View>
+          
+          <View style={styles.caloriesCard}>
+            <CaloriesCard
+              consumed={dayMeals.calories.consumed}
+              total={dayMeals.calories.total}
+            />
+
+            <View style={styles.slotsWrap}>
+              {dayMeals.slots.map(slot => (
+                <MealSlotCard
+                  key={slot.id}
+                  slot={slot}
+                  expanded={expandedSlotId === slot.id}
+                  onToggle={() =>
+                    setExpandedSlotId(prev => (prev === slot.id ? null : slot.id))
+                  }
+                  onAddMeal={() => handleAddMeal(slot.id)}
+                />
+              ))}
+            </View>
           </View>
 
-          <CaloriesCard
-            consumed={dayMeals.calories.consumed}
-            total={dayMeals.calories.total}
-          />
-
-          <View style={styles.slotsWrap}>
-            {dayMeals.slots.map(slot => (
-              <MealSlotCard
-                key={slot.id}
-                slot={slot}
-                expanded={expandedSlotId === slot.id}
-                onToggle={() =>
-                  setExpandedSlotId(prev => (prev === slot.id ? null : slot.id))
-                }
-                onAddMeal={() => handleAddMeal(slot.id)}
-              />
-            ))}
-          </View>
         </ScrollView>
       )}
     </ScreenContainer>
@@ -286,6 +316,9 @@ const styles = StyleSheet.create({
   },
   sectionWrap: {
     marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderRadius: borderRadius.lg,
+    borderColor: colors.secondary
   },
   sectionTitle: {
     fontSize: fontSize.xl,
@@ -294,18 +327,22 @@ const styles = StyleSheet.create({
   },
   caloriesCard: {
     backgroundColor: colors.surface,
+    borderWidth: 1,
     borderRadius: borderRadius.lg,
+    borderColor: colors.secondary,
     padding: spacing.xl,
     marginBottom: spacing.lg,
     ...shadows.sm,
   },
   caloriesInner: {
     backgroundColor: colors.secondarybackground,
+    borderWidth: 1,
     borderRadius: borderRadius.lg,
+    borderColor: colors.secondary,
     padding: spacing.lg,
   },
   consumedLabel: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.md,
     color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
@@ -319,7 +356,11 @@ const styles = StyleSheet.create({
     color: colors.success,
   },
   caloriesDivider: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.xxl,
+    color: colors.textSecondary,
+  },
+  caloriesText: {
+    fontSize: fontSize.lg,
     color: colors.textSecondary,
   },
   progressTrack: {
@@ -335,10 +376,13 @@ const styles = StyleSheet.create({
   },
   slotsWrap: {
     gap: spacing.md,
+    marginTop: spacing.md,
   },
   slotCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.secondarybackground,
+    borderWidth: 1,
     borderRadius: borderRadius.lg,
+    borderColor: colors.secondary,
     overflow: 'hidden',
     ...shadows.sm,
   },
@@ -355,6 +399,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondarybackground,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  slotIconImage: {
+    width: 40,
+    height: 40,
   },
   slotHeaderText: {
     flex: 1,
@@ -388,16 +436,17 @@ const styles = StyleSheet.create({
   recommendationTitle: {
     fontSize: fontSize.md,
     color: colors.secondaryForeground,
+    marginBottom: 10
   },
   recommendationText: {
-    fontSize: fontSize.md,
+    fontSize: fontSize.lg,
     color: colors.textPrimary,
     lineHeight: 20,
   },
   loggedMealRow: {
-    borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
-    paddingTop: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+    paddingBottom: spacing.md,
     gap: spacing.xs,
   },
   loggedMealHeader: {
@@ -408,8 +457,8 @@ const styles = StyleSheet.create({
   },
   loggedMealTime: {
     flex: 1,
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
+    fontSize: fontSize.lg,
+    color: colors.textPrimary,
   },
   approxCalBadge: {
     backgroundColor: colors.tabBackgroundColor,
@@ -418,14 +467,15 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   approxCalText: {
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.primaryBackground,
   },
   loggedMealBody: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: spacing.md,
+    paddingTop: spacing.md,
   },
   loggedMealName: {
     flex: 1,

@@ -47,7 +47,7 @@ function describeArc(cx: number, cy: number, radius: number, startAngle: number,
   return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
 }
 
-export function NutritionSection({ data }: { data: NutritionData | null }) {
+export function NutritionSection({ data, leftBorder=true }: { data: NutritionData | null, leftBorder?: boolean }) {
   if (!data) {
     return (
       <SetupCard title={NUTRITION_STRINGS.sectionTitle}>
@@ -59,7 +59,7 @@ export function NutritionSection({ data }: { data: NutritionData | null }) {
     );
   }
 
-  return <NutritionCompassCard data={data} />;
+  return <NutritionCompassCard data={data} leftBorder={leftBorder}/>;
 }
 
 function getBorderLeftColor(data: NutritionData): string {
@@ -74,11 +74,11 @@ function getBorderLeftColor(data: NutritionData): string {
   return NUTRITION_STATUS_CONFIG.optimal.color;
 }
 
-function NutritionCompassCard({ data }: { data: NutritionData }) {
+function NutritionCompassCard({ data, leftBorder=true }: { data: NutritionData, leftBorder?: boolean  }) {
   const borderLeftColor = getBorderLeftColor(data);
-
+  const borderLeftWidth = leftBorder===false ? 0 : 4
   return (
-    <View style={[styles.card, { borderLeftColor }]}>
+    <View style={[styles.card, { borderLeftColor }, {borderLeftWidth}]}>
       <AppText variant="semibold" style={styles.sectionTitle}>
         {NUTRITION_STRINGS.sectionTitle}
       </AppText>
@@ -131,48 +131,77 @@ function NutrientGaugeItem({
   return (
     <View style={styles.nutrientItem}>
       {needleAngle === null ? (
-        <View style={styles.noDataGauge}>
-          <AppText style={styles.noDataText}>{NUTRITION_STRINGS.noDataSymbol}</AppText>
-        </View>
+        <>
+          <Svg width={70} height={42} viewBox="0 0 70 42">
+            <Path
+              d={describeArc(centerX, centerY, arcRadius, 205, 335)}
+              stroke={`${accentColor}22`}
+              strokeWidth={6}
+              fill="none"
+              strokeLinecap="round"
+            />
+            <Path
+              d={`M${centerX} ${centerY} L${needleX} ${needleY}`}
+              stroke={colors.secondaryForeground}
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+            <Circle
+              cx={centerX}
+              cy={centerY}
+              r={3.5}
+              fill={colors.surface}
+              stroke={colors.secondaryForeground}
+              strokeWidth={2}
+            />
+          </Svg>
+          <AppText variant="medium" style={styles.nutrientTitle}>
+            {title}
+          </AppText>
+          <AppText style={[styles.nutrientSubtitle, {fontSize: fontSize.sm}]}>
+            {subtitle}
+          </AppText>
+        </>
       ) : (
-        <Svg width={70} height={42} viewBox="0 0 70 42">
-          <Path
-            d={describeArc(centerX, centerY, arcRadius, 205, 335)}
-            stroke={`${accentColor}22`}
-            strokeWidth={6}
-            fill="none"
-            strokeLinecap="round"
-          />
-          <Path
-            d={describeArc(centerX, centerY, arcRadius, arcStartAngle ?? 255, arcEndAngle ?? 285)}
-            stroke={accentColor}
-            strokeWidth={6}
-            fill="none"
-            strokeLinecap="round"
-          />
-          <Path
-            d={`M${centerX} ${centerY} L${needleX} ${needleY}`}
-            stroke={colors.secondaryForeground}
-            strokeWidth={2}
-            strokeLinecap="round"
-          />
-          <Circle
-            cx={centerX}
-            cy={centerY}
-            r={3.5}
-            fill={colors.surface}
-            stroke={colors.secondaryForeground}
-            strokeWidth={2}
-          />
-        </Svg>
+        <>
+          <Svg width={70} height={42} viewBox="0 0 70 42">
+            <Path
+              d={describeArc(centerX, centerY, arcRadius, 205, 335)}
+              stroke={`${accentColor}22`}
+              strokeWidth={6}
+              fill="none"
+              strokeLinecap="round"
+            />
+            <Path
+              d={describeArc(centerX, centerY, arcRadius, arcStartAngle ?? 255, arcEndAngle ?? 285)}
+              stroke={accentColor}
+              strokeWidth={6}
+              fill="none"
+              strokeLinecap="round"
+            />
+            <Path
+              d={`M${centerX} ${centerY} L${needleX} ${needleY}`}
+              stroke={colors.secondaryForeground}
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+            <Circle
+              cx={centerX}
+              cy={centerY}
+              r={3.5}
+              fill={colors.surface}
+              stroke={colors.secondaryForeground}
+              strokeWidth={2}
+            />
+          </Svg>
+          <AppText variant="medium" style={styles.nutrientTitle}>
+            {title}
+          </AppText>
+          <AppText style={styles.nutrientSubtitle}>
+            {subtitle}
+          </AppText>
+        </>
       )}
-
-      <AppText variant="medium" style={styles.nutrientTitle}>
-        {title}
-      </AppText>
-      <AppText style={styles.nutrientSubtitle}>
-        {subtitle}
-      </AppText>
     </View>
   );
 }

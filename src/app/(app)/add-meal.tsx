@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SvgIcon } from '@/utils/icon';
 import {
   AppText,
   BackButton,
@@ -20,6 +21,7 @@ import {
   ScreenContainer,
   SegmentedControl,
 } from '../../components';
+import { mealImpactTexts } from '../../constants/mealImpact';
 import {
   MEAL_SLOT_META,
   MealPortionType,
@@ -28,7 +30,9 @@ import {
   MealSelectionItem,
   MealSlotId,
   addMealTexts,
+  getDefaultMealSlotByTime,
 } from '../../constants/meals';
+import { ROUTES } from '../../constants/routes';
 import {
   addMealItem,
   getMealSelection,
@@ -39,8 +43,6 @@ import {
   uploadMealImage,
 } from '../../services/mealService';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
-import { ROUTES } from '../../constants/routes';
-import { mealImpactTexts } from '../../constants/mealImpact';
 
 function Stepper({
   value,
@@ -51,7 +53,7 @@ function Stepper({
 }) {
   return (
     <View style={styles.stepperRow}>
-      <Pressable style={styles.stepperBtn} onPress={() => onChange(Math.max(0, value - 1))}>
+      <Pressable style={[styles.stepperBtn, styles.stepperBtnAdd]} onPress={() => onChange(Math.max(0, value - 1))}>
         <FontAwesome name="minus" size={14} color={colors.secondaryForeground} />
       </Pressable>
       <AppText variant="medium" style={styles.stepperValue}>
@@ -69,7 +71,7 @@ export default function AddMealScreen() {
   const insets = useSafeAreaInsets();
   const { slotId, date } = useLocalSearchParams<{ slotId: MealSlotId; date: string }>();
 
-  const activeSlotId = (slotId ?? 'breakfast') as MealSlotId;
+  const activeSlotId = (slotId ?? getDefaultMealSlotByTime()) as MealSlotId;
   const activeDate = date ?? new Date().toISOString().split('T')[0];
   const slotLabel = MEAL_SLOT_META[activeSlotId]?.label ?? 'Meal';
 
@@ -268,7 +270,7 @@ export default function AddMealScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + spacing.xxl }]}
       >
         <View style={styles.card}>
-          <AppText variant="semibold" style={styles.cardTitle}>
+          <AppText variant="regular" style={styles.cardTitle}>
             {addMealTexts.uploadLabel}
           </AppText>
 
@@ -277,8 +279,10 @@ export default function AddMealScreen() {
               <ActivityIndicator color={colors.primary} />
             ) : (
               <>
-                <AppText style={styles.uploadText}>{addMealTexts.takePicture}</AppText>
-                <FontAwesome name="camera" size={22} color={colors.textTertiary} />
+                <AppText style={styles.uploadText}>
+                  {addMealTexts.takePicture}
+                </AppText>
+                <SvgIcon source={require('../../../assets/svgs/meals/camera.svg')}/>
               </>
             )}
           </Pressable>
@@ -286,7 +290,7 @@ export default function AddMealScreen() {
           <View style={styles.orRow}>
             <View style={styles.orLine} />
             <View style={styles.orBadge}>
-              <AppText variant="semibold" style={styles.orText}>{addMealTexts.or}</AppText>
+              <AppText variant="regular" style={styles.orText}>{addMealTexts.or}</AppText>
             </View>
             <View style={styles.orLine} />
           </View>
@@ -367,61 +371,66 @@ export default function AddMealScreen() {
             loading={searching || addingItem}
             style={styles.addBtn}
           />
+
+          <View style={{marginVertical:20}}/>
+
+          <AppText variant="medium" style={styles.sectionTitle}>
+            {addMealTexts.todaysSelection}
+          </AppText>
+
+          {loadingSelection ? (
+            <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.lg }} />
+          ) : selection.length === 0 ? (
+            <AppText style={styles.emptyText}>{addMealTexts.noSelection}</AppText>
+          ) : (
+            <View style={styles.selectionList}>
+              {selection.map(item => (
+                <View key={item.id} style={styles.selectionCard}>
+                  <Image
+                    source={{ uri: item.imageUri ?? 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120&h=120&fit=crop' }}
+                    style={styles.selectionImage}
+                    contentFit="cover"
+                  />
+                  <View style={styles.selectionContent}>
+                    <AppText variant="regular" style={styles.selectionName}>{item.name}</AppText>
+                    <AppText style={styles.selectionCalories}>{item.calories} Cal</AppText>
+                  </View>
+                  <Pressable onPress={() => handleRemoveItem(item.id)} hitSlop={8}>
+                    <SvgIcon size={20} source={require('../../../assets/svgs/delete.svg')} />
+                  </Pressable>
+                </View>
+              ))}
+
+              <View style={styles.totalRow}>
+                <AppText variant="semibold" style={styles.totalLabel}>
+                  {addMealTexts.estimatedTotal}
+                </AppText>
+                <AppText variant="regular" style={styles.totalValue}>
+                  {estimatedTotal} Cal
+                </AppText>
+              </View>
+            </View>
+          )}
+
+          <Button
+            title={addMealTexts.seePredictedImpact}
+            variant="outline"
+            icon={
+            <SvgIcon source={require('../../../assets/svgs/meals/prediction.svg')} />
+          }
+            style={styles.impactBtn}
+            onPress={handleSeePredictedImpact}
+          />
+
+          <Button
+            title={addMealTexts.saveMeal}
+            onPress={handleSaveMeal}
+            loading={saving}
+            size="lg"
+            style={styles.saveBtn}
+          />
         </View>
 
-        <AppText variant="semibold" style={styles.sectionTitle}>
-          {addMealTexts.todaysSelection}
-        </AppText>
-
-        {loadingSelection ? (
-          <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.lg }} />
-        ) : selection.length === 0 ? (
-          <AppText style={styles.emptyText}>{addMealTexts.noSelection}</AppText>
-        ) : (
-          <View style={styles.selectionList}>
-            {selection.map(item => (
-              <View key={item.id} style={styles.selectionCard}>
-                <Image
-                  source={{ uri: item.imageUri ?? 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120&h=120&fit=crop' }}
-                  style={styles.selectionImage}
-                  contentFit="cover"
-                />
-                <View style={styles.selectionContent}>
-                  <AppText variant="semibold" style={styles.selectionName}>{item.name}</AppText>
-                  <AppText style={styles.selectionCalories}>{item.calories} Cal</AppText>
-                </View>
-                <Pressable onPress={() => handleRemoveItem(item.id)} hitSlop={8}>
-                  <FontAwesome name="trash-o" size={18} color={colors.error} />
-                </Pressable>
-              </View>
-            ))}
-
-            <View style={styles.totalRow}>
-              <AppText variant="semibold" style={styles.totalLabel}>
-                {addMealTexts.estimatedTotal}
-              </AppText>
-              <AppText variant="semibold" style={styles.totalValue}>
-                {estimatedTotal} Cal
-              </AppText>
-            </View>
-          </View>
-        )}
-
-        <Button
-          title={addMealTexts.seePredictedImpact}
-          variant="outline"
-          icon={<FontAwesome name="magic" size={14} color={colors.primary} />}
-          style={styles.impactBtn}
-          onPress={handleSeePredictedImpact}
-        />
-
-        <Button
-          title={addMealTexts.saveMeal}
-          onPress={handleSaveMeal}
-          loading={saving}
-          size="lg"
-          style={styles.saveBtn}
-        />
       </ScrollView>
     </ScreenContainer>
   );
@@ -451,7 +460,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   cardTitle: {
-    fontSize: fontSize.lg,
+    fontSize: fontSize.sm,
     color: colors.textPrimary,
     marginBottom: spacing.md,
   },
@@ -463,18 +472,18 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
-    gap: spacing.md,
+    flexDirection: 'column',
+    gap: spacing.xs,
   },
   uploadText: {
-    fontSize: fontSize.md,
-    color: colors.textSecondary,
+    fontSize: fontSize.sm,
+    color: colors.textPrimary,
   },
   orRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: spacing.lg,
-    gap: spacing.sm,
+    gap: 0,
   },
   orLine: {
     flex: 1,
@@ -542,10 +551,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#E3E3E3',
+    borderRadius: borderRadius.full
   },
   stepperBtn: {
-    width: 34,
-    height: 34,
+    width: 30,
+    height: 30,
     borderRadius: 17,
     backgroundColor: colors.secondarybackground,
     alignItems: 'center',
@@ -596,6 +609,9 @@ const styles = StyleSheet.create({
   },
   selectionContent: {
     flex: 1,
+    gap: spacing.xl,
+    flexDirection: 'column',
+    justifyContent: "space-between"
   },
   selectionName: {
     fontSize: fontSize.lg,
@@ -610,7 +626,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: spacing.sm,
+    backgroundColor: colors.secondarybackground,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
   },
   totalLabel: {
     fontSize: fontSize.lg,
@@ -623,6 +641,8 @@ const styles = StyleSheet.create({
   impactBtn: {
     borderRadius: borderRadius.full,
     marginBottom: spacing.md,
+    flex: 1,
+    flexDirection: 'row-reverse'
   },
   saveBtn: {
     borderRadius: borderRadius.full,

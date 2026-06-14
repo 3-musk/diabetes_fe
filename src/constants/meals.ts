@@ -17,6 +17,19 @@ export const MEAL_SLOT_META: Record<
   dinner: { label: 'Dinner', icon: 'moon-o', defaultRecommendedCalories: 370 },
 };
 
+export function getDefaultMealSlotByTime(): MealSlotId {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 11) {
+    return 'breakfast';
+  } else if (hour >= 11 && hour < 16) {
+    return 'lunch';
+  } else if (hour >= 16 && hour < 19) {
+    return 'evening';
+  } else {
+    return 'dinner';
+  }
+}
+
 export type MealPortionType = 'count' | 'volume';
 
 export type MealSelectionItem = {

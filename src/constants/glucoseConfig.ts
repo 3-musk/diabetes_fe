@@ -1,12 +1,12 @@
 // Glucose status codes, display colors, gauge ranges and UI copy
 
-export type GlucoseStatus = 'normal' | 'borderline' | 'out_of_range' | 'danger';
+export type GlucoseStatus = 'normal' | 'borderline' | 'abnormal' | 'danger';
 
 /** Hex color for each glucose reading status */
 export const GLUCOSE_STATUS_COLORS: Record<GlucoseStatus, string> = {
   normal:       '#15933A',
   borderline:   '#679315',
-  out_of_range: '#c9e913',
+  abnormal:     '#e99313ff',
   danger:       '#c9130d',
 };
 
@@ -17,7 +17,7 @@ export const GLUCOSE_GAUGE_RANGE = { min: 60, max: 250 } as const;
 export const GLUCOSE_GAUGE_RANGES = [
   { from: 60,  to: 100, color: GLUCOSE_STATUS_COLORS.normal },
   { from: 100, to: 140, color: GLUCOSE_STATUS_COLORS.borderline },
-  { from: 140, to: 180, color: GLUCOSE_STATUS_COLORS.out_of_range },
+  { from: 140, to: 180, color: GLUCOSE_STATUS_COLORS.abnormal },
   { from: 180, to: 250, color: GLUCOSE_STATUS_COLORS.danger },
 ] as const;
 

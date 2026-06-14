@@ -1,4 +1,3 @@
-import { LineChart as GiftedLineChart } from 'react-native-gifted-charts';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -8,14 +7,15 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { LineChart as GiftedLineChart } from 'react-native-gifted-charts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText, BackButton, ScreenContainer } from '../../components';
-import { MealSlotId } from '../../constants/meals';
+import { getDefaultMealSlotByTime, MealSlotId } from '../../constants/meals';
 import { ROUTES } from '../../constants/routes';
 import { MealCompareResponse, swapMealTexts } from '../../constants/swapMeal';
 import { getMealCompare } from '../../services/mealService';
-import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
+import { borderRadius, colors, fontSize, spacing } from '../../theme';
 
 function NutrientTable({ nutrients }: { nutrients: MealCompareResponse['nutrients'] }) {
   return (
@@ -58,9 +58,9 @@ function CompareGlucoseChart({ data }: { data: MealCompareResponse['glucoseCompa
         value,
         label: data.labels[index] ?? '',
       })),
-      color: data.original.color,
+      color: '#8979FF',
       thickness: 2,
-      dataPointsRadius: 3,
+      dataPointsRadius: 0,
       curved: true,
     },
     {
@@ -68,9 +68,9 @@ function CompareGlucoseChart({ data }: { data: MealCompareResponse['glucoseCompa
         value,
         label: data.labels[index] ?? '',
       })),
-      color: data.optimized.color,
+      color: '#15933A',
       thickness: 2,
-      dataPointsRadius: 3,
+      dataPointsRadius: 0,
       curved: true,
     },
   ];
@@ -91,6 +91,7 @@ function CompareGlucoseChart({ data }: { data: MealCompareResponse['glucoseCompa
           xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
           yAxisTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
           rulesType="solid"
+          dataPointsRadius={0}
           rulesColor={colors.border}
           yAxisColor={colors.border}
           xAxisColor={colors.border}
@@ -125,7 +126,7 @@ export default function MealCompareScreen() {
     alternativeId: string;
   }>();
 
-  const activeSlotId = (slotId ?? 'breakfast') as MealSlotId;
+  const activeSlotId = (slotId ?? getDefaultMealSlotByTime()) as MealSlotId;
   const activeDate = date ?? new Date().toISOString().split('T')[0];
 
   const [compareData, setCompareData] = useState<MealCompareResponse | null>(null);
@@ -187,18 +188,20 @@ export default function MealCompareScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + spacing.xxl }]}
       >
         <View style={styles.card}>
-          <AppText variant="semibold" style={styles.cardTitle}>
+          <AppText variant="regular" style={styles.cardTitle}>
             {swapMealTexts.finalizedMeal}
           </AppText>
-          <AppText variant="semibold" style={styles.finalizedName}>
-            {compareData.finalizedMealName}
-          </AppText>
-          <AppText style={styles.swappedFrom}>
-            {compareData.swappedFromLabel}
-          </AppText>
+          <View style={styles.finalizedNameBox}>
+            <AppText variant="semibold" style={styles.finalizedName}>
+              {compareData.finalizedMealName}
+            </AppText>
+            <AppText style={styles.swappedFrom}>
+              {compareData.swappedFromLabel}
+            </AppText>
+          </View>
 
           <View style={styles.predictionBox}>
-            <AppText variant="semibold" style={styles.predictionPrimary}>
+            <AppText variant="medium" style={styles.predictionPrimary}>
               {swapMealTexts.newMealPrediction} : {compareData.newPeakGlucose}mg/dl peak
             </AppText>
             <AppText style={styles.predictionSecondary}>
@@ -254,35 +257,41 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
     borderWidth: 1,
     borderColor: colors.secondary,
-    padding: spacing.lg,
-    ...shadows.sm,
+    padding: spacing.xl
   },
   cardTitle: {
-    fontSize: fontSize.lg,
+    fontSize: fontSize.sm,
     color: colors.textPrimary,
     marginBottom: spacing.md,
+  },
+  finalizedNameBox: {
+    paddingLeft: spacing.sm,
+    marginBottom: spacing.sm,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.success
   },
   finalizedName: {
     fontSize: fontSize.xxl,
     color: colors.success,
-    marginBottom: spacing.xs,
+    lineHeight: fontSize.xxl,
   },
   swappedFrom: {
+    lineHeight: fontSize.sm,
     fontSize: fontSize.sm,
-    color: colors.textTertiary,
-    marginBottom: spacing.md,
+    color: colors.textTertiary
   },
   predictionBox: {
     backgroundColor: colors.successLight,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
+    marginTop: spacing.md
   },
   predictionPrimary: {
     fontSize: fontSize.md,
-    color: colors.success,
+    color: colors.primaryForeground,
     marginBottom: spacing.xs,
   },
   predictionSecondary: {

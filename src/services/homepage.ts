@@ -1,26 +1,26 @@
 import {
   HomeDashboardData,
+  IconName,
   LifestyleQuestionData,
   MedicationData,
-  IconName,
 } from "../components/home/types";
 import {
   completedActivityIds,
+  completedMedicationIds,
   glucoseReadings,
   hba1cHistory,
   lifestyleAnswers,
+  lifestyleQuestionsList,
   medications,
   mockActivities,
-  weightHistory,
-  completedMedicationIds,
-  lifestyleQuestionsList
+  weightHistory
 } from "../constants/mockDb";
 
 // Helper to determine glucose status
 const getGlucoseStatus = (value: number): string => {
   if (value <= 100) return "normal";
   if (value <= 140) return "borderline";
-  if (value <= 180) return "out_of_range";
+  if (value <= 180) return "abnormal";
   return "danger";
 };
 
