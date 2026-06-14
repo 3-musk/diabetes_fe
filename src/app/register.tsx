@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import { registerTexts } from '../constants/register';
-import { AppText, Button, Card, Checkbox, DateInput, Input, LoadingSpinner } from '../components';
+import { AppText, Button, Card, Checkbox, DateInput, Input, LoadingSpinner, ScreenContainer } from '../components';
 import { ROUTES } from '../constants/routes';
 import { useAuth } from '../context/AuthContext';
 import { colors, fontSize, spacing } from '../theme';
@@ -49,6 +49,7 @@ export default function RegisterScreen() {
     }
 
     return (
+        <ScreenContainer edges={['top', 'bottom']}>
         <ScrollView
             contentContainerStyle={styles.container}
             keyboardShouldPersistTaps="handled"
@@ -173,6 +174,7 @@ export default function RegisterScreen() {
                 />
             </Card>
         </ScrollView>
+        </ScreenContainer>
     );
 }
 

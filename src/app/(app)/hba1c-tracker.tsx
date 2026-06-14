@@ -10,8 +10,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, AppModal, BackButton, Button, DateInput, Input } from '../../components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppText, AppModal, BackButton, Button, DateInput, Input, ScreenContainer } from '../../components';
 import { hba1cTracker as HBA1CTRACKERCONSTANTS, STATUS_CONFIG } from '../../constants/hba1cTracker';
 import { getHba1cHistory, saveHba1cEntry, type HbA1cEntry, type HbA1cStatus } from '../../services/trackerService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -152,7 +152,7 @@ export default function Hba1cTracker() {
   };
 
   return (
-    <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
+    <ScreenContainer edges={['top', 'bottom']}>
       {/* Header */}
       <View style={s.header}>
         <BackButton color={colors.primaryBackground} />
@@ -219,7 +219,7 @@ export default function Hba1cTracker() {
         onClose={() => setShowModal(false)}
         onSave={handleSave}
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

@@ -1,8 +1,17 @@
 import { SvgIcon } from '@/utils/icon';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
-import { Platform, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { colors } from '../../theme';
+import {
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
+import { colors, fontSize, spacing } from '../../theme';
+import AppText from '../ui/AppText';
 import { Input } from './Input';
 
 interface DateInputProps {
@@ -33,26 +42,34 @@ const DateInput: React.FC<DateInputProps> = ({
   ...rest
 }) => {
   const [showPicker, setShowPicker] = useState(false);
-  
-  const handleChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowPicker(false);
-    }
-    
+  const [tempDate, setTempDate] = useState(value || new Date());
+
+  const closePicker = () => setShowPicker(false);
+
+  const handleAndroidChange = (_event: unknown, selectedDate?: Date) => {
+    closePicker();
     if (selectedDate && onChange) {
       onChange(selectedDate);
     }
   };
 
+  const handleInputPress = () => {
+    setTempDate(value || new Date());
+    setShowPicker(true);
+  };
+
+  const handleDone = () => {
+    onChange?.(tempDate);
+    closePicker();
+  };
+
   const formatDate = (date?: Date) => {
     if (!date) return '';
-    
-    // If dateFormat is a function, use it
+
     if (typeof dateFormat === 'function') {
       return dateFormat(date);
     }
-    
-    // Handle predefined formats
+
     switch (dateFormat) {
       case 'year':
         return date.getFullYear().toString();
@@ -68,10 +85,6 @@ const DateInput: React.FC<DateInputProps> = ({
     }
   };
 
-  const handleInputPress = () => {
-    setShowPicker(true);
-  };
-
   return (
     <View style={containerStyle}>
       <TouchableOpacity onPress={handleInputPress}>
@@ -83,26 +96,88 @@ const DateInput: React.FC<DateInputProps> = ({
           editable={false}
           placeholder={placeholder}
           rightIcon={
-            <SvgIcon 
-              source={require('../../../assets/svgs/calender.svg')} 
-              size={20} 
+            <SvgIcon
+              source={require('../../../assets/svgs/calender.svg')}
+              size={20}
               color={colors.primaryForeground}
             />
           }
           {...rest}
         />
       </TouchableOpacity>
-      
-      {showPicker && (
-        <DateTimePicker
-          value={value || new Date()}
-          mode={mode}
-          display={display}
-          onValueChange={handleChange}
-        />
+
+      {Platform.OS === 'ios' ? (
+        <Modal visible={showPicker} transparent animationType="slide">
+          <Pressable style={styles.overlay} onPress={closePicker}>
+            <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+              <View style={styles.header}>
+                <TouchableOpacity onPress={closePicker} hitSlop={8}>
+                  <AppText variant="medium" style={styles.cancelText}>
+                    Cancel
+                  </AppText>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleDone} hitSlop={8}>
+                  <AppText variant="semibold" style={styles.doneText}>
+                    Done
+                  </AppText>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={tempDate}
+                mode={mode}
+                display={display === 'default' ? 'spinner' : display}
+                onValueChange={(_event, selectedDate) => {
+                  if (selectedDate) {
+                    setTempDate(selectedDate);
+                  }
+                }}
+              />
+            </Pressable>
+          </Pressable>
+        </Modal>
+      ) : (
+        showPicker && (
+          <DateTimePicker
+            value={value || new Date()}
+            mode={mode}
+            display={display}
+            onValueChange={handleAndroidChange}
+            onDismiss={closePicker}
+          />
+        )
       )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: colors.overlay,
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: spacing.lg,
+    borderTopRightRadius: spacing.lg,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  cancelText: {
+    fontSize: fontSize.lg,
+    color: colors.textSecondary,
+  },
+  doneText: {
+    fontSize: fontSize.lg,
+    color: colors.primary,
+  },
+});
 
 export default DateInput;

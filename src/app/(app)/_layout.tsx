@@ -1,5 +1,6 @@
 import { MoreTabIcon, SvgIcon } from '@/utils/icon';
 import { Tabs } from 'expo-router';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '../../theme';
 
@@ -14,6 +15,7 @@ export default function AppLayout() {
     const insets = useSafeAreaInsets();
 
     return (
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
         <Tabs
             screenOptions={{
                 tabBarStyle: {
@@ -76,6 +78,8 @@ export default function AppLayout() {
             />
 
             <Tabs.Screen name="settings"       options={{ href: null }} />
+            <Tabs.Screen name="profile"        options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="notifications"  options={{ href: null, tabBarStyle: { display: 'none' } }} />
             <Tabs.Screen name="log-glucose"    options={{ href: null, tabBarStyle: { display: 'none' } }} />
             <Tabs.Screen name="hba1c-tracker"  options={{ href: null, tabBarStyle: { display: 'none' } }} />
             <Tabs.Screen name="weight-tracker" options={{ href: null, tabBarStyle: { display: 'none' } }} />
@@ -83,6 +87,12 @@ export default function AppLayout() {
             <Tabs.Screen name="lifestyle-questions" options={{ href: null, tabBarStyle: { display: 'none' } }} />
             <Tabs.Screen name="reminders"            options={{ href: null, tabBarStyle: { display: 'none' } }} />
             <Tabs.Screen name="activity-tracker"     options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="meals"                options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="add-meal"            options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="meal-impact"        options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="swap-meal"          options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="meal-compare"       options={{ href: null, tabBarStyle: { display: 'none' } }} />
         </Tabs>
+        </View>
     );
 }

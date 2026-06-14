@@ -7,9 +7,10 @@ import {
   TextInput,
   View
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton, Button, Checkbox, RadioRow, GlucoseEscalationModal, NextStepsData } from '../../components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppText, BackButton, Button, Checkbox, RadioRow, GlucoseEscalationModal, NextStepsData, ScreenContainer } from '../../components';
 import { GLUCOSE_MAX, GLUCOSE_MIN, glucose as GLUCOSECONSTANTS, TICK_WIDTH } from '../../constants/glucose';
+import { ROUTES } from '../../constants/routes';
 import { getGlucoseInitialData, saveGlucoseReading } from '../../services/glucoseService';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
 
@@ -208,7 +209,7 @@ export default function LogGlucose() {
 
   const handleCloseModal = () => {
     setModalVisible(false);
-    router.push('/home' as any); // Or use ROUTES.appHome if available
+    router.replace(ROUTES.appHome as any);
   };
 
   const toggleSymptom = (id: string) => {
@@ -221,7 +222,7 @@ export default function LogGlucose() {
 
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <ScreenContainer edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <BackButton color={colors.primaryBackground} />
@@ -329,7 +330,7 @@ export default function LogGlucose() {
         onClose={handleCloseModal}
         onRecheck={handleRecheck}
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

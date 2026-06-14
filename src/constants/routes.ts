@@ -5,7 +5,9 @@ export const ROUTES = {
   subscription: "/subscription",
   payment: "/payment",
   appHome:           "/(app)/home",
+  appMore:           "/(app)/more",
   appProfile:        "/profile",
+  appNotifications:  "/notifications",
   appSettings:       "/(app)/settings",
   appLogGlucose:     "/log-glucose",
   appHba1cTracker:   "/hba1c-tracker",
@@ -14,6 +16,11 @@ export const ROUTES = {
   appLifestyleQuestions: "/lifestyle-questions",
   appReminders: "/reminders",
   appActivityTracker: "/activity-tracker",
+  appMeals: "/meals",
+  appAddMeal: "/add-meal",
+  appMealImpact: "/meal-impact",
+  appSwapMeal: "/swap-meal",
+  appMealCompare: "/meal-compare",
 } as const;
 
 export const APP_PATHS = [
@@ -23,6 +30,7 @@ export const APP_PATHS = [
   "/chat",
   "/more",
   "/profile",
+  "/notifications",
   "/settings",
   "/log-glucose",
   "/hba1c-tracker",
@@ -31,4 +39,9 @@ export const APP_PATHS = [
   "/lifestyle-questions",
   "/reminders",
   "/activity-tracker",
+  "/meals",
+  "/add-meal",
+  "/meal-impact",
+  "/swap-meal",
+  "/meal-compare",
 ] as const;

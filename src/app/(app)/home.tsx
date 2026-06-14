@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
-import { ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCallback, useRef, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
+import { LoadingSpinner, ScreenContainer } from "../../components";
 import {
   GlucoseSection,
   GlucoseSummarySection,
@@ -20,56 +21,53 @@ import { useAuth } from "../../context/AuthContext";
 import { getHomeDashboardData, getLifestyleQuestions, getMedication } from "../../services/homepage";
 import { colors, spacing } from "../../theme";
 
+const HOME_LOADING_TEXT = "Loading your dashboard...";
+
 export default function Home() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const firstName = user?.name?.split(" ")[0] || "User";
-  
+  const hasLoadedRef = useRef(false);
+
   const [homeData, setHomeData] = useState<HomeDashboardData | null>(null);
   const [lifestyleQuestions, setLifestyleQuestions] = useState<LifestyleQuestionData | null>(null);
   const [medication, setMedication] = useState<MedicationData[] | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchHomeData = useCallback(async () => {
+    const isRefresh = hasLoadedRef.current;
+
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setInitialLoading(true);
+    }
+
+    try {
+      const [data, medicationData, lifestyleqnaData] = await Promise.all([
+        getHomeDashboardData(),
+        getMedication(),
+        getLifestyleQuestions(),
+      ]);
+
+      setHomeData(data);
+      setMedication(medicationData?.data || null);
+      setLifestyleQuestions(lifestyleqnaData?.data || null);
+      hasLoadedRef.current = true;
+    } catch (error) {
+      console.error("Error fetching home data:", error);
+    } finally {
+      setInitialLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      const fetchHomeData = async () => {
-        try {
-          const data = await getHomeDashboardData();
-          setHomeData(data);
-
-          const medicationData = await getMedication();
-          setMedication(medicationData?.data || null)
-
-          const lifestyleqnaData = await getLifestyleQuestions();
-          setLifestyleQuestions(lifestyleqnaData?.data || null)
-        } catch (error) {
-          console.error("Error fetching home data:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-
       fetchHomeData();
-    }, [])
+    }, [fetchHomeData])
   );
-
-  // Show loading state or actual data
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: insets.bottom + 92 },
-          ]}
-        >
-          <HomeHeader name={firstName} />
-          {/* Loading indicator could be added here */}
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
 
   const refreshMedication = async () => {
     try {
@@ -80,42 +78,75 @@ export default function Home() {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 92 },
-        ]}
-      >
-        <HomeHeader name={firstName} />
+  if (initialLoading && !hasLoadedRef.current) {
+    return (
+      <ScreenContainer edges={["top"]}>
+        <LoadingSpinner text={HOME_LOADING_TEXT} fullScreen />
+      </ScreenContainer>
+    );
+  }
 
-        <HomeSectionStack>
-          <GlucoseSection data={homeData?.glucose || null} />
-          <GlucoseSummarySection data={homeData?.glucose || null} />
-          <NutritionSection data={homeData?.nutrition || null} />
-          <TrackingSummarySection
-            meals={homeData?.meals}
-            weightKg={homeData?.weightKg}
-            activityMinutes={homeData?.dailyActivityDurationMinutes}
-          />
-          <Hba1cSection data={homeData?.hba1c || null} />
-          <LifestyleQuestionSection data={lifestyleQuestions || null} />
-          <MedicationSection data={medication || []} onRefresh={refreshMedication} />
-        </HomeSectionStack>
-      </ScrollView>
-    </SafeAreaView>
+  return (
+    <ScreenContainer edges={["top"]}>
+      <View style={styles.content}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: insets.bottom + 92 },
+          ]}
+        >
+          <HomeHeader name={firstName} />
+
+          <HomeSectionStack>
+            <GlucoseSection data={homeData?.glucose || null} />
+            <GlucoseSummarySection data={homeData?.glucose || null} />
+            <NutritionSection data={homeData?.nutrition || null} />
+            <TrackingSummarySection
+              meals={homeData?.meals}
+              weightKg={homeData?.weightKg}
+              activityMinutes={homeData?.dailyActivityDurationMinutes}
+            />
+            <Hba1cSection data={homeData?.hba1c || null} />
+            <LifestyleQuestionSection data={lifestyleQuestions || null} />
+            <MedicationSection data={medication || []} onRefresh={refreshMedication} />
+          </HomeSectionStack>
+        </ScrollView>
+
+        {refreshing && (
+          <View style={styles.refreshOverlay} pointerEvents="none">
+            <View style={styles.refreshBadge}>
+              <ActivityIndicator size="small" color={colors.primary} />
+            </View>
+          </View>
+        )}
+      </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  content: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
+  },
+  refreshOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(251, 249, 239, 0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  refreshBadge: {
+    backgroundColor: colors.surface,
+    borderRadius: 999,
+    padding: spacing.md,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
 });

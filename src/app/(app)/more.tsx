@@ -1,9 +1,10 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { useRouter } from 'expo-router';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton } from '../../components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppText, BackButton, ScreenContainer } from '../../components';
 import { more as MORECONSTANTS } from '../../constants/more';
+import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
 
@@ -39,14 +40,22 @@ export default function More() {
       label: MORECONSTANTS.menuUserProfile,
       icon: 'user-circle-o',
       iconBg: colors.secondary,
-      onPress: () => router.push('/profile'),
+      onPress: () =>
+        router.push({
+          pathname: ROUTES.appProfile as any,
+          params: { returnTo: ROUTES.appMore },
+        }),
     },
     {
       id: 'notifications',
       label: MORECONSTANTS.menuPushNotifications,
       icon: 'bell-o',
       iconBg: colors.secondary,
-      onPress: () => router.push('/(app)/settings'),
+      onPress: () =>
+        router.push({
+          pathname: ROUTES.appNotifications as any,
+          params: { returnTo: ROUTES.appMore },
+        }),
     },
     {
       id: 'logout',
@@ -60,7 +69,7 @@ export default function More() {
   const displayName = user?.name || 'User';
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <ScreenContainer edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <BackButton color={colors.primaryBackground}/>
@@ -78,7 +87,7 @@ export default function More() {
               style={styles.avatar}
             />
             <Pressable style={styles.editBadge}>
-              <FontAwesome name="pencil" size={12} color={colors.primaryForeground} />
+              <FontAwesome name="pencil" size={12} color={colors.primaryBackground} />
             </Pressable>
           </View>
           <AppText variant="semibold" style={styles.userName}>{displayName}</AppText>
@@ -106,15 +115,11 @@ export default function More() {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

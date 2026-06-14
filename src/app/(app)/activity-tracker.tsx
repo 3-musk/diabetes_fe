@@ -2,8 +2,8 @@ import { SvgIcon } from '@/utils/icon';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AddActivityModal, AppText, BackButton, Button, DateStrip, NewActivityData, RoundCheckBox } from '../../components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AddActivityModal, AppText, BackButton, Button, DateStrip, NewActivityData, RoundCheckBox, ScreenContainer } from '../../components';
 import { Activity, addActivity, fetchActivities, saveCompletedActivity } from '../../services/activityService';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
 
@@ -65,7 +65,7 @@ export default function ActivityTracker() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <ScreenContainer edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <BackButton color={colors.primaryBackground} />
@@ -135,7 +135,7 @@ export default function ActivityTracker() {
         onClose={() => setModalVisible(false)}
         onSave={handleAddCustomActivity}
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

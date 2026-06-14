@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton, Button } from '../../components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppText, BackButton, Button, ScreenContainer } from '../../components';
 import { lifestyleQuestions as LIFESTYLEQUESTIONSCONSTANTS } from '../../constants/lifestyleQuestions';
 import { useAuth } from '../../context/AuthContext';
 import { getLifestyleQuestions, submitLifestyleAnswers, type CarePlanQuestion } from '../../services/carePlanService';
@@ -30,11 +30,11 @@ export default function LifestyleQuestions() {
 
   if (loading) {
     return (
-      <SafeAreaView style={s.safe} edges={['top']}>
+      <ScreenContainer edges={['top']}>
         <View style={s.center}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
-      </SafeAreaView>
+      </ScreenContainer>
     );
   }
 
@@ -74,7 +74,7 @@ export default function LifestyleQuestions() {
   const progress = ((current + 1) / total) * 100;
 
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+    <ScreenContainer edges={['top']}>
       {/* Header */}
       <View style={s.header}>
         <BackButton color={colors.primaryBackground}/>
@@ -132,7 +132,7 @@ export default function LifestyleQuestions() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

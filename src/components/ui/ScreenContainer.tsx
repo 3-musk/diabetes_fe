@@ -1,21 +1,37 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
-import { colors, spacing } from '../../theme';
+import { StyleSheet, View, ViewStyle, StyleProp } from 'react-native';
+import { Edge, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors } from '../../theme';
 
 interface ScreenContainerProps {
   children: React.ReactNode;
-  style?: ViewStyle;
-  padded?: boolean;
+  edges?: Edge[];
+  style?: StyleProp<ViewStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
 }
 
 export const ScreenContainer: React.FC<ScreenContainerProps> = ({
   children,
+  edges = ['top'],
   style,
-  padded = true,
+  contentStyle,
 }) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={[styles.container, padded && styles.padded, style]}>
-      {children}
+    <View style={[styles.container, style]}>
+      <View
+        style={[
+          styles.content,
+          edges.includes('top') && { paddingTop: insets.top },
+          edges.includes('bottom') && { paddingBottom: insets.bottom },
+          edges.includes('left') && { paddingLeft: insets.left },
+          edges.includes('right') && { paddingRight: insets.right },
+          contentStyle,
+        ]}
+      >
+        {children}
+      </View>
     </View>
   );
 };
@@ -25,8 +41,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  padded: {
-    padding: spacing.xl,
+  content: {
+    flex: 1,
   },
 });
 

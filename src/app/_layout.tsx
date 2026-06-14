@@ -1,10 +1,14 @@
 import { useFonts } from 'expo-font';
 import { Stack, usePathname, useRouter } from "expo-router";
+import { StatusBar } from 'expo-status-bar';
+import * as SystemUI from 'expo-system-ui';
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { APP_PATHS, ROUTES } from "../constants/routes";
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from "../context/AuthContext";
+import { colors } from "../theme";
 
 // Prevent splash screen from hiding automatically
 SplashScreen.preventAutoHideAsync();
@@ -96,22 +100,31 @@ function RootLayoutNav() {
     <Stack
       screenOptions={{
         headerShown: false,
+        contentStyle: { backgroundColor: colors.background },
       }}>
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
       <Stack.Screen name="subscription" />
       <Stack.Screen name="(app)" />
-      <Stack.Screen name="profile" options={{ presentation: 'transparentModal' }} />
     </Stack>
   );
 }
 
 export default function RootLayout() {
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(colors.background);
+  }, []);
+
   return (
-    <AuthProvider>
-      <AuthRouter>
-        <RootLayoutNav />
-      </AuthRouter>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <StatusBar style="dark" />
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <AuthProvider>
+          <AuthRouter>
+            <RootLayoutNav />
+          </AuthRouter>
+        </AuthProvider>
+      </View>
+    </SafeAreaProvider>
   );
 }

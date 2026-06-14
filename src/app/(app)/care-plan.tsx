@@ -9,8 +9,8 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppModal, AppText, Button, DateStrip, HeaderActionIcons } from '../../components';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppModal, AppText, Button, DateStrip, HeaderActionIcons, ScreenContainer } from '../../components';
 import { carePlan as CAREPLANCONSTANTS } from '../../constants/carePlan';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
@@ -326,7 +326,7 @@ export default function CarePlanScreen() {
   // ── Loading ──
   if (screenState === 'loading') {
     return (
-      <SafeAreaView style={s.safe} edges={['top']}>
+      <ScreenContainer edges={['top']}>
         <View style={s.pageHeader}>
           <AppText variant="semibold" style={s.pageTitle}>{CAREPLANCONSTANTS.pageTitle}</AppText>
           <HeaderActionIcons />
@@ -334,14 +334,14 @@ export default function CarePlanScreen() {
         <View style={s.center}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
-      </SafeAreaView>
+      </ScreenContainer>
     );
   }
 
   // ── Has care plan ──
   if (screenState === 'has_care_plan') {
     return (
-      <SafeAreaView style={s.safe} edges={['top']}>
+      <ScreenContainer edges={['top']}>
         <View style={s.pageHeader}>
           <AppText variant="semibold" style={s.pageTitle}>{CAREPLANCONSTANTS.pageTitle}</AppText>
           <HeaderActionIcons />
@@ -359,13 +359,13 @@ export default function CarePlanScreen() {
             ))}
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </ScreenContainer>
     );
   }
 
   // ── All other states ──
   return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+    <ScreenContainer edges={['top']}>
       <View style={s.pageHeader}>
         <AppText variant="semibold" style={s.pageTitle}>Care Plan</AppText>
         <HeaderActionIcons />
@@ -383,7 +383,7 @@ export default function CarePlanScreen() {
       )}
 
       {screenState === 'pending' && <PendingCarePlan />}
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

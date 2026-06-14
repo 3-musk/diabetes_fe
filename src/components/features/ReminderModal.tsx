@@ -1,4 +1,3 @@
-import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { useEffect, useRef, useState } from 'react';
 import {
   Pressable,
@@ -9,15 +8,33 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
+import DateInput from '../inputs/DateInput';
 import { AppModal } from '../ui/AppModal';
 import AppText from '../ui/AppText';
 import { Button } from '../ui/Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-import { FREQUENCIES, DAYS_OF_WEEK, PERIODS } from '../../constants/uiConstants';
+import { DAYS_OF_WEEK, FREQUENCIES, PERIODS } from '../../constants/uiConstants';
 
 type FrequencyType = typeof FREQUENCIES[number];
+
+const parseDate = (value: string): Date | undefined => {
+  if (!value) return undefined;
+
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+};
+
+const formatDateValue = (date?: Date): string =>
+  date
+    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    : '';
 
 // ─── Drum-roll picker helpers ─────────────────────────────────────────────────
 
@@ -32,7 +49,7 @@ function DrumPicker({
   onSelect,
   width = 60,
 }: {
-  items: string[];
+  items: readonly string[];
   selected: string;
   onSelect: (v: string) => void;
   width?: number;
@@ -105,43 +122,6 @@ const drum = StyleSheet.create({
   fadedText: { color: colors.textTertiary },
 });
 
-// ─── Date input row ───────────────────────────────────────────────────────────
-
-function DateInputRow({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <View style={di.wrapper}>
-      <AppText style={di.label}>{label}</AppText>
-      <View style={di.inputRow}>
-        <TextInput
-          style={di.input}
-          placeholder="Select Date"
-          placeholderTextColor={colors.textTertiary}
-          value={value}
-          onChangeText={onChange}
-        />
-        <FontAwesome name="calendar" size={16} color={colors.textTertiary} style={di.icon} />
-      </View>
-    </View>
-  );
-}
-
-const di = StyleSheet.create({
-  wrapper: { marginBottom: spacing.md },
-  label: { fontSize: fontSize.md, color: colors.textPrimary, marginBottom: spacing.xs },
-  inputRow: { position: 'relative', justifyContent: 'center' },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    fontSize: fontSize.md,
-    color: colors.textPrimary,
-    paddingRight: 44,
-  },
-  icon: { position: 'absolute', right: spacing.lg },
-});
-
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 
 export type ReminderData = {
@@ -168,8 +148,8 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
   const [title,     setTitle]     = useState('');
   const [frequency, setFrequency] = useState<FrequencyType>('Daily');
   const [days,      setDays]      = useState<string[]>(['Tue', 'Thu', 'Sat']);
-  const [startDate, setStartDate] = useState('');
-  const [endDate,   setEndDate]   = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate,   setEndDate]   = useState<Date | undefined>(undefined);
   const [hour,      setHour]      = useState('5');
   const [minute,    setMinute]    = useState('48');
   const [period,    setPeriod]    = useState('PM');
@@ -181,8 +161,8 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
         setTitle(initialData.title);
         setFrequency(initialData.frequency);
         setDays(initialData.days);
-        setStartDate(initialData.startDate);
-        setEndDate(initialData.endDate);
+        setStartDate(parseDate(initialData.startDate));
+        setEndDate(parseDate(initialData.endDate));
         setHour(initialData.hour);
         setMinute(initialData.minute);
         setPeriod(initialData.period);
@@ -191,8 +171,8 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
         setTitle('');
         setFrequency('Daily');
         setDays(['Tue', 'Thu', 'Sat']);
-        setStartDate('');
-        setEndDate('');
+        setStartDate(undefined);
+        setEndDate(undefined);
         setHour('5');
         setMinute('48');
         setPeriod('PM');
@@ -207,7 +187,17 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
   };
 
   const handleSave = () => {
-    onSave({ id: initialData?.id, title, frequency, days, startDate, endDate, hour, minute, period });
+    onSave({
+      id: initialData?.id,
+      title,
+      frequency,
+      days,
+      startDate: formatDateValue(startDate),
+      endDate: formatDateValue(endDate),
+      hour,
+      minute,
+      period,
+    });
     onClose();
   };
 
@@ -267,8 +257,22 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
                 </Pressable>
               ))}
             </View>
-            <DateInputRow label="Start Date" value={startDate} onChange={setStartDate} />
-            <DateInputRow label="End Date"   value={endDate}   onChange={setEndDate} />
+            <DateInput
+              label="Start Date"
+              value={startDate}
+              onChange={setStartDate}
+              placeholder="Select Date"
+              dateFormat="yy/mm/dd"
+              containerStyle={s.dateField}
+            />
+            <DateInput
+              label="End Date"
+              value={endDate}
+              onChange={setEndDate}
+              placeholder="Select Date"
+              dateFormat="yy/mm/dd"
+              containerStyle={s.dateField}
+            />
           </>
         )}
 
@@ -372,6 +376,7 @@ const s = StyleSheet.create({
   },
   dayText: { fontSize: fontSize.sm, color: colors.textSecondary },
   dayTextActive: { color: colors.primaryForeground, fontWeight: '600' },
+  dateField: { marginBottom: spacing.md },
   timeCard: {
     backgroundColor: colors.background,
     borderRadius: borderRadius.xl,
