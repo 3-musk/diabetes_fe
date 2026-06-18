@@ -18,4 +18,8 @@ export const registerTexts = {
   aiAnalysisConsentDescription:
     "I consent to the use of AI and Digital Twin models for analyzing my health data and generating personalized health insights and recommendations.",
   completeSetupButton:                "Complete Setup",
+  error:                              "Error",
+  fillFieldsError:                    "Please fill in all fields",
+  failedSaveRegistration:             "Failed to save registration details.",
+  creatingProfileLoading:             "Creating your profile...",
 };

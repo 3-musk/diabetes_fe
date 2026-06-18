@@ -1,0 +1,15 @@
+export const profileTexts = {
+  pageTitle: "User Profile",
+  fullNameLabel: "Full Name",
+  emailLabel: "Email address",
+  yobLabel: "Year of Birth",
+  heightLabel: "Height",
+  weightLabel: "Weight",
+  bmiLabel: "BMI",
+  genderLabel: "Gender",
+  enterDetails: "Enter Details",
+  selectGender: "Select Gender",
+  male: "Male",
+  female: "Female",
+  saveBtn: "Save",
+};

@@ -4,7 +4,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAlert } from '../../context/AlertContext';
 
 import { SvgIcon } from '@/utils/icon';
 import {
@@ -68,6 +68,7 @@ function Stepper({
 
 export default function AddMealScreen() {
   const router = useRouter();
+  const { alert } = useAlert();
   const insets = useSafeAreaInsets();
   const { slotId, date } = useLocalSearchParams<{ slotId: MealSlotId; date: string }>();
 
@@ -176,7 +177,7 @@ export default function AddMealScreen() {
     try {
       const result = await searchMealFinal(description);
       if (!result) {
-        Alert.alert('Not found', 'No meal matched that description.');
+        alert(addMealTexts.notFoundAlertTitle, addMealTexts.notFoundAlertBody);
         return;
       }
       applySearchResult(result);
@@ -187,7 +188,7 @@ export default function AddMealScreen() {
 
   const handleAddItem = async () => {
     if (!searchResult || pieces <= 0) {
-      Alert.alert('Missing details', 'Search for a meal and set the portion first.');
+      alert(addMealTexts.missingDetailsAlertTitle, addMealTexts.missingDetailsAlertBody);
       return;
     }
 
@@ -220,7 +221,7 @@ export default function AddMealScreen() {
 
   const handleSeePredictedImpact = () => {
     if (selection.length === 0) {
-      Alert.alert(addMealTexts.seePredictedImpact, mealImpactTexts.emptySelection);
+      alert(addMealTexts.seePredictedImpact, mealImpactTexts.emptySelection);
       return;
     }
 
@@ -242,7 +243,7 @@ export default function AddMealScreen() {
 
   const handleSaveMeal = async () => {
     if (selection.length === 0) {
-      Alert.alert('No items', addMealTexts.noSelection);
+      alert(addMealTexts.noItemsAlertTitle, addMealTexts.noSelection);
       return;
     }
 
@@ -365,7 +366,7 @@ export default function AddMealScreen() {
           )}
 
           <Button
-            title={searchResult ? addMealTexts.add : 'Search'}
+            title={searchResult ? addMealTexts.add : addMealTexts.search}
             variant="outline"
             onPress={searchResult ? handleAddItem : handleSearchFinal}
             loading={searching || addingItem}
@@ -393,7 +394,7 @@ export default function AddMealScreen() {
                   />
                   <View style={styles.selectionContent}>
                     <AppText variant="regular" style={styles.selectionName}>{item.name}</AppText>
-                    <AppText style={styles.selectionCalories}>{item.calories} Cal</AppText>
+                    <AppText style={styles.selectionCalories}>{item.calories} {addMealTexts.calUnit}</AppText>
                   </View>
                   <Pressable onPress={() => handleRemoveItem(item.id)} hitSlop={8}>
                     <SvgIcon size={20} source={require('../../../assets/svgs/delete.svg')} />
@@ -406,7 +407,7 @@ export default function AddMealScreen() {
                   {addMealTexts.estimatedTotal}
                 </AppText>
                 <AppText variant="regular" style={styles.totalValue}>
-                  {estimatedTotal} Cal
+                  {estimatedTotal} {addMealTexts.calUnit}
                 </AppText>
               </View>
             </View>

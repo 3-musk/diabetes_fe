@@ -5,6 +5,7 @@ import { getTrendData, TrendDataResponse, TrendMetric } from '../../services/tre
 import { colors, fontSize, spacing } from '../../theme';
 
 import { GLUCOSE_FILTERS, METRICS } from '../../constants/uiConstants';
+import { trendsTexts } from '../../constants/trendData';
 
 type Metric = typeof METRICS[number];
 type GlucoseFilter = typeof GLUCOSE_FILTERS[number];
@@ -46,7 +47,7 @@ export default function TrendsScreen() {
     <ScreenContainer edges={['top']}>
       {/* Custom Header */}
       <View style={styles.header}>
-        <AppText variant="bold" style={styles.headerTitle}>Trends</AppText>
+        <AppText variant="bold" style={styles.headerTitle}>{trendsTexts.pageTitle}</AppText>
         <HeaderActionIcons />
       </View>
 

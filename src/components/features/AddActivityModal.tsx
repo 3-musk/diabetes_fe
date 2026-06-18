@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '../../theme';
+import { activityTrackerTexts } from '../../constants/activityTracker';
 import Input from '../inputs/Input';
 import AppText from '../ui/AppText';
 import Button from '../ui/Button';
@@ -53,28 +54,28 @@ export function AddActivityModal({ visible, onClose, onSave }: AddActivityModalP
   return (
     <AppModal visible={visible} onClose={onClose}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scrollContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
-        <AppText variant="semibold" style={s.sheetTitle}>Add Activity</AppText>
+        <AppText variant="semibold" style={s.sheetTitle}>{activityTrackerTexts.addActivity}</AppText>
 
         <Input
-          label="Exercise Type"
+          label={activityTrackerTexts.exerciseType}
           required
-          placeholder="Enter Details"
+          placeholder={activityTrackerTexts.enterDetails}
           value={exerciseType}
           onChangeText={setExerciseType}
         />
 
         <Input
-          label="Duration (mins)"
+          label={activityTrackerTexts.durationMinutes}
           required
-          placeholder="Enter Details"
+          placeholder={activityTrackerTexts.enterDetails}
           value={duration}
           onChangeText={setDuration}
           keyboardType="numeric"
         />
 
         <Input
-          label="Description"
-          placeholder="Enter Details"
+          label={activityTrackerTexts.description}
+          placeholder={activityTrackerTexts.enterDetails}
           value={description}
           onChangeText={setDescription}
           multiline
@@ -82,7 +83,7 @@ export function AddActivityModal({ visible, onClose, onSave }: AddActivityModalP
         />
 
         <Button
-          title="Save"
+          title={activityTrackerTexts.save}
           onPress={handleSave}
         />
       </ScrollView>

@@ -60,3 +60,7 @@ export const MOCK_MEAL_SLOTS: MealSlot[] = [
   { id: "evening", label: "Evening", icon: require("../../assets/svgs/care_plan/evening.svg") },
   { id: "dinner", label: "Dinner", icon: require("../../assets/svgs/care_plan/dinner.svg") },
 ];
+
+export const UI_STRINGS = {
+  loadingDashboard: "Loading your dashboard...",
+};

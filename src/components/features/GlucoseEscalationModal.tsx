@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
 import AppText from '../ui/AppText';
 import { AppModal } from '../ui/AppModal';
+import { glucose as GLUCOSECONSTANTS } from '../../constants/glucose';
 
 export type NextStepsData = {
   title: string;
@@ -34,7 +35,7 @@ export function GlucoseEscalationModal({
 
   if (!visible) return null;
 
-  const title = type === 'low' ? 'Low glucose - act right now' : 'High glucose - act right now';
+  const title = type === 'low' ? GLUCOSECONSTANTS.lowGlucoseTitle : GLUCOSECONSTANTS.highGlucoseTitle;
   const headerBg = '#FFF5F5';
   const titleColor = '#FF3B30'; // red
   const isHigh = type === 'high';
@@ -70,16 +71,16 @@ export function GlucoseEscalationModal({
             ]} />
           </View>
           <View style={styles.rangeLabels}>
-            <AppText style={styles.rangeLabelText}>Critical &lt; {isHigh ? '54' : '40'}</AppText>
-            <AppText style={styles.rangeLabelText}>Low &lt; {isHigh ? '70' : '54'}</AppText>
-            <AppText style={styles.rangeLabelText}>High {isHigh ? '' : '> 250'}</AppText>
+            <AppText style={styles.rangeLabelText}>{GLUCOSECONSTANTS.criticalPrefix} {isHigh ? '54' : '40'}</AppText>
+            <AppText style={styles.rangeLabelText}>{GLUCOSECONSTANTS.lowPrefix} {isHigh ? '70' : '54'}</AppText>
+            <AppText style={styles.rangeLabelText}>{GLUCOSECONSTANTS.highPrefix} {isHigh ? '' : '> 250'}</AppText>
           </View>
         </View>
 
         {/* Warning Banner */}
         <View style={styles.warningBanner}>
           <FontAwesome name="play-circle" size={16} color="#FF3B30" style={{ marginRight: 8 }} />
-          <AppText style={styles.warningText}>You have 10-15 mins to act</AppText>
+          <AppText style={styles.warningText}>{GLUCOSECONSTANTS.timeToAct}</AppText>
         </View>
       </View>
 
@@ -91,7 +92,7 @@ export function GlucoseEscalationModal({
               {nextSteps.title}
             </AppText>
             <AppText style={styles.stepsSubtitle}>
-              Choose ONE - consume immediately
+              {GLUCOSECONSTANTS.consumeImmediately}
             </AppText>
 
             <View style={styles.pillsContainer}>
@@ -108,7 +109,7 @@ export function GlucoseEscalationModal({
 
         <Pressable style={styles.recheckBtn} onPress={onRecheck}>
           <AppText variant="semibold" style={styles.recheckText}>
-            Continue to recheck
+            {GLUCOSECONSTANTS.continueRecheck}
           </AppText>
         </Pressable>
       </View>

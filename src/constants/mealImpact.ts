@@ -45,4 +45,7 @@ export const mealImpactTexts = {
   predictedPeak: 'Peak',
   loading: 'Calculating meal impact...',
   emptySelection: 'Add at least one meal item to see predicted impact.',
+  hoursUnit: 'hours',
+  calUnit: 'Cal',
+  mgDlUnit: 'mg/dl',
 };

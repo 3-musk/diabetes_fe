@@ -31,6 +31,14 @@ export const glucose = {
     { id: "sweating", label: "Sweating" },
     { id: "others", label: "Others" },
   ] as const,
+  lowGlucoseTitle: "Low glucose - act right now",
+  highGlucoseTitle: "High glucose - act right now",
+  criticalPrefix: "Critical <",
+  lowPrefix: "Low <",
+  highPrefix: "High",
+  timeToAct: "You have 10-15 mins to act",
+  consumeImmediately: "Choose ONE - consume immediately",
+  continueRecheck: "Continue to recheck",
 };
 
 export const GLUCOSE_MIN = 0;

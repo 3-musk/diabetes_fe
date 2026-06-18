@@ -20,4 +20,7 @@ export const loginTexts = {
   sendOtpError2:           "Please enter a valid phone number (at least 10 digits)",
   error:                   "Error",
   success:                 "Success",
+  sendingOtpLoading:       "Sending OTP...",
+  failedToVerifyOtp:       "Failed to verify OTP. Please try again.",
+  failedToResendOtp:       "Failed to resend OTP. Please try again.",
 };

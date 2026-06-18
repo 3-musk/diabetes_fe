@@ -53,7 +53,7 @@ function AddHba1cModal({ visible, onClose, onSave }: AddHba1cModalProps) {
     const num = parseFloat(value);
     if (!num || !date) return;
     const status: HbA1cStatus =
-      num < 5.7 ? 'Normal' : num < 6.5 ? 'Prediabetes' : 'Diabetes';
+      num < 5.7 ? HBA1CTRACKERCONSTANTS.normalStatus as HbA1cStatus : num < 6.5 ? HBA1CTRACKERCONSTANTS.prediabetesStatus as HbA1cStatus : HBA1CTRACKERCONSTANTS.diabetesStatus as HbA1cStatus;
     
     const formattedDate = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
     
@@ -143,7 +143,7 @@ export default function Hba1cTracker() {
     : 0;
   const averageStr = history.length ? avgNum.toFixed(1) : '--';
   const averageStatus: HbA1cStatus | null = history.length
-    ? (avgNum < 5.7 ? 'Normal' : avgNum < 6.5 ? 'Prediabetes' : 'Diabetes')
+    ? (avgNum < 5.7 ? HBA1CTRACKERCONSTANTS.normalStatus as HbA1cStatus : avgNum < 6.5 ? HBA1CTRACKERCONSTANTS.prediabetesStatus as HbA1cStatus : HBA1CTRACKERCONSTANTS.diabetesStatus as HbA1cStatus)
     : null;
 
   const handleSave = async (entry: HbA1cEntry) => {

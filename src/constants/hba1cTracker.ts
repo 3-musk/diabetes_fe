@@ -9,6 +9,9 @@ export const hba1cTracker = {
   averageLabel: "Average",
   historySectionTitle: "History",
   addBtn: "Add HbA1c",
+  normalStatus: "Normal",
+  prediabetesStatus: "Prediabetes",
+  diabetesStatus: "Diabetes",
 };
 
 export const STATUS_CONFIG = {

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText, BackButton, Button, Input, ScreenContainer } from "../../components";
 import { markProfileComplete } from "../../services/carePlanService";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
+import { profileTexts } from "../../constants/profile";
 
 export default function Profile() {
   const router = useRouter();
@@ -45,7 +46,7 @@ export default function Profile() {
     <ScreenContainer edges={['top']}>
       <View style={styles.header}>
         <BackButton color={colors.primaryBackground} onPress={handleBack} />
-        <AppText variant="semibold" style={styles.headerTitle}>User Profile</AppText>
+        <AppText variant="semibold" style={styles.headerTitle}>{profileTexts.pageTitle}</AppText>
       </View>
 
       <ScrollView
@@ -54,41 +55,41 @@ export default function Profile() {
         keyboardShouldPersistTaps="handled"
       >
         <Input
-          label="Full Name"
-          placeholder="Enter Details"
+          label={profileTexts.fullNameLabel}
+          placeholder={profileTexts.enterDetails}
           required
           containerStyle={styles.inputContainer}
         />
         <Input
-          label="Email address"
-          placeholder="Enter Details"
+          label={profileTexts.emailLabel}
+          placeholder={profileTexts.enterDetails}
           required
           containerStyle={styles.inputContainer}
         />
         <Input
-          label="Year of Birth"
-          placeholder="Enter Details"
-          required
-          keyboardType="numeric"
-          containerStyle={styles.inputContainer}
-        />
-        <Input
-          label="Height"
-          placeholder="Enter Details"
+          label={profileTexts.yobLabel}
+          placeholder={profileTexts.enterDetails}
           required
           keyboardType="numeric"
           containerStyle={styles.inputContainer}
         />
         <Input
-          label="Weight"
-          placeholder="Enter Details"
+          label={profileTexts.heightLabel}
+          placeholder={profileTexts.enterDetails}
           required
           keyboardType="numeric"
           containerStyle={styles.inputContainer}
         />
         <Input
-          label="BMI"
-          placeholder="Enter Details"
+          label={profileTexts.weightLabel}
+          placeholder={profileTexts.enterDetails}
+          required
+          keyboardType="numeric"
+          containerStyle={styles.inputContainer}
+        />
+        <Input
+          label={profileTexts.bmiLabel}
+          placeholder={profileTexts.enterDetails}
           required
           keyboardType="numeric"
           containerStyle={styles.inputContainer}
@@ -98,8 +99,8 @@ export default function Profile() {
           <TouchableOpacity onPress={() => setShowGender(!showGender)} activeOpacity={1}>
             <View pointerEvents="none">
               <Input
-                label="Gender"
-                placeholder="Select Gender"
+                label={profileTexts.genderLabel}
+                placeholder={profileTexts.selectGender}
                 value={gender}
                 required
                 rightIcon={
@@ -119,22 +120,22 @@ export default function Profile() {
             <View style={styles.dropdown}>
               <TouchableOpacity
                 style={styles.dropdownOption}
-                onPress={() => { setGender('Male'); setShowGender(false); }}
+                onPress={() => { setGender(profileTexts.male); setShowGender(false); }}
               >
-                <AppText style={styles.dropdownText}>Male</AppText>
+                <AppText style={styles.dropdownText}>{profileTexts.male}</AppText>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.dropdownOption}
-                onPress={() => { setGender('Female'); setShowGender(false); }}
+                onPress={() => { setGender(profileTexts.female); setShowGender(false); }}
               >
-                <AppText style={styles.dropdownText}>Female</AppText>
+                <AppText style={styles.dropdownText}>{profileTexts.female}</AppText>
               </TouchableOpacity>
             </View>
           )}
         </View>
 
         <Button style={styles.saveBtn} onPress={handleSave}>
-          <AppText variant="semibold" style={styles.saveBtnText}>Save</AppText>
+          <AppText variant="semibold" style={styles.saveBtnText}>{profileTexts.saveBtn}</AppText>
         </Button>
       </ScrollView>
     </ScreenContainer>

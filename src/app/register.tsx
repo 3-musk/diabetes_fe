@@ -1,7 +1,8 @@
 import { SegmentedControl } from '../components';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Dimensions, ScrollView, StyleSheet, View } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
+import { useAlert } from '../context/AlertContext';
 import { registerTexts } from '../constants/register';
 import { AppText, Button, Card, Checkbox, DateInput, Input, LoadingSpinner, ScreenContainer } from '../components';
 import { ROUTES } from '../constants/routes';
@@ -22,12 +23,13 @@ export default function RegisterScreen() {
     const [isLoading, setIsLoading] = useState(false);
 
     const { completeRegistration } = useAuth();
+    const { alert } = useAlert();
 
     const router = useRouter();
 
     const handleRegister = async () => {
         if (!name.trim()) {
-            Alert.alert('Error', 'Please fill in all fields');
+            alert(registerTexts.error, registerTexts.fillFieldsError);
             return;
         }
 
@@ -38,14 +40,14 @@ export default function RegisterScreen() {
             const registerReponse = await completeRegistration({ name, age: yearOfBirth });
             router.replace(ROUTES.subscription);
         } catch (error) {
-            Alert.alert('Error', 'Failed to save registration details.');
+            alert(registerTexts.error, registerTexts.failedSaveRegistration);
         } finally {
             setIsLoading(false);
         }
     };
 
     if (isLoading) {
-        return <LoadingSpinner fullScreen text="Creating your profile..." />;
+        return <LoadingSpinner fullScreen text={registerTexts.creatingProfileLoading} />;
     }
 
     return (

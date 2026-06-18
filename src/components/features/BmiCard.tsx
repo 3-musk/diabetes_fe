@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { colors, shadows, spacing } from '../../theme';
 import AppText from '../ui/AppText';
 import { BMI_SEGMENTS } from '../../constants/uiConstants';
+import { weightTracker as WEIGHTTRACKERCONSTANTS } from '../../constants/weightTracker';
 
 interface BmiCardProps {
     bmi: number;
@@ -137,7 +138,7 @@ export function BmiCard({ bmi }: BmiCardProps) {
         <View style={s.bmiCard}>
             <View style={s.bmiHeader}>
                 <AppText variant="medium" style={s.bmiTitle}>
-                    BMI
+                    {WEIGHTTRACKERCONSTANTS.bmiTitle}
                 </AppText>
 
                 <View style={{ alignItems: 'flex-end' }}>
@@ -156,7 +157,7 @@ export function BmiCard({ bmi }: BmiCardProps) {
                             color: '#666',
                         }}
                     >
-                        Normal Weight
+                        {WEIGHTTRACKERCONSTANTS.normalWeightText}
                     </AppText>
                 </View>
             </View>
@@ -165,7 +166,7 @@ export function BmiCard({ bmi }: BmiCardProps) {
                 <View style={s.bmiTypeCard}>
                     <View style={[s.dot, { backgroundColor: '#73BFE3' }]} />
                     <View>
-                        <AppText>Underweight</AppText>
+                        <AppText>{WEIGHTTRACKERCONSTANTS.underweight}</AppText>
                         <AppText variant="semibold">{'<18.5'}</AppText>
                     </View>
                 </View>
@@ -173,7 +174,7 @@ export function BmiCard({ bmi }: BmiCardProps) {
                 <View style={s.bmiTypeCard}>
                     <View style={[s.dot, { backgroundColor: '#7ED987' }]} />
                     <View>
-                        <AppText>Normal Weight</AppText>
+                        <AppText>{WEIGHTTRACKERCONSTANTS.normalWeightText}</AppText>
                         <AppText variant="semibold">18.5 - 24.9</AppText>
                     </View>
                 </View>
@@ -181,7 +182,7 @@ export function BmiCard({ bmi }: BmiCardProps) {
                 <View style={s.bmiTypeCard}>
                     <View style={[s.dot, { backgroundColor: '#F1C54C' }]} />
                     <View>
-                        <AppText>Overweight</AppText>
+                        <AppText>{WEIGHTTRACKERCONSTANTS.overweight}</AppText>
                         <AppText variant="semibold">25 - 29.9</AppText>
                     </View>
                 </View>
@@ -189,7 +190,7 @@ export function BmiCard({ bmi }: BmiCardProps) {
                 <View style={s.bmiTypeCard}>
                     <View style={[s.dot, { backgroundColor: '#F4A452' }]} />
                     <View>
-                        <AppText>Obese Class I</AppText>
+                        <AppText>{WEIGHTTRACKERCONSTANTS.obese1}</AppText>
                         <AppText variant="semibold">30 - 34.9</AppText>
                     </View>
                 </View>
@@ -197,7 +198,7 @@ export function BmiCard({ bmi }: BmiCardProps) {
                 <View style={[s.bmiTypeCard, { width: '100%' }]}>
                     <View style={[s.dot, { backgroundColor: '#F27A7A' }]} />
                     <View>
-                        <AppText>Obese Class II</AppText>
+                        <AppText>{WEIGHTTRACKERCONSTANTS.obese2}</AppText>
                         <AppText variant="semibold">35 and above</AppText>
                     </View>
                 </View>

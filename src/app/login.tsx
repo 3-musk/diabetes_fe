@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useState } from 'react';
 import {
-    Alert,
     Dimensions,
     Keyboard,
     KeyboardAvoidingView,
@@ -13,6 +12,7 @@ import {
     TouchableWithoutFeedback,
     View
 } from 'react-native';
+import { useAlert } from '../context/AlertContext';
 import { OtpInput } from "react-native-otp-entry";
 import { AppText, Button, Carousel, LoadingSpinner, PhoneInput } from '../components';
 import { loginTexts } from '../constants/login';
@@ -29,16 +29,17 @@ export default function LoginScreen() {
     const [isLoading, setIsLoading] = useState(false);
     const { login, verifyOtp, resendOtp } = useAuth();
     const router = useRouter();
+    const { alert } = useAlert();
 
     const handleSendOtp = async () => {
         if (!phoneNumber.trim()) {
-            Alert.alert('Error', 'Please enter a phone number');
+            alert(loginTexts.error, loginTexts.sendOtpError);
             return;
         }
 
         const phoneDigits = phoneNumber.replace(/\D/g, '');
         if (phoneDigits.length < 10) {
-            Alert.alert('Error', 'Please enter a valid phone number (at least 10 digits)');
+            alert(loginTexts.error, loginTexts.sendOtpError2);
             return;
         }
 
@@ -47,7 +48,7 @@ export default function LoginScreen() {
             await login(phoneNumber);
             setStep('otp');
         } catch (error) {
-            Alert.alert('Error', 'Failed to send OTP. Please try again.');
+            alert(loginTexts.error, loginTexts.failedToSendOtp);
         } finally {
             setIsLoading(false);
         }
@@ -55,7 +56,7 @@ export default function LoginScreen() {
 
     const handleVerifyOtp = async () => {
         if (!otp.trim() || otp.length !== 6) {
-            Alert.alert('Error', 'Please enter a valid 6-digit OTP');
+            alert(loginTexts.error, loginTexts.invalidOtp);
             return;
         }
 
@@ -65,10 +66,10 @@ export default function LoginScreen() {
             if (isValid) {
                 router.replace(ROUTES.register);
             } else {
-                Alert.alert('Error', 'Invalid OTP. Please try again.');
+                alert(loginTexts.error, loginTexts.invalidOtp2);
             }
         } catch (error) {
-            Alert.alert('Error', 'Failed to verify OTP. Please try again.');
+            alert(loginTexts.error, loginTexts.failedToVerifyOtp);
         } finally {
             setIsLoading(false);
         }
@@ -78,9 +79,9 @@ export default function LoginScreen() {
         setOtp('');
         try {
             await resendOtp();
-            Alert.alert('Success', 'OTP has been resent to your phone');
+            alert(loginTexts.success, loginTexts.successMessage);
         } catch (error) {
-            Alert.alert('Error', 'Failed to resend OTP. Please try again.');
+            alert(loginTexts.error, loginTexts.failedToResendOtp);
         }
     };
 
@@ -95,7 +96,7 @@ export default function LoginScreen() {
     });
 
     if (isLoading && step === 'phone') {
-        return <LoadingSpinner fullScreen text="Sending OTP..." />;
+        return <LoadingSpinner fullScreen text={loginTexts.sendingOtpLoading} />;
     }
 
     return (
@@ -147,7 +148,7 @@ export default function LoginScreen() {
                                     )}
                                 />
                                 <PhoneInput
-                                    placeholder="Enter Phone Number"
+                                    placeholder={loginTexts.phoneNumberPlaceholder}
                                     keyboardType="phone-pad"
                                     value={phoneNumber}
                                     onChangeText={setPhoneNumber}
@@ -156,7 +157,7 @@ export default function LoginScreen() {
                                 />
 
                                 <Button
-                                    title="Send verification code"
+                                    title={loginTexts.sendOtpButton}
                                     onPress={handleSendOtp}
                                     size="lg"
                                     style={styles.button}
@@ -188,7 +189,7 @@ export default function LoginScreen() {
                                         {loginTexts.enterOtpTitle}
                                     </AppText>
                                     <AppText style={styles.subtitle}>
-                                        We have sent the code to +91{phoneNumber}
+                                        {loginTexts.enterOtpSubtitle} +91{phoneNumber}
                                     </AppText>
                                 </View>
 
@@ -214,9 +215,9 @@ export default function LoginScreen() {
                                 />
 
                                 <View style={styles.resendContainer}>
-                                    <AppText style={styles.resendText}>Didn't receive the verification code? </AppText>
+                                    <AppText style={styles.resendText}>{loginTexts.resendText}</AppText>
                                     <Button
-                                        title="Resend"
+                                        title={loginTexts.resendButton}
                                         onPress={handleResendOtp}
                                         variant="ghost"
                                         disabled={isLoading}
@@ -226,7 +227,7 @@ export default function LoginScreen() {
                                 </View>
 
                                 <Button
-                                    title="Verify"
+                                    title={loginTexts.verifyButton}
                                     onPress={handleVerifyOtp}
                                     size="lg"
                                     loading={isLoading}

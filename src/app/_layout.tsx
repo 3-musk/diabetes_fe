@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { APP_PATHS, ROUTES } from "../constants/routes";
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from "../context/AuthContext";
+import { AlertProvider } from "../context/AlertContext";
 import { colors } from "../theme";
 
 // Prevent splash screen from hiding automatically
@@ -117,14 +118,16 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <AuthProvider>
-          <AuthRouter>
-            <RootLayoutNav />
-          </AuthRouter>
-        </AuthProvider>
-      </View>
+      <AlertProvider>
+        <StatusBar style="dark" />
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
+          <AuthProvider>
+            <AuthRouter>
+              <RootLayoutNav />
+            </AuthRouter>
+          </AuthProvider>
+        </View>
+      </AlertProvider>
     </SafeAreaProvider>
   );
 }

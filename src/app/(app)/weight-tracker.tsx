@@ -91,16 +91,16 @@ export default function WeightTracker() {
                   <AppText variant="bold" style={s.chipValue}>
                     {currentWeight}
                   </AppText>
-                  <AppText style={s.chipUnit}> KG</AppText>
+                  <AppText style={s.chipUnit}> {WEIGHTTRACKERCONSTANTS.kgUnit}</AppText>
                 </View>
 
                 <AppText style={s.chipLabel}>
-                  Current Weight
+                  {WEIGHTTRACKERCONSTANTS.currentWeight}
                 </AppText>
               </LinearGradient>
 
               <View style={s.vsBadge}>
-                <AppText style={s.vsText}>VS</AppText>
+                <AppText style={s.vsText}>{WEIGHTTRACKERCONSTANTS.vsText}</AppText>
               </View>
 
               <LinearGradient
@@ -113,11 +113,11 @@ export default function WeightTracker() {
                   <AppText variant="bold" style={s.chipValue}>
                     {targetWeight}
                   </AppText>
-                  <AppText style={s.chipUnit}> KG</AppText>
+                  <AppText style={s.chipUnit}> {WEIGHTTRACKERCONSTANTS.kgUnit}</AppText>
                 </View>
 
                 <AppText style={s.chipLabel}>
-                  Target Weight
+                  {WEIGHTTRACKERCONSTANTS.targetWeight}
                 </AppText>
               </LinearGradient>
             </View>
@@ -151,7 +151,7 @@ export default function WeightTracker() {
                   <View key={entry.id} style={s.historyRow}>
                     <View>
                       <AppText style={s.histDate}>{entry.date}</AppText>
-                      <AppText variant="semibold" style={s.histValue}>{entry.weightKg} Kg</AppText>
+                      <AppText variant="semibold" style={s.histValue}>{entry.weightKg} {WEIGHTTRACKERCONSTANTS.kgUnitLower}</AppText>
                     </View>
                     {entry.onTarget && (
                       <View style={s.targetBadge}>

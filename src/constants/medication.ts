@@ -10,6 +10,9 @@ export const medication = {
   startDateLabel: "Start Date",
   endDateLabel: "End Date",
   saveBtn: "Save",
+  emptyBody: "Add your prescribed medicines to get reminders and stay on track.",
+  addMedicationBtn: "Add Medication",
+  medicationsTitle: "Medications",
 
   categories: [
     {

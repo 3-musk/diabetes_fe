@@ -60,4 +60,7 @@ export const swapMealTexts = {
   nutrient: 'Nutrient',
   original: 'Original',
   optimized: 'Optimized',
+  calUnit: 'Cal',
+  peak: 'peak',
+  mgDlUnit: 'mg/dl',
 };

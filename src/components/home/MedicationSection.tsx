@@ -9,6 +9,7 @@ import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
 import Checkbox from "../inputs/CheckBox";
 import AppText from "../ui/AppText";
 import { OutlineAction, SetupCard } from "./Shared";
+import { medication } from "../../constants/medication";
 import type { MedicationData } from "./types";
 
 export function MedicationSection({ data, onRefresh }: { data: MedicationData[], onRefresh?: () => void }) {
@@ -31,11 +32,11 @@ export function MedicationSection({ data, onRefresh }: { data: MedicationData[],
 
   if (!data.length) {
     return (
-      <SetupCard title="Medications">
+      <SetupCard title={medication.medicationsTitle}>
         <AppText style={styles.bodyText}>
-          Add your prescribed medicines to get reminders and stay on track.
+          {medication.emptyBody}
         </AppText>
-        <OutlineAction title="Add Medication" onPress={goToAddMedication} />
+        <OutlineAction title={medication.addMedicationBtn} onPress={goToAddMedication} />
       </SetupCard>
     );
   }
@@ -44,7 +45,7 @@ export function MedicationSection({ data, onRefresh }: { data: MedicationData[],
     <View style={styles.card}>
       <View style={styles.sectionHeaderRow}>
         <AppText variant="semibold" style={styles.sectionTitle}>
-          Medications
+          {medication.medicationsTitle}
         </AppText>
         <Pressable style={styles.addCircle} onPress={goToAddMedication}>
           <FontAwesome name="plus" size={15} color={colors.primaryBackground} />

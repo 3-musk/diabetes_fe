@@ -15,5 +15,15 @@ export const weightTracker = {
   dateLabel: "Date",
   datePlaceholder: "Enter Details",
   cancelBtn: "Cancel",
-  saveBtn: "Save"
+  saveBtn: "Save",
+  underweight: "Underweight",
+  normalWeightText: "Normal Weight",
+  overweight: "Overweight",
+  obese1: "Obese Class I",
+  obese2: "Obese Class II",
+  vsText: "VS",
+  kgUnit: "KG",
+  kgUnitLower: "kg",
+  addWeightTitle: "Add Weight",
+  logWeight: "Log Weight",
 };

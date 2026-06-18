@@ -92,6 +92,7 @@ export const mealsTexts = {
   addMeal: 'Add Meal',
   approxCal: 'Approx Cal',
   loading: 'Loading meals...',
+  logMeal: 'Log Meal',
 };
 
 export const addMealTexts = {
@@ -114,4 +115,11 @@ export const addMealTexts = {
   uploading: 'Analyzing photo...',
   searching: 'Searching...',
   noSelection: 'No items added yet.',
+  search: 'Search',
+  notFoundAlertTitle: 'Not found',
+  notFoundAlertBody: 'No meal matched that description.',
+  missingDetailsAlertTitle: 'Missing details',
+  missingDetailsAlertBody: 'Search for a meal and set the portion first.',
+  noItemsAlertTitle: 'No items',
+  calUnit: 'Cal',
 };

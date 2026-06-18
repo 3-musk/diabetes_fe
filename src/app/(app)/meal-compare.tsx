@@ -202,10 +202,10 @@ export default function MealCompareScreen() {
 
           <View style={styles.predictionBox}>
             <AppText variant="medium" style={styles.predictionPrimary}>
-              {swapMealTexts.newMealPrediction} : {compareData.newPeakGlucose}mg/dl peak
+              {swapMealTexts.newMealPrediction} : {compareData.newPeakGlucose} {swapMealTexts.mgDlUnit} {swapMealTexts.peak}
             </AppText>
             <AppText style={styles.predictionSecondary}>
-              {swapMealTexts.originalPeak} : {compareData.originalPeakGlucose}mg/dl | {compareData.peakImprovement} mg/dl {swapMealTexts.peakImprovement}
+              {swapMealTexts.originalPeak} : {compareData.originalPeakGlucose} {swapMealTexts.mgDlUnit} | {compareData.peakImprovement} {swapMealTexts.mgDlUnit} {swapMealTexts.peakImprovement}
             </AppText>
           </View>
         </View>

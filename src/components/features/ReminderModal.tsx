@@ -16,6 +16,7 @@ import { Button } from '../ui/Button';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 import { DAYS_OF_WEEK, FREQUENCIES, PERIODS } from '../../constants/uiConstants';
+import { reminders } from '../../constants/reminders';
 
 type FrequencyType = typeof FREQUENCIES[number];
 
@@ -202,8 +203,8 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
   };
 
   const selectedDaysLabel = days.length
-    ? `Selected ${days.join(', ')}`
-    : 'No days selected';
+    ? `${reminders.selectedDaysPrefix} ${days.join(', ')}`
+    : reminders.noDaysSelected;
 
   return (
     <AppModal visible={visible} onClose={onClose} closeOnOverlayPress={true}>
@@ -211,15 +212,15 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[s.scrollContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}
       >
-        <AppText variant="semibold" style={s.sheetTitle}>Reminder</AppText>
+        <AppText variant="semibold" style={s.sheetTitle}>{reminders.reminderTitle}</AppText>
 
         {/* Title */}
         <AppText variant='medium' style={s.label}>
-          Title <AppText style={s.required}>*</AppText>
+          {reminders.titleLabel} <AppText style={s.required}>*</AppText>
         </AppText>
         <TextInput
           style={s.input}
-          placeholder="Enter Title"
+          placeholder={reminders.titlePlaceholder}
           placeholderTextColor={colors.textTertiary}
           value={title}
           onChangeText={setTitle}
@@ -258,18 +259,18 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
               ))}
             </View>
             <DateInput
-              label="Start Date"
+              label={reminders.startDateLabel}
               value={startDate}
               onChange={setStartDate}
-              placeholder="Select Date"
+              placeholder={reminders.selectDatePlaceholder}
               dateFormat="yy/mm/dd"
               containerStyle={s.dateField}
             />
             <DateInput
-              label="End Date"
+              label={reminders.endDateLabel}
               value={endDate}
               onChange={setEndDate}
-              placeholder="Select Date"
+              placeholder={reminders.selectDatePlaceholder}
               dateFormat="yy/mm/dd"
               containerStyle={s.dateField}
             />
@@ -278,7 +279,7 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
 
         {/* Time picker */}
         <View style={s.timeCard}>
-          <AppText variant="semibold" style={s.timeTitle}>Scheduled Time</AppText>
+          <AppText variant="semibold" style={s.timeTitle}>{reminders.scheduledTimeTitle}</AppText>
           <View style={s.pickerRow}>
             <DrumPicker items={HOURS}   selected={hour}   onSelect={setHour}   width={70} />
             <DrumPicker items={MINUTES} selected={minute} onSelect={setMinute} width={70} />
@@ -288,8 +289,8 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
 
         {/* Actions */}
         <View style={s.actions}>
-          <Button variant="outline" style={s.cancelBtn} title="Cancel" onPress={onClose} />
-          <Button variant="primary" style={s.saveBtn} title="Save" onPress={handleSave} />
+          <Button variant="outline" style={s.cancelBtn} title={reminders.cancelBtn} onPress={onClose} />
+          <Button variant="primary" style={s.saveBtn} title={reminders.saveBtn} onPress={handleSave} />
         </View>
       </ScrollView>
     </AppModal>

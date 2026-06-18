@@ -26,3 +26,7 @@ export const TREND_MOCK_DATA = {
     yAxisLabels: [70, 72, 74, 76, 78],
   },
 };
+
+export const trendsTexts = {
+  pageTitle: "Trends",
+};

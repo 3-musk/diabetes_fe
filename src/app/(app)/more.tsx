@@ -1,8 +1,9 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { useRouter } from 'expo-router';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton, ScreenContainer } from '../../components';
+import { useAlert } from '../../context/AlertContext';
+import { AppText, BackButton, Button, ScreenContainer } from '../../components';
 import { more as MORECONSTANTS } from '../../constants/more';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
@@ -21,10 +22,11 @@ type MenuItem = {
 export default function More() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { alert } = useAlert();
   const insets = useSafeAreaInsets();
 
   const handleLogout = () => {
-    Alert.alert(MORECONSTANTS.logoutAlertTitle, MORECONSTANTS.logoutAlertMessage, [
+    alert(MORECONSTANTS.logoutAlertTitle, MORECONSTANTS.logoutAlertMessage, [
       { text: MORECONSTANTS.cancelBtn, style: 'cancel' },
       {
         text: MORECONSTANTS.logoutBtn,
@@ -130,6 +132,39 @@ export default function More() {
             </Pressable>
           ))}
         </View>
+
+        {/* Test Alerts section */}
+        <View style={styles.testSection}>
+          <AppText variant="semibold" style={styles.testTitle}>Test Alert Dialogs</AppText>
+          <View style={styles.buttonRowGrid}>
+            <Button
+              title="Info Alert"
+              size="sm"
+              style={{ flex: 1, backgroundColor: colors.primary, borderColor: colors.primary }}
+              onPress={() => alert('Information', 'This is a premium custom info alert dialog.', undefined, { type: 'info' })}
+            />
+            <Button
+              title="Success Alert"
+              size="sm"
+              style={{ flex: 1, backgroundColor: colors.success, borderColor: colors.success }}
+              onPress={() => alert('Success', 'The action has completed successfully!', undefined, { type: 'success' })}
+            />
+          </View>
+          <View style={styles.buttonRowGrid}>
+            <Button
+              title="Warning Alert"
+              size="sm"
+              style={{ flex: 1, backgroundColor: colors.warning, borderColor: colors.warning }}
+              onPress={() => alert('Warning', 'Please proceed with caution.', undefined, { type: 'warning' })}
+            />
+            <Button
+              title="Error Alert"
+              size="sm"
+              style={{ flex: 1, backgroundColor: colors.error, borderColor: colors.error }}
+              onPress={() => alert('Error', 'An unexpected error occurred. Please try again.', undefined, { type: 'error' })}
+            />
+          </View>
+        </View>
       </ScrollView>
     </ScreenContainer>
   );
@@ -213,5 +248,18 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: fontSize.lg,
     color: colors.textPrimary,
+  },
+  testSection: {
+    marginTop: spacing.xxl,
+    gap: spacing.md,
+  },
+  testTitle: {
+    fontSize: fontSize.lg,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  buttonRowGrid: {
+    flexDirection: 'row',
+    gap: spacing.md,
   },
 });

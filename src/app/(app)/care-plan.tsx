@@ -290,7 +290,7 @@ export default function CarePlanScreen() {
   );
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
     if (screenState === 'pending') {
       timeout = setTimeout(() => {
         // Automatically finish pending generation after 10s
@@ -367,7 +367,7 @@ export default function CarePlanScreen() {
   return (
     <ScreenContainer edges={['top']}>
       <View style={s.pageHeader}>
-        <AppText variant="semibold" style={s.pageTitle}>Care Plan</AppText>
+        <AppText variant="semibold" style={s.pageTitle}>{CAREPLANCONSTANTS.pageTitle}</AppText>
         <HeaderActionIcons />
       </View>
 

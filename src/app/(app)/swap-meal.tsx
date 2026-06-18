@@ -46,7 +46,7 @@ function MealRow({
       <View style={styles.mealContent}>
         <AppText variant="semibold" style={styles.mealName}>{name}</AppText>
         <View style={styles.calorieRow}>
-          <AppText style={styles.mealCalories}>{calories} Cal</AppText>
+          <AppText style={styles.mealCalories}>{calories} {swapMealTexts.calUnit}</AppText>
           {calorieChangePercent != null && calorieChangePercent < 0 && (
             <AppText style={styles.calorieChange}>
               - {Math.abs(calorieChangePercent)}% ↓
@@ -187,7 +187,7 @@ export default function SwapMealScreen() {
                 {swapData.currentMeal.name}
               </AppText>
               <AppText style={styles.mealCalories}>
-                {swapData.currentMeal.calories} Cal
+                {swapData.currentMeal.calories} {swapMealTexts.calUnit}
               </AppText>
             </View>
             <View style={styles.currentBadge}>

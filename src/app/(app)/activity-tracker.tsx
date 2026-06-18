@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'reac
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddActivityModal, AppText, BackButton, Button, DateStrip, NewActivityData, RoundCheckBox, ScreenContainer } from '../../components';
 import { Activity, addActivity, fetchActivities, saveCompletedActivity } from '../../services/activityService';
+import { activityTrackerTexts } from '../../constants/activityTracker';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
 
 const ACTIVITY_SVG_MAP: Record<string, any> = {
@@ -69,14 +70,14 @@ export default function ActivityTracker() {
       {/* Header */}
       <View style={styles.header}>
         <BackButton color={colors.primaryBackground} />
-        <AppText variant="semibold" style={styles.headerTitle}>Activity</AppText>
+        <AppText variant="semibold" style={styles.headerTitle}>{activityTrackerTexts.pageTitle}</AppText>
       </View>
 
       <View style={[styles.scroll, { flex: 1, paddingBottom: spacing.lg }]}>
         <DateStrip selectedDate={selectedDate} onSelectDate={setSelectedDate} />
 
         <View style={styles.card}>
-          <AppText variant="semibold" style={styles.cardTitle}>Workout Type</AppText>
+          <AppText variant="semibold" style={styles.cardTitle}>{activityTrackerTexts.workoutType}</AppText>
 
           {loading ? (
             <ActivityIndicator size="large" color={colors.primary} style={{ marginVertical: 40 }} />
@@ -98,7 +99,7 @@ export default function ActivityTracker() {
                         />
                       </View>
                       <View style={styles.activityDetails}>
-                        <AppText style={styles.durationText}>{activity.durationMins} Mins</AppText>
+                        <AppText style={styles.durationText}>{activity.durationMins} {activityTrackerTexts.minsUnit}</AppText>
                         <AppText style={styles.activityName}>{activity.name}</AppText>
                       </View>
                       <RoundCheckBox selected={isSelected} />
@@ -116,12 +117,12 @@ export default function ActivityTracker() {
                 variant='semibold'
                 style={styles.addBtnText}
               >
-                Add Activity
+                {activityTrackerTexts.addActivity}
               </AppText>
             </Pressable>
             
             <Button
-              title="Save"
+              title={activityTrackerTexts.save}
               onPress={handleSaveActivity}
               loading={submitting}
               style={styles.saveBtn}

@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -9,6 +8,7 @@ import {
   View,
   Pressable,
 } from 'react-native';
+import { useAlert } from '../context/AlertContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { subscriptionTexts } from '../constants/subscription';
@@ -47,6 +47,7 @@ export default function SubscriptionScreen() {
 
   const { accessToken, isFirstTimeUser, setHasDismissedSubscription } = useAuth();
   const router = useRouter();
+  const { alert } = useAlert();
   const insets = useSafeAreaInsets();
 
   const loadPlans = async () => {
@@ -57,9 +58,9 @@ export default function SubscriptionScreen() {
         setSelectedPlan(fetchedPlans[0]);
       }
     } catch (error) {
-      Alert.alert(
-        'Error',
-        'Failed to load subscription plans'
+      alert(
+        subscriptionTexts.error,
+        subscriptionTexts.failLoadPlans
       );
     } finally {
       setIsLoading(false);
@@ -72,17 +73,17 @@ export default function SubscriptionScreen() {
 
   const handleContinue = async () => {
     if (!selectedPlan) {
-      Alert.alert(
-        'Error',
-        'Please select a plan'
+      alert(
+        subscriptionTexts.error,
+        subscriptionTexts.selectPlan
       );
       return;
     }
 
     if (!accessToken) {
-      Alert.alert(
-        'Error',
-        'Please login again'
+      alert(
+        subscriptionTexts.error,
+        subscriptionTexts.loginAgain
       );
       return;
     }
@@ -105,9 +106,9 @@ export default function SubscriptionScreen() {
         },
       });
     } catch (error) {
-      Alert.alert(
-        'Error',
-        'Failed to create subscription'
+      alert(
+        subscriptionTexts.error,
+        subscriptionTexts.failCreateSubscription
       );
     } finally {
       setIsProcessing(false);
@@ -123,7 +124,7 @@ export default function SubscriptionScreen() {
     return (
       <LoadingSpinner
         fullScreen
-        text="Loading plans..."
+        text={subscriptionTexts.loadingPlans}
       />
     );
   }

@@ -40,7 +40,7 @@ function MealItemCard({
       />
       <View style={styles.mealContent}>
         <AppText variant="regular" style={styles.mealName}>{item.name}</AppText>
-        <AppText style={styles.mealCalories}>{item.calories} Cal</AppText>
+        <AppText style={styles.mealCalories}>{item.calories} {mealImpactTexts.calUnit}</AppText>
       </View>
       {showSwap && onSwap && (
         <Pressable style={styles.swapBtn} onPress={onSwap}>
@@ -175,7 +175,7 @@ export default function MealImpactScreen() {
               <AppText variant="semibold" style={styles.statValue}>
                 {impact.timeToPeak} {""}
                 <AppText variant="semibold" style={styles.statUnit}>
-                  hours
+                  {mealImpactTexts.hoursUnit}
                 </AppText>
               </AppText>
             </View>
@@ -211,7 +211,7 @@ export default function MealImpactScreen() {
                   {suggestion.title}
                 </AppText>
                 <AppText style={styles.suggestionPeak}>
-                  {mealImpactTexts.predictedPeak} - {suggestion.predictedPeak} mg/dl
+                  {mealImpactTexts.predictedPeak} - {suggestion.predictedPeak} {mealImpactTexts.mgDlUnit}
                 </AppText>
               </View>
               {suggestion.withinTarget && (

@@ -5,6 +5,7 @@ import AppText from "../ui/AppText";
 import Button from "../ui/Button";
 import { useRouter } from "expo-router";
 import { ROUTES } from "../../constants/routes";
+import { lifestyleQuestions } from "../../constants/lifestyleQuestions";
 import type { LifestyleQuestionData } from "./types";
 
 export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData | null }) {
@@ -20,7 +21,7 @@ export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData
       style={styles.questionCard}
     >
       <AppText variant="semibold" style={styles.questionTitle}>
-        {data.isCompleted ? "Lifestyle Questions Answered" : `Lifestyle Questions (${data.current}/${data.total})`}
+        {data.isCompleted ? lifestyleQuestions.questionsAnswered : `${lifestyleQuestions.questionsProgressPrefix} (${data.current}/${data.total})`}
       </AppText>
       <AppText style={styles.questionText}>
         {data.question}
@@ -29,7 +30,7 @@ export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData
         onPress={() => router.push(ROUTES.appLifestyleQuestions as any)}
       >
         <AppText variant="semibold" style={styles.primaryPillText}>
-          {data.isCompleted ? "View Answers" : "View Lifestyle Questions"}
+          {data.isCompleted ? lifestyleQuestions.viewAnswers : lifestyleQuestions.viewQuestions}
         </AppText>
       </Button>
     </LinearGradient>

@@ -2,13 +2,13 @@ import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   StyleSheet,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAlert } from '../../context/AlertContext';
 
 import { AppText, BackButton, Button, ReminderData, ReminderModal, ScreenContainer } from '../../components';
 import { reminders as REMINDERSCONSTANTS } from '../../constants/reminders';
@@ -16,6 +16,7 @@ import { deleteReminder, getReminders, saveReminder } from '../../services/remin
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
 
 export default function RemindersScreen() {
+  const { alert } = useAlert();
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
@@ -45,7 +46,7 @@ export default function RemindersScreen() {
   };
 
   const handleDeletePress = (item: ReminderData) => {
-    Alert.alert(
+    alert(
       REMINDERSCONSTANTS.deleteConfirmTitle,
       REMINDERSCONSTANTS.deleteConfirmMessage,
       [

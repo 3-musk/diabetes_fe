@@ -1,9 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { useAlert } from '../context/AlertContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText, Button, LoadingSpinner } from '../components';
 import { ROUTES } from '../constants/routes';
+import { subscriptionTexts } from '../constants/subscription';
 import { useAuth } from '../context/AuthContext';
 import { completeCart, createRazorpayOrder } from '../services/subscriptionService';
 import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
@@ -14,6 +16,7 @@ export default function PaymentScreen() {
   const params = useLocalSearchParams();
   const { accessToken, completeSubscription } = useAuth();
   const router = useRouter();
+  const { alert } = useAlert();
   const insets = useSafeAreaInsets();
   
   const [isProcessing, setIsProcessing] = useState(false);
@@ -25,7 +28,7 @@ export default function PaymentScreen() {
 
   const handleSimulatePayment = async () => {
     if (!accessToken || !cartId) {
-      Alert.alert('Error', 'Invalid payment session. Please try again.');
+      alert(subscriptionTexts.error, subscriptionTexts.invalidSession);
       router.back();
       return;
     }
@@ -55,7 +58,7 @@ export default function PaymentScreen() {
     } catch (error) {
       console.error('Payment error:', error);
       setPaymentStatus('failed');
-      Alert.alert('Payment Failed', 'There was an error processing your payment. Please try again.');
+      alert(subscriptionTexts.paymentFailed, subscriptionTexts.paymentFailedBody);
     } finally {
       setIsProcessing(false);
     }
@@ -86,8 +89,8 @@ export default function PaymentScreen() {
             <View style={styles.iconContainer}>
               <LoadingSpinner size="small" />
             </View>
-            <AppText variant="bold" style={styles.title}>Preparing Payment...</AppText>
-            <AppText style={styles.subtitle}>Please wait while we set up your payment</AppText>
+            <AppText variant="bold" style={styles.title}>{subscriptionTexts.preparingPayment}</AppText>
+            <AppText style={styles.subtitle}>{subscriptionTexts.preparingPaymentSubtitle}</AppText>
           </>
         );
 
@@ -97,13 +100,13 @@ export default function PaymentScreen() {
             <View style={styles.iconContainer}>
               <LoadingSpinner size="small" />
             </View>
-            <AppText variant="bold" style={styles.title}>Processing Payment</AppText>
-            <AppText style={styles.subtitle}>Please do not close this screen</AppText>
+            <AppText variant="bold" style={styles.title}>{subscriptionTexts.processingPayment}</AppText>
+            <AppText style={styles.subtitle}>{subscriptionTexts.processingPaymentSubtitle}</AppText>
             
             <View style={styles.orderSummary}>
-              <AppText style={styles.orderLabel}>Plan</AppText>
+              <AppText style={styles.orderLabel}>{subscriptionTexts.planLabel}</AppText>
               <AppText variant="semibold" style={styles.orderValue}>{planName}</AppText>
-              <AppText style={styles.orderLabel}>Amount</AppText>
+              <AppText style={styles.orderLabel}>{subscriptionTexts.amountLabel}</AppText>
               <AppText variant="bold" style={styles.orderAmount}>₹{amount}</AppText>
             </View>
           </>
@@ -115,17 +118,17 @@ export default function PaymentScreen() {
             <View style={[styles.iconContainer, styles.successIcon]}>
               <AppText variant="bold" style={styles.successCheck}>✓</AppText>
             </View>
-            <AppText variant="bold" style={styles.title}>Payment Successful!</AppText>
-            <AppText style={styles.subtitle}>Thank you for subscribing</AppText>
+            <AppText variant="bold" style={styles.title}>{subscriptionTexts.paymentSuccessful}</AppText>
+            <AppText style={styles.subtitle}>{subscriptionTexts.thankYouSubscribing}</AppText>
             
             <View style={styles.orderSummary}>
-              <AppText style={styles.orderLabel}>Plan</AppText>
+              <AppText style={styles.orderLabel}>{subscriptionTexts.planLabel}</AppText>
               <AppText variant="semibold" style={styles.orderValue}>{planName}</AppText>
-              <AppText style={styles.orderLabel}>Amount Paid</AppText>
+              <AppText style={styles.orderLabel}>{subscriptionTexts.amountPaidLabel}</AppText>
               <AppText variant="bold" style={[styles.orderAmount, styles.successAmount]}>₹{amount}</AppText>
             </View>
             
-            <AppText style={styles.redirectText}>Redirecting to dashboard...</AppText>
+            <AppText style={styles.redirectText}>{subscriptionTexts.redirectingDashboard}</AppText>
           </>
         );
 
@@ -135,19 +138,19 @@ export default function PaymentScreen() {
             <View style={[styles.iconContainer, styles.failedIcon]}>
               <AppText variant="bold" style={styles.failedX}>✕</AppText>
             </View>
-            <AppText variant="bold" style={styles.title}>Payment Failed</AppText>
-            <AppText style={styles.subtitle}>Something went wrong. Please try again.</AppText>
+            <AppText variant="bold" style={styles.title}>{subscriptionTexts.paymentFailed}</AppText>
+            <AppText style={styles.subtitle}>{subscriptionTexts.paymentFailedBody}</AppText>
             
             <View style={styles.buttonContainer}>
               <Button
-                title="Try Again"
+                title={subscriptionTexts.tryAgainBtn}
                 onPress={handleRetry}
                 size="lg"
                 style={styles.buttonFullWidth}
               />
               
               <Button
-                title="Go Back"
+                title={subscriptionTexts.goBackBtn}
                 onPress={handleGoBack}
                 variant="outline"
                 size="lg"

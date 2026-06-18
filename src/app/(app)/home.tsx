@@ -20,8 +20,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { getHomeDashboardData, getLifestyleQuestions, getMedication } from "../../services/homepage";
 import { colors, spacing } from "../../theme";
-
-const HOME_LOADING_TEXT = "Loading your dashboard...";
+import { UI_STRINGS } from "../../constants/uiConstants";
 
 export default function Home() {
   const { user } = useAuth();
@@ -81,7 +80,7 @@ export default function Home() {
   if (initialLoading && !hasLoadedRef.current) {
     return (
       <ScreenContainer edges={["top"]}>
-        <LoadingSpinner text={HOME_LOADING_TEXT} fullScreen />
+        <LoadingSpinner text={UI_STRINGS.loadingDashboard} fullScreen />
       </ScreenContainer>
     );
   }

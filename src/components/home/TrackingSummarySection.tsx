@@ -4,6 +4,9 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { ROUTES } from "../../constants/routes";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
 import AppText from "../ui/AppText";
+import { mealsTexts } from "../../constants/meals";
+import { weightTracker } from "../../constants/weightTracker";
+import { activityTrackerTexts } from "../../constants/activityTracker";
 
 type TrackingSummarySectionProps = {
   meals?: Record<string, number>;
@@ -31,7 +34,7 @@ export function TrackingSummarySection({
       <TrackingTile
         accentColor={colors.success}
         icon={<SvgIcon source={require("../../../assets/svgs/tabs/meal.svg")} size={60} />}
-        title="Log Meal"
+        title={mealsTexts.logMeal}
         subtitle={meals ? `${meals?.logged ?? 0}/${meals?.total ?? 0}` : ''}
         onPress={() => router.push(ROUTES.appMeals as any)}
       />
@@ -39,16 +42,16 @@ export function TrackingSummarySection({
       <TrackingTile
         accentColor={colors.error}
         icon={<SvgIcon source={require("../../../assets/svgs/weight.svg")} size={60} />}
-        title={weightKg ? `${weightKg?.current ?? 0}kg / ${weightKg?.target ?? 0}kg` : 'Log Weight'}
-        subtitle={weightKg ? 'Log Weight' : ''}
+        title={weightKg ? `${weightKg?.current ?? 0}${weightTracker.kgUnitLower} / ${weightKg?.target ?? 0}${weightTracker.kgUnitLower}` : weightTracker.logWeight}
+        subtitle={weightKg ? weightTracker.logWeight : ''}
         onPress={() => router.push(ROUTES.appWeightTracker as any)}
       />
 
       <TrackingTile
         accentColor={colors.success}
         icon={<SvgIcon source={require("../../../assets/svgs/activity.svg")} size={60} />}
-        title={activityMinutes ? `${activityMinutes ?? 0} mins` : "Log Activity"}
-        subtitle={activityMinutes ? "Log Activities" : ''}
+        title={activityMinutes ? `${activityMinutes ?? 0} ${activityTrackerTexts.minsUnitLower}` : activityTrackerTexts.logActivity}
+        subtitle={activityMinutes ? activityTrackerTexts.logActivities : ''}
         onPress={() => router.push(ROUTES.appActivityTracker as any)}
       />
     </View>

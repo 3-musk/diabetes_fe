@@ -1,12 +1,13 @@
 import { StyleSheet } from "react-native";
 import { AppText, ScreenContainer } from "../../components";
 import { colors, fontSize, fontWeight, spacing } from "../../theme";
+import { settingsTexts } from "../../constants/settings";
 
 export default function Settings() {
   return (
     <ScreenContainer edges={['top']} contentStyle={styles.container}>
-      <AppText variant="bold" style={styles.title}>Settings</AppText>
-      <AppText style={styles.text}>Update app preferences and account settings here.</AppText>
+      <AppText variant="bold" style={styles.title}>{settingsTexts.pageTitle}</AppText>
+      <AppText style={styles.text}>{settingsTexts.subtitle}</AppText>
     </ScreenContainer>
   );
 }

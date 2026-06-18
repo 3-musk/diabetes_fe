@@ -36,7 +36,7 @@ export function AddWeightModal({ visible, onClose, onSave }: AddWeightModalProps
     return (
         <AppModal visible={visible} onClose={onClose}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scrollContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
-                <AppText variant="semibold" style={s.sheetTitle}>Add Weight</AppText>
+                <AppText variant="semibold" style={s.sheetTitle}>{WEIGHTTRACKERCONSTANTS.addWeightTitle}</AppText>
 
                 <Input
                     label={WEIGHTTRACKERCONSTANTS.weightLabel}
