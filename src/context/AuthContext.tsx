@@ -1,8 +1,9 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { secureStorage } from '../utils/secureStorage';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import {
     sendOtp,
+    resendOtp as apiResendOtp,
     verifyOtp as apiVerifyOtp,
     createUser as apiCreateUser,
     getUser as apiGetUser,
@@ -14,11 +15,9 @@ import { getSubscription } from '../services/subscriptionService';
 
 interface AuthContextType {
     isLoggedIn: boolean;
-    isSubscribed: boolean;
     isLoading: boolean;
     userPhoneNumber: string | null;
     userId: string | null;
-    isNewUser: boolean | null;
     isFirstTimeUser: boolean | null;
     isSubscriptionActive: boolean;
     hasDismissedSubscription: boolean;
@@ -31,7 +30,18 @@ interface AuthContextType {
     login: (phoneNumber: string) => Promise<void>;
     verifyOtp: (otp: string) => Promise<boolean>;
     resendOtp: () => Promise<void>;
-    completeRegistration: (registrationData: { name: string; age: string }) => Promise<void>;
+    completeRegistration: (registrationData: {
+        name: string;
+        yearOfBirth: number;
+        diagnosisYear: number;
+        gender: string;
+        doctorReferralCode: string;
+        email: string;
+        dataCollectionConsent: boolean;
+        aiAnalysisConsent: boolean;
+        heightCm?: number;
+        targetWeightKg?: number;
+    }) => Promise<void>;
     completeSubscription: () => Promise<void>;
     logout: () => Promise<void>;
     setVerificationId: (id: string) => void;
@@ -42,11 +52,9 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [isSubscribed, setIsSubscribed] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [userPhoneNumber, setUserPhoneNumber] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
-    const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
     const [isFirstTimeUser, setIsFirstTimeUser] = useState<boolean | null>(null);
     const [isSubscriptionActive, setIsSubscriptionActive] = useState(false);
     const [hasDismissedSubscription, setHasDismissedSubscription] = useState(false);
@@ -65,19 +73,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     storedAccessToken,
                     storedRefreshToken,
                     storedUserId,
-                    newUser,
-                    subscribed,
                     storedFirstTime,
                     storedSubActive
                 ] = await Promise.all([
-                    AsyncStorage.getItem(STORAGE_KEYS.userPhoneNumber),
-                    AsyncStorage.getItem(STORAGE_KEYS.accessToken),
-                    AsyncStorage.getItem(STORAGE_KEYS.refreshToken),
-                    AsyncStorage.getItem(STORAGE_KEYS.userId),
-                    AsyncStorage.getItem(STORAGE_KEYS.isNewUser),
-                    AsyncStorage.getItem(STORAGE_KEYS.isSubscribed),
-                    AsyncStorage.getItem(STORAGE_KEYS.isFirstTimeUser),
-                    AsyncStorage.getItem(STORAGE_KEYS.isSubscriptionActive),
+                    secureStorage.getItem(STORAGE_KEYS.userPhoneNumber),
+                    secureStorage.getItem(STORAGE_KEYS.accessToken),
+                    secureStorage.getItem(STORAGE_KEYS.refreshToken),
+                    secureStorage.getItem(STORAGE_KEYS.userId),
+                    secureStorage.getItem(STORAGE_KEYS.isFirstTimeUser),
+                    secureStorage.getItem(STORAGE_KEYS.isSubscriptionActive),
                 ]);
 
                 if (storedAccessToken) {
@@ -86,8 +90,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     setRefreshToken(storedRefreshToken);
                     setUserPhoneNumber(storedPhone);
                     setUserId(storedUserId);
-                    setIsNewUser(newUser === 'true');
-                    setIsSubscribed(subscribed === 'true');
                     setIsFirstTimeUser(storedFirstTime === 'true');
                     setIsSubscriptionActive(storedSubActive === 'true');
 
@@ -95,13 +97,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const userProfile = await apiGetUser(storedAccessToken);
                     if (userProfile) {
                         setUser(userProfile);
-                        setIsSubscribed(userProfile.isSubscriptionActive);
                         setIsFirstTimeUser(userProfile.isFirstTimeUser);
                         setIsSubscriptionActive(userProfile.isSubscriptionActive);
                         await Promise.all([
-                            AsyncStorage.setItem(STORAGE_KEYS.isSubscribed, userProfile.isSubscriptionActive ? 'true' : 'false'),
-                            AsyncStorage.setItem(STORAGE_KEYS.isFirstTimeUser, userProfile.isFirstTimeUser ? 'true' : 'false'),
-                            AsyncStorage.setItem(STORAGE_KEYS.isSubscriptionActive, userProfile.isSubscriptionActive ? 'true' : 'false'),
+                            secureStorage.setItem(STORAGE_KEYS.isFirstTimeUser, userProfile.isFirstTimeUser ? 'true' : 'false'),
+                            secureStorage.setItem(STORAGE_KEYS.isSubscriptionActive, userProfile.isSubscriptionActive ? 'true' : 'false'),
                         ]);
                     }
                 }
@@ -118,9 +118,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const login = async (phoneNumber: string) => {
         try {
             const response = await sendOtp(phoneNumber);
-            console.log("login response : ",response)
+            console.log("login response : ", response)
             if (response.success) {
-                await AsyncStorage.setItem(STORAGE_KEYS.userPhoneNumber, phoneNumber);
+                await secureStorage.setItem(STORAGE_KEYS.userPhoneNumber, phoneNumber);
                 setUserPhoneNumber(phoneNumber);
 
                 if (response.verificationId) {
@@ -138,37 +138,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const verifyOtp = async (otp: string): Promise<boolean> => {
         try {
             const response = await apiVerifyOtp(verificationId || '', otp);
-            console.log("verify OTP : ",response);
+            console.log("verify OTP : ", response);
             if (response.success) {
                 // Store tokens based on user type
-                if (response.isNewUser && response.tempToken) {
+                if (response.isFirstTimeUser && response.tempToken) {
                     // New user gets temp token
                     setTempToken(response.tempToken);
-                    await AsyncStorage.setItem(STORAGE_KEYS.tempToken, response.tempToken);
+                    await secureStorage.setItem(STORAGE_KEYS.tempToken, response.tempToken);
                 } else if (response.accessToken && response.refreshToken) {
                     // Existing user gets access & refresh tokens
                     setAccessToken(response.accessToken);
                     setRefreshToken(response.refreshToken);
-                    await AsyncStorage.setItem(STORAGE_KEYS.accessToken, response.accessToken);
-                    await AsyncStorage.setItem(STORAGE_KEYS.refreshToken, response.refreshToken);
+                    await secureStorage.setItem(STORAGE_KEYS.accessToken, response.accessToken);
+                    await secureStorage.setItem(STORAGE_KEYS.refreshToken, response.refreshToken);
                 }
 
                 if (response.userId) {
                     setUserId(response.userId);
-                    await AsyncStorage.setItem(STORAGE_KEYS.userId, response.userId);
+                    await secureStorage.setItem(STORAGE_KEYS.userId, response.userId);
                 }
 
-                setIsNewUser(response.isNewUser);
                 setIsFirstTimeUser(response.isFirstTimeUser);
                 setIsSubscriptionActive(response.isSubscriptionActive);
-                setIsSubscribed(response.isSubscriptionActive);
                 setIsLoggedIn(true);
 
                 await Promise.all([
-                    AsyncStorage.setItem(STORAGE_KEYS.isNewUser, response.isNewUser ? 'true' : 'false'),
-                    AsyncStorage.setItem(STORAGE_KEYS.isSubscribed, response.isSubscriptionActive ? 'true' : 'false'),
-                    AsyncStorage.setItem(STORAGE_KEYS.isFirstTimeUser, response.isFirstTimeUser ? 'true' : 'false'),
-                    AsyncStorage.setItem(STORAGE_KEYS.isSubscriptionActive, response.isSubscriptionActive ? 'true' : 'false'),
+                    secureStorage.setItem(STORAGE_KEYS.isFirstTimeUser, response.isFirstTimeUser ? 'true' : 'false'),
+                    secureStorage.setItem(STORAGE_KEYS.isSubscriptionActive, response.isSubscriptionActive ? 'true' : 'false'),
                 ]);
 
                 return true;
@@ -183,7 +179,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const resendOtp = async (): Promise<void> => {
         try {
-            const response = await sendOtp(userPhoneNumber || '');
+            const response = await apiResendOtp(userPhoneNumber || '');
             if (response.verificationId) {
                 setVerificationId(response.verificationId);
             }
@@ -193,7 +189,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const completeRegistration = async (registrationData: { name: string; age: string }) => {
+    const completeRegistration = async (registrationData: {
+        name: string;
+        yearOfBirth: number;
+        diagnosisYear: number;
+        gender: string;
+        doctorReferralCode: string;
+        email: string;
+        dataCollectionConsent: boolean;
+        aiAnalysisConsent: boolean;
+        heightCm?: number;
+        targetWeightKg?: number;
+    }) => {
         if (!tempToken || !userPhoneNumber) {
             throw new Error('Invalid session. Please login again.');
         }
@@ -201,8 +208,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             const requestData: CreateUserRequest = {
                 name: registrationData.name,
-                age: registrationData.age,
-                phoneNumber: userPhoneNumber,
+                yearOfBirth: registrationData.yearOfBirth,
+                diagnosisYear: registrationData.diagnosisYear,
+                gender: registrationData.gender.toUpperCase(),
+                doctorReferralCode: registrationData.doctorReferralCode || '',
+                email: registrationData.email || '',
+                dataCollectionConsent: registrationData.dataCollectionConsent,
+                aiAnalysisConsent: registrationData.aiAnalysisConsent,
+                heightCm: registrationData.heightCm ?? 100,
+                targetWeightKg: registrationData.targetWeightKg ?? 100,
             };
 
             const response = await apiCreateUser(tempToken, requestData);
@@ -212,20 +226,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setAccessToken(response.accessToken);
                 setRefreshToken(response.refreshToken);
                 setTempToken(null);
-                setIsNewUser(false);
                 setIsFirstTimeUser(response.isFirstTimeUser);
                 setIsSubscriptionActive(response.isSubscriptionActive);
-                setIsSubscribed(response.isSubscriptionActive);
 
                 await Promise.all([
-                    AsyncStorage.setItem(STORAGE_KEYS.accessToken, response.accessToken),
-                    AsyncStorage.setItem(STORAGE_KEYS.refreshToken, response.refreshToken),
-                    AsyncStorage.setItem(STORAGE_KEYS.isNewUser, 'false'),
-                    AsyncStorage.setItem(STORAGE_KEYS.isSubscribed, response.isSubscriptionActive ? 'true' : 'false'),
-                    AsyncStorage.setItem(STORAGE_KEYS.isFirstTimeUser, response.isFirstTimeUser ? 'true' : 'false'),
-                    AsyncStorage.setItem(STORAGE_KEYS.isSubscriptionActive, response.isSubscriptionActive ? 'true' : 'false'),
-                    AsyncStorage.removeItem(STORAGE_KEYS.tempToken),
-                    AsyncStorage.setItem(STORAGE_KEYS.userData, JSON.stringify(registrationData || {})),
+                    secureStorage.setItem(STORAGE_KEYS.accessToken, response.accessToken),
+                    secureStorage.setItem(STORAGE_KEYS.refreshToken, response.refreshToken),
+                    secureStorage.setItem(STORAGE_KEYS.isFirstTimeUser, response.isFirstTimeUser ? 'true' : 'false'),
+                    secureStorage.setItem(STORAGE_KEYS.isSubscriptionActive, response.isSubscriptionActive ? 'true' : 'false'),
+                    secureStorage.removeItem(STORAGE_KEYS.tempToken),
+                    secureStorage.setItem(STORAGE_KEYS.userData, JSON.stringify(response || {})),
                 ]);
 
                 // Fetch user profile
@@ -234,11 +244,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     setUser(userProfile);
                     setIsFirstTimeUser(userProfile.isFirstTimeUser);
                     setIsSubscriptionActive(userProfile.isSubscriptionActive);
-                    setIsSubscribed(userProfile.isSubscriptionActive);
                     await Promise.all([
-                        AsyncStorage.setItem(STORAGE_KEYS.isSubscribed, userProfile.isSubscriptionActive ? 'true' : 'false'),
-                        AsyncStorage.setItem(STORAGE_KEYS.isFirstTimeUser, userProfile.isFirstTimeUser ? 'true' : 'false'),
-                        AsyncStorage.setItem(STORAGE_KEYS.isSubscriptionActive, userProfile.isSubscriptionActive ? 'true' : 'false'),
+                        secureStorage.setItem(STORAGE_KEYS.isFirstTimeUser, userProfile.isFirstTimeUser ? 'true' : 'false'),
+                        secureStorage.setItem(STORAGE_KEYS.isSubscriptionActive, userProfile.isSubscriptionActive ? 'true' : 'false'),
                     ]);
                 }
             } else {
@@ -260,13 +268,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const subscription = await getSubscription(accessToken);
 
             if (subscription) {
-                setIsSubscribed(true);
                 setIsSubscriptionActive(true);
                 setIsFirstTimeUser(false);
                 await Promise.all([
-                    AsyncStorage.setItem(STORAGE_KEYS.isSubscribed, 'true'),
-                    AsyncStorage.setItem(STORAGE_KEYS.isSubscriptionActive, 'true'),
-                    AsyncStorage.setItem(STORAGE_KEYS.isFirstTimeUser, 'false'),
+                    secureStorage.setItem(STORAGE_KEYS.isSubscriptionActive, 'true'),
+                    secureStorage.setItem(STORAGE_KEYS.isFirstTimeUser, 'false'),
                 ]);
             } else {
                 throw new Error('No active subscription found');
@@ -284,13 +290,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const userProfile = await apiGetUser(accessToken);
             if (userProfile) {
                 setUser(userProfile);
-                setIsSubscribed(userProfile.isSubscriptionActive);
                 setIsFirstTimeUser(userProfile.isFirstTimeUser);
                 setIsSubscriptionActive(userProfile.isSubscriptionActive);
                 await Promise.all([
-                    AsyncStorage.setItem(STORAGE_KEYS.isSubscribed, userProfile.isSubscriptionActive ? 'true' : 'false'),
-                    AsyncStorage.setItem(STORAGE_KEYS.isFirstTimeUser, userProfile.isFirstTimeUser ? 'true' : 'false'),
-                    AsyncStorage.setItem(STORAGE_KEYS.isSubscriptionActive, userProfile.isSubscriptionActive ? 'true' : 'false'),
+                    secureStorage.setItem(STORAGE_KEYS.isFirstTimeUser, userProfile.isFirstTimeUser ? 'true' : 'false'),
+                    secureStorage.setItem(STORAGE_KEYS.isSubscriptionActive, userProfile.isSubscriptionActive ? 'true' : 'false'),
                 ]);
             }
         } catch (error) {
@@ -305,28 +309,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
 
             await Promise.all([
-                AsyncStorage.removeItem(STORAGE_KEYS.userPhoneNumber),
-                AsyncStorage.removeItem(STORAGE_KEYS.userId),
-                AsyncStorage.removeItem(STORAGE_KEYS.accessToken),
-                AsyncStorage.removeItem(STORAGE_KEYS.refreshToken),
-                AsyncStorage.removeItem(STORAGE_KEYS.tempToken),
-                AsyncStorage.removeItem(STORAGE_KEYS.isRegistered),
-                AsyncStorage.removeItem(STORAGE_KEYS.isSubscribed),
-                AsyncStorage.removeItem(STORAGE_KEYS.isFirstTimeUser),
-                AsyncStorage.removeItem(STORAGE_KEYS.isSubscriptionActive),
-                AsyncStorage.removeItem(STORAGE_KEYS.userData),
-                AsyncStorage.removeItem(STORAGE_KEYS.subscriptionPlan),
+                secureStorage.removeItem(STORAGE_KEYS.userPhoneNumber),
+                secureStorage.removeItem(STORAGE_KEYS.userId),
+                secureStorage.removeItem(STORAGE_KEYS.accessToken),
+                secureStorage.removeItem(STORAGE_KEYS.refreshToken),
+                secureStorage.removeItem(STORAGE_KEYS.tempToken),
+                secureStorage.removeItem(STORAGE_KEYS.isRegistered),
+                secureStorage.removeItem(STORAGE_KEYS.isFirstTimeUser),
+                secureStorage.removeItem(STORAGE_KEYS.isSubscriptionActive),
+                secureStorage.removeItem(STORAGE_KEYS.userData),
+                secureStorage.removeItem(STORAGE_KEYS.subscriptionPlan),
             ]);
 
             // Reset all state
             setUserPhoneNumber(null);
             setUserId(null);
             setIsLoggedIn(false);
-            setIsSubscribed(false);
             setIsFirstTimeUser(null);
             setIsSubscriptionActive(false);
             setHasDismissedSubscription(false);
-            setIsNewUser(null);
             setTempToken(null);
             setAccessToken(null);
             setRefreshToken(null);
@@ -341,11 +342,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return (
         <AuthContext.Provider value={{
             isLoggedIn,
-            isSubscribed,
             isLoading,
             userPhoneNumber,
             userId,
-            isNewUser,
             isFirstTimeUser,
             isSubscriptionActive,
             hasDismissedSubscription,

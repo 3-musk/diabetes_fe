@@ -57,10 +57,11 @@ export default function SubscriptionScreen() {
       if (fetchedPlans.length > 0) {
         setSelectedPlan(fetchedPlans[0]);
       }
-    } catch (error) {
+    } catch (error: any) {
+      const apiMessage = error.response?.data?.message || error.message || subscriptionTexts.failLoadPlans;
       alert(
         subscriptionTexts.error,
-        subscriptionTexts.failLoadPlans
+        apiMessage
       );
     } finally {
       setIsLoading(false);
@@ -105,10 +106,11 @@ export default function SubscriptionScreen() {
           amount: selectedPlan.price.toString(),
         },
       });
-    } catch (error) {
+    } catch (error: any) {
+      const apiMessage = error.response?.data?.message || error.message || subscriptionTexts.failCreateSubscription;
       alert(
         subscriptionTexts.error,
-        subscriptionTexts.failCreateSubscription
+        apiMessage
       );
     } finally {
       setIsProcessing(false);

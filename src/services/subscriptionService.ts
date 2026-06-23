@@ -1,3 +1,5 @@
+import { apiClient } from '../utils/apiClient';
+
 export interface Plan {
   id: string;
   name: string;
@@ -8,6 +10,7 @@ export interface Plan {
   features: string[];
   isPopular?: boolean;
   isActive: boolean;
+  variantId?: string;
 }
 
 export interface Subscription {
@@ -38,66 +41,45 @@ export interface PaymentDetails {
   currency: string;
 }
 
-// Get all available plans (no auth required)
+// Get all available plans
 export const getPlans = async (): Promise<Plan[]> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  try {
+    const response = await apiClient.get('/api/ecommerce/products');
+    const result = response.data;
 
-  // TODO: Replace with actual API call
-  // API: GET /api/subscriptions/plans
+    if (result.success && result.data?.products) {
+      return result.data.products.map((prod: any) => {
+        // Map duration label
+        let durationLabel = '';
+        if (prod.category === 'trial') {
+          durationLabel = '7 days';
+        } else if (prod.duration === 30) {
+          durationLabel = 'per month';
+        } else if (prod.duration === 360) {
+          durationLabel = 'per year';
+        } else {
+          durationLabel = `per ${prod.duration} days`;
+        }
 
-  return [
-    {
-      id: "monthly",
-      name: "Monthly",
-      price: 299,
-      currency: "INR",
-      duration: "per month",
-      durationInDays: 30,
-      features: [
-        "Daily health tips",
-        "Meal tracking",
-        "Exercise suggestions",
-        "Email support",
-      ],
-      isActive: true,
-    },
-    {
-      id: "quarterly",
-      name: "Quarterly",
-      price: 799,
-      currency: "INR",
-      duration: "per 3 months",
-      durationInDays: 90,
-      features: [
-        "Daily health tips",
-        "Meal tracking",
-        "Exercise suggestions",
-        "Priority email support",
-        "Monthly health report",
-      ],
-      isPopular: true,
-      isActive: true,
-    },
-    {
-      id: "yearly",
-      name: "Yearly",
-      price: 2499,
-      currency: "INR",
-      duration: "per year",
-      durationInDays: 365,
-      features: [
-        "Daily health tips",
-        "Meal tracking",
-        "Exercise suggestions",
-        "24/7 phone support",
-        "Quarterly health report",
-        "Personalized diet plan",
-        "Save 30%",
-      ],
-      isActive: true,
-    },
-  ];
+        return {
+          id: prod.productId,
+          name: prod.title,
+          price: prod.calculated_amount_with_tax,
+          currency: 'INR',
+          duration: durationLabel,
+          durationInDays: prod.duration,
+          features: prod.features || [],
+          isPopular: prod.duration === 360 || (prod.category === 'membership' && prod.duration !== 7),
+          isActive: true,
+          variantId: prod.variantId,
+        };
+      });
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching subscription plans:', error);
+    throw error;
+  }
 };
 
 // Get user's current subscription

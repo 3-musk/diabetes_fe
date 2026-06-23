@@ -4,11 +4,10 @@ export const STORAGE_KEYS = {
   accessToken: "accessToken",
   refreshToken: "refreshToken",
   tempToken: "tempToken",
-  isNewUser: "isNewUser",
   isRegistered: "isRegistered",
-  isSubscribed: "isSubscribed",
   isFirstTimeUser: "isFirstTimeUser",
   isSubscriptionActive: "isSubscriptionActive",
   userData: "userData",
   subscriptionPlan: "subscriptionPlan",
+  deviceId: "deviceId",
 } as const;

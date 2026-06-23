@@ -1,5 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { secureStorage } from '../utils/secureStorage';
 import { STORAGE_KEYS } from '../constants/storageKeys';
+import { apiClient } from '../utils/apiClient';
 
 export interface LoginResponse {
   success: boolean;
@@ -10,7 +11,6 @@ export interface LoginResponse {
 export interface VerifyOtpResponse {
   success: boolean;
   message: string;
-  isNewUser: boolean;
   isFirstTimeUser: boolean;
   isSubscriptionActive: boolean;
   tempToken?: string;        // For new users
@@ -21,8 +21,15 @@ export interface VerifyOtpResponse {
 
 export interface CreateUserRequest {
   name: string;
-  age: string;
-  phoneNumber: string;
+  yearOfBirth: number;
+  diagnosisYear: number;
+  gender: string;
+  doctorReferralCode: string;
+  email: string;
+  dataCollectionConsent: boolean;
+  aiAnalysisConsent: boolean;
+  heightCm: number;
+  targetWeightKg: number;
 }
 
 export interface CreateUserResponse {
@@ -41,7 +48,6 @@ export interface User {
   name?: string;
   age?: number;
   isRegistered: boolean;
-  isSubscribed: boolean;
   isFirstTimeUser: boolean;
   isSubscriptionActive: boolean;
   subscriptionPlan?: string;
@@ -49,80 +55,136 @@ export interface User {
   updatedAt: string;
 }
 
+// (getPhysicalDeviceId and getBaseUrl are handled automatically by apiClient interceptors)
+
+// Helper to format phone number to E.164 format (+91 prefix)
+const formatPhoneNumber = (phone: string): string => {
+  const cleaned = phone.replace(/\D/g, '');
+  if (phone.startsWith('+')) {
+    return phone;
+  }
+  if (cleaned.length === 10) {
+    return `+91${cleaned}`;
+  }
+  return phone.startsWith('+') ? phone : `+${cleaned}`;
+};
+
 // Send OTP to phone number
 export const sendOtp = async (phoneNumber: string): Promise<LoginResponse> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  const formattedPhone = formatPhoneNumber(phoneNumber);
 
-  // TODO: Replace with actual API call
-  // API: POST /api/auth/send-otp
-  // Body: { phoneNumber }
-  
-  return {
-    success: true,
-    message: 'OTP sent successfully',
-    verificationId: `dummy_verification_${phoneNumber}_` + Date.now(),
-  };
+  try {
+    const response = await apiClient.post('/api/auth/otp/send', {
+      phoneNumber: formattedPhone,
+    });
+
+    const result = response.data;
+
+    if (result.success && result.data?.otpToken) {
+      return {
+        success: true,
+        message: result.message || 'OTP sent successfully',
+        verificationId: result.data.otpToken,
+      };
+    } else {
+      return {
+        success: false,
+        message: result.message || 'Failed to send OTP',
+      };
+    }
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    const apiMessage = (error as any).response?.data?.message || (error as Error).message || 'Network request failed';
+    return {
+      success: false,
+      message: apiMessage,
+    };
+  }
+};
+
+// Resend OTP
+export const resendOtp = async (phoneNumber: string): Promise<LoginResponse> => {
+  const formattedPhone = formatPhoneNumber(phoneNumber);
+
+  try {
+    const response = await apiClient.post('/api/auth/otp/resend', {
+      phoneNumber: formattedPhone,
+    });
+
+    const result = response.data;
+
+    if (result.success && result.data?.otpToken) {
+      return {
+        success: true,
+        message: result.message || 'OTP sent successfully',
+        verificationId: result.data.otpToken,
+      };
+    } else {
+      return {
+        success: false,
+        message: result.message || 'Failed to resend OTP',
+      };
+    }
+  } catch (error) {
+    console.error('Error resending OTP:', error);
+    const apiMessage = (error as any).response?.data?.message || (error as Error).message || 'Network request failed';
+    return {
+      success: false,
+      message: apiMessage,
+    };
+  }
 };
 
 // Verify OTP
 export const verifyOtp = async (verificationId: string, otp: string): Promise<VerifyOtpResponse> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  const rawPhone = await secureStorage.getItem(STORAGE_KEYS.userPhoneNumber) || '';
+  const formattedPhone = formatPhoneNumber(rawPhone);
 
-  // TODO: Replace with actual API call
-  // API: POST /api/auth/verify-otp
-  // Body: { verificationId, otp }
-  
-  // Extract phone number from verificationId if present
-  let phoneNumber = '';
-  const match = verificationId.match(/dummy_verification_(.*?)_\d+/);
-  if (match) {
-    phoneNumber = match[1];
-  }
+  try {
+    const response = await apiClient.post('/api/auth/otp/verify', {
+      otpToken: verificationId,
+      otp: otp,
+      phoneNumber: formattedPhone,
+    });
 
-  // Determine user state based on phone number prefix
-  let isNewUser = true;
-  let isFirstTimeUser = true;
-  let isSubscriptionActive = false;
+    const result = response.data;
 
-  if (phoneNumber.includes('88888')) {
-    isNewUser = false;
-    isFirstTimeUser = false;
-    isSubscriptionActive = true;
-  } else if (phoneNumber.includes('77777')) {
-    isNewUser = false;
-    isFirstTimeUser = false;
-    isSubscriptionActive = false;
-  } else {
-    // Default: new user flow
-    isNewUser = true;
-    isFirstTimeUser = true;
-    isSubscriptionActive = false;
-  }
+    if (result.success && result.data) {
+      const isFirstTimeUser = result.data.isFirstTimeUser ?? true;
+      const isSubscriptionActive = result.data.isSubscriptionActive ?? false;
+      const verifiedToken = result.data.verifiedToken;
+      const accessToken = result.data.accessToken || (!isFirstTimeUser ? verifiedToken : undefined);
+      const refreshToken = result.data.refreshToken;
+      const tempToken = isFirstTimeUser ? verifiedToken : undefined;
 
-  if (otp.length === 6) {
-    const formattedPhone = phoneNumber || '+919876543210';
+      return {
+        success: true,
+        message: result.message || 'OTP verified successfully',
+        isFirstTimeUser,
+        isSubscriptionActive,
+        tempToken,
+        accessToken,
+        refreshToken,
+        userId: result.data.userId || 'user_' + Date.now(),
+      };
+    } else {
+      return {
+        success: false,
+        message: result.message || 'Invalid OTP',
+        isFirstTimeUser: false,
+        isSubscriptionActive: false,
+      };
+    }
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    const apiMessage = (error as any).response?.data?.message || (error as Error).message || 'Network request failed';
     return {
-      success: true,
-      message: 'OTP verified successfully',
-      isNewUser,
-      isFirstTimeUser,
-      isSubscriptionActive,
-      tempToken: isNewUser ? 'temp_token_' + Date.now() : undefined,
-      accessToken: !isNewUser ? `access_token_${formattedPhone.includes('88888') ? '88888' : '77777'}_` + Date.now() : undefined,
-      refreshToken: !isNewUser ? 'refresh_token_' + Date.now() : undefined,
-      userId: 'user_' + Date.now(),
+      success: false,
+      message: apiMessage,
+      isFirstTimeUser: false,
+      isSubscriptionActive: false,
     };
   }
-
-  return {
-    success: false,
-    message: 'Invalid OTP',
-    isNewUser: false,
-    isFirstTimeUser: false,
-    isSubscriptionActive: false,
-  };
 };
 
 // Create new user (after OTP verification for new users)
@@ -130,23 +192,33 @@ export const createUser = async (
   accessToken: string,
   userData: CreateUserRequest
 ): Promise<CreateUserResponse> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  try {
+    const response = await apiClient.post('/api/users/register', userData, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
-  // TODO: Replace with actual API call
-  // API: POST /api/users
-  // Headers: { Authorization: `Bearer ${accessToken}` }
-  // Body: { name, age, phoneNumber }
-  
-  return {
-    success: true,
-    message: 'User created successfully',
-    userId: 'user_' + Date.now(),
-    accessToken: 'access_token_new_' + Date.now(),
-    refreshToken: 'refresh_token_' + Date.now(),
-    isFirstTimeUser: true,
-    isSubscriptionActive: false,
-  };
+    const result = response.data;
+
+    if (result.success && result.data) {
+      return {
+        success: true,
+        message: result.message || 'User registered successfully.',
+        userId: result.data.id,
+        accessToken: result.data.accessToken,
+        refreshToken: result.data.refreshToken,
+        isFirstTimeUser: result.data.isFirstTimeUser ?? true,
+        isSubscriptionActive: result.data.isSubscriptionActive ?? false,
+      };
+    } else {
+      throw new Error(result.message || 'Failed to register user');
+    }
+  } catch (error) {
+    console.error('Error registering user:', error);
+    const apiMessage = (error as any).response?.data?.message || (error as Error).message || 'Failed to register user';
+    throw new Error(apiMessage);
+  }
 };
 
 // Get user profile
@@ -161,7 +233,7 @@ export const getUser = async (accessToken: string): Promise<User | null> => {
   let isFirstTimeUser = true;
   let isSubscriptionActive = false;
 
-  const localActive = await AsyncStorage.getItem(STORAGE_KEYS.isSubscriptionActive);
+  const localActive = await secureStorage.getItem(STORAGE_KEYS.isSubscriptionActive);
   const hasLocalActive = localActive === 'true';
 
   if (accessToken.includes('88888')) {
@@ -181,7 +253,6 @@ export const getUser = async (accessToken: string): Promise<User | null> => {
     name: 'Demo User',
     age: 30,
     isRegistered: true,
-    isSubscribed: isSubscriptionActive,
     isFirstTimeUser,
     isSubscriptionActive,
     createdAt: new Date().toISOString(),

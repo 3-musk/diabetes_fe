@@ -27,6 +27,8 @@ export default function RegisterScreen() {
 
     const router = useRouter();
 
+    const isFormValid = name.trim().length > 0 && email.trim().length > 0 && dataConsent && aiConsent;
+
     const handleRegister = async () => {
         if (!name.trim()) {
             alert(registerTexts.error, registerTexts.fillFieldsError);
@@ -35,12 +37,23 @@ export default function RegisterScreen() {
 
         setIsLoading(true);
         try {
-            // Convert date to year string for submission
-            const yearOfBirth = yob instanceof Date ? yob.getFullYear().toString() : yob;
-            const registerReponse = await completeRegistration({ name, age: yearOfBirth });
+            const yearOfBirthVal = yob instanceof Date ? yob.getFullYear() : parseInt(yob);
+            const diagnosisYearVal = diagnosisYear instanceof Date ? diagnosisYear.getFullYear() : parseInt(diagnosisYear);
+
+            await completeRegistration({
+                name,
+                yearOfBirth: yearOfBirthVal,
+                diagnosisYear: diagnosisYearVal,
+                gender: gender,
+                doctorReferralCode: referralCode,
+                email,
+                dataCollectionConsent: dataConsent,
+                aiAnalysisConsent: aiConsent,
+            });
             router.replace(ROUTES.subscription);
         } catch (error) {
-            alert(registerTexts.error, registerTexts.failedSaveRegistration);
+            const apiMessage = error instanceof Error ? error.message : registerTexts.failedSaveRegistration;
+            alert(registerTexts.error, apiMessage);
         } finally {
             setIsLoading(false);
         }
@@ -140,7 +153,6 @@ export default function RegisterScreen() {
                     <Input
                         label={registerTexts.doctorReferralCodeLabel}
                         placeholder={registerTexts.doctorReferralCodePlaceholder}
-                        required
                         value={referralCode}
                         onChangeText={setReferralCode}
                         autoCapitalize="words"
@@ -171,6 +183,7 @@ export default function RegisterScreen() {
                 <Button
                     title={registerTexts.completeSetupButton}
                     onPress={handleRegister}
+                    disabled={!isFormValid}
                     size="lg"
                     style={styles.button}
                 />

@@ -48,7 +48,8 @@ export default function LoginScreen() {
             await login(phoneNumber);
             setStep('otp');
         } catch (error) {
-            alert(loginTexts.error, loginTexts.failedToSendOtp);
+            const apiMessage = error instanceof Error ? error.message : loginTexts.failedToSendOtp;
+            alert(loginTexts.error, apiMessage);
         } finally {
             setIsLoading(false);
         }
@@ -69,7 +70,8 @@ export default function LoginScreen() {
                 alert(loginTexts.error, loginTexts.invalidOtp2);
             }
         } catch (error) {
-            alert(loginTexts.error, loginTexts.failedToVerifyOtp);
+            const apiMessage = error instanceof Error ? error.message : loginTexts.failedToVerifyOtp;
+            alert(loginTexts.error, apiMessage);
         } finally {
             setIsLoading(false);
         }
@@ -81,7 +83,8 @@ export default function LoginScreen() {
             await resendOtp();
             alert(loginTexts.success, loginTexts.successMessage);
         } catch (error) {
-            alert(loginTexts.error, loginTexts.failedToResendOtp);
+            const apiMessage = error instanceof Error ? error.message : loginTexts.failedToResendOtp;
+            alert(loginTexts.error, apiMessage);
         }
     };
 
