@@ -60,74 +60,13 @@ export const glucoseReadings: GlucoseReadingEntry[] = [];
 
 export const weightHistory: WeightHistory = {
   target: 70,
-  bmi: 20.7,
-  history: [
-    { id: "1", date: "Feb 14, 2026", weightKg: 75.5, onTarget: true },
-    { id: "2", date: "Feb 13, 2026", weightKg: 76.2, onTarget: false },
-    { id: "3", date: "Feb 12, 2026", weightKg: 77.0, onTarget: false },
-  ],
+  bmi: 0,
+  history: [],
 };
 
-export const hba1cHistory: HbA1cEntry[] = [
-  { id: "1", date: "Feb 14, 2026", value: 6.1, status: "Prediabetes" },
-  { id: "2", date: "Feb 16, 2026", value: 6.8, status: "Diabetes" },
-  { id: "3", date: "Feb 14, 2026", value: 5.0, status: "Normal" },
-];
+export const hba1cHistory: HbA1cEntry[] = [];
 
-export let medications: MedicationEntry[] = [
-  {
-    id: "med_1",
-    category: "Capsules",
-    medName: "Metformin",
-    strength: "10mg",
-    frequency: 1,
-    startDate: "2026-06-01",
-    endDate: "2026-12-31",
-    isSystemGenerated: false,
-  },
-  {
-    id: "med_2",
-    category: "Pills",
-    medName: "Lisinopril",
-    strength: "10mg",
-    frequency: 1,
-    startDate: "2026-06-01",
-    endDate: "2026-12-31",
-    isSystemGenerated: false,
-  },
-  {
-    id: "med_3",
-    category: "Capsules",
-    medName: "Vitamin D3",
-    strength: "2000 IU",
-    frequency: 1,
-    startDate: "2026-06-01",
-    endDate: "2026-12-31",
-    isSystemGenerated: false,
-  },
-  {
-    id: "sys_med_1",
-    category: "Capsules",
-    medName: "Metformin",
-    strength: "10mg",
-    frequency: 1,
-    startDate: "2026-06-01",
-    endDate: "2026-12-31",
-    isSystemGenerated: true,
-    time: "6:00 AM"
-  },
-  {
-    id: "sys_med_2",
-    category: "Capsules",
-    medName: "Metformin",
-    strength: "10mg",
-    frequency: 1,
-    startDate: "2026-06-01",
-    endDate: "2026-12-31",
-    isSystemGenerated: true,
-    time: "6:00 AM"
-  }
-];
+export let medications: MedicationEntry[] = [];
 
 export const mockActivities: Record<string, Activity[]> = {
   default: [

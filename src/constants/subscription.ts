@@ -24,4 +24,13 @@ export const subscriptionTexts = {
   tryAgainBtn:             "Try Again",
   goBackBtn:               "Go Back",
   loadingPlans:            "Loading plans...",
+  missingVariantInfo:      "Selected plan is missing variant information.",
+  razorpayKeyMissing:      "Razorpay API key is not configured in Remote Config.",
+  subscriptionForPlanPrefix: "Subscription for ",
+  appName:                 "Diabetes Care App",
+  subscriptionApiFailed:   "Subscription API execution failed",
+  checkoutInitiated:       "Checkout initiated successfully",
+  checkoutFailed:          "Checkout failed",
+  subscribedSuccessfully:  "Subscribed successfully",
+  subscriptionFailed:      "Subscription failed",
 };

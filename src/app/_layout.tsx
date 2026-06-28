@@ -1,18 +1,18 @@
+import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { useFonts } from 'expo-font';
 import { Stack, usePathname, useRouter } from "expo-router";
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View, StyleSheet } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { APP_PATHS, ROUTES } from "../constants/routes";
-import * as SplashScreen from 'expo-splash-screen';
-import { AuthProvider, useAuth } from "../context/AuthContext";
-import { AlertProvider } from "../context/AlertContext";
-import { colors, spacing, fontSize, borderRadius, fontWeight } from "../theme";
-import { checkMaintenanceMode } from "../utils/deviceAndConfig";
 import { AppText, Button } from "../components";
-import { FontAwesome } from '@react-native-vector-icons/fontawesome';
+import { APP_PATHS, ROUTES } from "../constants/routes";
+import { AlertProvider } from "../context/AlertContext";
+import { AuthProvider, useAuth } from "../context/AuthContext";
+import { borderRadius, colors, fontSize, fontWeight, spacing } from "../theme";
+import { checkMaintenanceMode } from "../utils/deviceAndConfig";
 
 // Prevent splash screen from hiding automatically
 SplashScreen.preventAutoHideAsync();

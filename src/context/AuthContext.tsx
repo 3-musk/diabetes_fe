@@ -28,7 +28,7 @@ interface AuthContextType {
     verificationId: string | null;
     user: User | null;
     login: (phoneNumber: string) => Promise<void>;
-    verifyOtp: (otp: string) => Promise<boolean>;
+    verifyOtp: (otp: string) => Promise<{ success: boolean; flow: string; isFirstTimeUser: boolean }>;
     resendOtp: () => Promise<void>;
     completeRegistration: (registrationData: {
         name: string;
@@ -74,7 +74,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     storedRefreshToken,
                     storedUserId,
                     storedFirstTime,
-                    storedSubActive
+                    storedSubActive,
+                    storedTempToken
                 ] = await Promise.all([
                     secureStorage.getItem(STORAGE_KEYS.userPhoneNumber),
                     secureStorage.getItem(STORAGE_KEYS.accessToken),
@@ -82,7 +83,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     secureStorage.getItem(STORAGE_KEYS.userId),
                     secureStorage.getItem(STORAGE_KEYS.isFirstTimeUser),
                     secureStorage.getItem(STORAGE_KEYS.isSubscriptionActive),
+                    secureStorage.getItem(STORAGE_KEYS.tempToken),
                 ]);
+
+                if (storedTempToken) {
+                    setTempToken(storedTempToken);
+                    setIsFirstTimeUser(true);
+                    if (storedPhone) {
+                        setUserPhoneNumber(storedPhone);
+                    }
+                }
 
                 if (storedAccessToken) {
                     setIsLoggedIn(true);
@@ -135,22 +145,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const verifyOtp = async (otp: string): Promise<boolean> => {
+    const verifyOtp = async (otp: string): Promise<{ success: boolean; flow: string; isFirstTimeUser: boolean }> => {
         try {
             const response = await apiVerifyOtp(verificationId || '', otp);
             console.log("verify OTP : ", response);
             if (response.success) {
-                // Store tokens based on user type
-                if (response.isFirstTimeUser && response.tempToken) {
+                const flow = response.flow || '';
+                // Store tokens based on flow type
+                if (flow === 'REGISTER' && response.tempToken) {
                     // New user gets temp token
                     setTempToken(response.tempToken);
                     await secureStorage.setItem(STORAGE_KEYS.tempToken, response.tempToken);
-                } else if (response.accessToken && response.refreshToken) {
+                    
+                    // Clear any leftover access token
+                    setAccessToken(null);
+                    setRefreshToken(null);
+                    await Promise.all([
+                        secureStorage.removeItem(STORAGE_KEYS.accessToken),
+                        secureStorage.removeItem(STORAGE_KEYS.refreshToken),
+                    ]);
+                } else if (flow === 'LOGIN' && response.accessToken && response.refreshToken) {
                     // Existing user gets access & refresh tokens
                     setAccessToken(response.accessToken);
                     setRefreshToken(response.refreshToken);
                     await secureStorage.setItem(STORAGE_KEYS.accessToken, response.accessToken);
                     await secureStorage.setItem(STORAGE_KEYS.refreshToken, response.refreshToken);
+                    
+                    // Clear any leftover temp token
+                    setTempToken(null);
+                    await secureStorage.removeItem(STORAGE_KEYS.tempToken);
                 }
 
                 if (response.userId) {
@@ -167,7 +190,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     secureStorage.setItem(STORAGE_KEYS.isSubscriptionActive, response.isSubscriptionActive ? 'true' : 'false'),
                 ]);
 
-                return true;
+                return { success: true, flow, isFirstTimeUser: response.isFirstTimeUser };
             } else {
                 throw new Error(response.message);
             }

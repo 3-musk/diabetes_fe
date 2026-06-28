@@ -1,20 +1,22 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useAlert } from '../context/AlertContext';
+import RazorpayCheckout from 'react-native-razorpay';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText, Button, LoadingSpinner } from '../components';
 import { ROUTES } from '../constants/routes';
 import { subscriptionTexts } from '../constants/subscription';
+import { useAlert } from '../context/AlertContext';
 import { useAuth } from '../context/AuthContext';
-import { completeCart, createRazorpayOrder } from '../services/subscriptionService';
+import { subscribe } from '../services/subscriptionService';
 import { borderRadius, colors, fontSize, fontWeight, spacing } from '../theme';
+import { getRazorpayKey } from '../utils/deviceAndConfig';
 
 type PaymentStatus = 'pending' | 'processing' | 'success' | 'failed';
 
 export default function PaymentScreen() {
   const params = useLocalSearchParams();
-  const { accessToken, completeSubscription } = useAuth();
+  const { accessToken, completeSubscription, user, userPhoneNumber } = useAuth();
   const router = useRouter();
   const { alert } = useAlert();
   const insets = useSafeAreaInsets();
@@ -24,12 +26,12 @@ export default function PaymentScreen() {
 
   const cartId = params.cartId as string;
   const planName = params.planName as string;
-  const amount = parseInt(params.amount as string) || 0;
+  const amount = parseFloat(params.amount as string) || 0;
 
-  const handleSimulatePayment = async () => {
+  const handlePayment = async () => {
     if (!accessToken || !cartId) {
       alert(subscriptionTexts.error, subscriptionTexts.invalidSession);
-      router.back();
+      router.replace(ROUTES.subscription);
       return;
     }
 
@@ -37,28 +39,57 @@ export default function PaymentScreen() {
     setPaymentStatus('processing');
 
     try {
-      const paymentDetails = await createRazorpayOrder(accessToken, cartId, amount);
-      
-      const subscription = await completeCart(
-        accessToken,
-        cartId,
-        'simulated_payment_' + Date.now(),
-        paymentDetails.razorpayOrderId,
-        'simulated_signature'
-      );
+      const razorpayKey = await getRazorpayKey();
+      if (!razorpayKey) {
+        throw new Error(subscriptionTexts.razorpayKeyMissing);
+      }
 
-      await completeSubscription();
+      // Configure Razorpay options
+      const options = {
+        description: `${subscriptionTexts.subscriptionForPlanPrefix}${planName}`,
+        image: 'https://i.imgur.com/3g7nmJC.png',
+        currency: 'INR',
+        key: razorpayKey,
+        amount: amount * 100, // conversion to paise
+        name: subscriptionTexts.appName,
+        order_id: params.razorpayOrderId as string,
+        prefill: {
+          contact: userPhoneNumber || '',
+          name: user?.name || ''
+        },
+        theme: { color: colors.primary }
+      };
 
-      setPaymentStatus('success');
+      console.log('[Payment] Initiating Razorpay SDK Checkout...');
       
-      setTimeout(() => {
-        router.replace(ROUTES.appHome);
-      }, 4000);
+      // Execute native Razorpay Checkout
+      const razorpayResult = await RazorpayCheckout.open(options);
+      console.log('[Payment] Razorpay Payment Success:', razorpayResult);
       
-    } catch (error) {
+      // Call the subscribe API with cart ID
+      const result = await subscribe(cartId);
+
+      if (result.success) {
+        await completeSubscription();
+        setPaymentStatus('success');
+        
+        setTimeout(() => {
+          router.replace(ROUTES.appHome);
+        }, 4000);
+      } else {
+        throw new Error(subscriptionTexts.subscriptionApiFailed);
+      }
+      
+    } catch (error: any) {
       console.error('Payment error:', error);
       setPaymentStatus('failed');
-      alert(subscriptionTexts.paymentFailed, subscriptionTexts.paymentFailedBody);
+      const apiMessage = error.response?.data?.message || error.description || error.message || subscriptionTexts.paymentFailedBody;
+      alert(subscriptionTexts.paymentFailed, apiMessage);
+      
+      // On failure, redirect back to products page after delay
+      setTimeout(() => {
+        router.replace(ROUTES.subscription);
+      }, 4000);
     } finally {
       setIsProcessing(false);
     }
@@ -66,19 +97,19 @@ export default function PaymentScreen() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      handleSimulatePayment();
-    }, 2000);
+      handlePayment();
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
 
   const handleRetry = () => {
     setPaymentStatus('pending');
-    handleSimulatePayment();
+    handlePayment();
   };
 
   const handleGoBack = () => {
-    router.back();
+    router.replace(ROUTES.subscription);
   };
 
   const renderContent = () => {

@@ -38,15 +38,26 @@ apiClient.interceptors.request.use(
       const tempToken = await secureStorage.getItem(STORAGE_KEYS.tempToken);
       const token = accessToken || tempToken;
 
-      if (token && !config.headers.Authorization) {
-        config.headers.Authorization = `Bearer ${token}`;
+      if (token) {
+        // AWS Gateway case-sensitivity workaround: clean up uppercase Authorization to avoid duplication
+        if (config.headers.Authorization) {
+          config.headers.authorization = config.headers.Authorization;
+          delete config.headers.Authorization;
+        }
+
+        if (!config.headers.authorization) {
+          config.headers.authorization = `Bearer ${token}`;
+        }
+        if (!config.headers['x-authorization']) {
+          config.headers['x-authorization'] = `Bearer ${token}`;
+        }
       }
     }
 
-    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
-      headers: config.headers,
+    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, JSON.stringify({
+      headers: typeof config.headers.toJSON === 'function' ? config.headers.toJSON() : config.headers,
       data: config.data,
-    });
+    }, null, 2));
 
     return config;
   },
@@ -59,12 +70,12 @@ apiClient.interceptors.request.use(
 // Response Interceptor: Handle successful responses and automatically retry on 401 using the refresh token
 apiClient.interceptors.response.use(
   (response) => {
-    console.log(`[API Response] ${response.status} ${response.config.url}`, response.data);
+    console.log(`[API Response] ${response.status} ${response.config.url}`, JSON.stringify(response.data, null, 2));
     return response;
   },
   async (error) => {
     const originalRequest = error.config;
-    console.error(`[API Response Error] ${error.response?.status} ${originalRequest?.url}`, error.response?.data || error.message);
+    console.error(`[API Response Error] ${error.response?.status} ${originalRequest?.url}`, JSON.stringify(error.response?.data || error.message, null, 2));
 
     // If 401 Unauthorized and we haven't retried this request yet
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
@@ -101,7 +112,10 @@ apiClient.interceptors.response.use(
               }
 
               // Update the authorization header of the original request and retry it
-              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+              originalRequest.headers.authorization = `Bearer ${newAccessToken}`;
+              if (originalRequest.headers.Authorization) {
+                delete originalRequest.headers.Authorization;
+              }
               return apiClient(originalRequest);
             }
           }

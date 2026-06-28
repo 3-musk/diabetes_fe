@@ -1,4 +1,6 @@
+import { subscriptionTexts } from '../constants/subscription';
 import { apiClient } from '../utils/apiClient';
+
 
 export interface Plan {
   id: string;
@@ -220,4 +222,72 @@ export const getSubscriptionHistory = async (
   // Headers: { Authorization: `Bearer ${accessToken}` }
 
   return [];
+};
+
+export interface CheckoutResponse {
+  success: boolean;
+  message: string;
+  cartId: string;
+  razorpayOrderId: string;
+  amount: number;
+}
+
+// Initiate checkout order
+export const checkout = async (
+  variantId: string,
+): Promise<CheckoutResponse> => {
+  try {
+    const response = await apiClient.post('/api/ecommerce/checkout', {
+      variant_id: variantId,
+      quantity: 1,
+      provider_id: "pp_razorpay_razorpay",
+      data: {},
+    });
+
+    const result = response.data;
+    if (result.success && result.data) {
+      const session = result.data.payment_sessions?.[0];
+      const cartId = result.data.cartId || result.data.cart?.id || result.data.id || '';
+      
+      const razorpayOrderId = session?.data?.razorpayOrder?.id || session?.data?.id || result.data.razorpayOrderId || '';
+      
+      const orderAmountPaise = session?.data?.razorpayOrder?.amount;
+      // If we have the exact Razorpay order amount in paise, use it (divided by 100 to get Rupees) to ensure exact signature matches
+      const amount = orderAmountPaise ? orderAmountPaise / 100 : (session?.amount || result.data.amount || 0);
+
+      return {
+        success: true,
+        message: result.message || subscriptionTexts.checkoutInitiated,
+        cartId,
+        razorpayOrderId,
+        amount,
+      };
+    } else {
+      throw new Error(result.message || subscriptionTexts.checkoutFailed);
+    }
+  } catch (error) {
+    console.error('Error initiating checkout:', error);
+    throw error;
+  }
+};
+
+// Complete subscription payment inside Medusa cart
+export const subscribe = async (
+  cartId: string,
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await apiClient.post(`/api/ecommerce/subscribe/${cartId}`);
+    const result = response.data;
+    if (result.success) {
+      return {
+        success: true,
+        message: result.message || subscriptionTexts.subscribedSuccessfully,
+      };
+    } else {
+      throw new Error(result.message || subscriptionTexts.subscriptionFailed);
+    }
+  } catch (error) {
+    console.error('Error completing subscription:', error);
+    throw error;
+  }
 };

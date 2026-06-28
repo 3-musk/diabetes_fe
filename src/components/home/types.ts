@@ -80,6 +80,6 @@ export type HomeDashboardData = {
   nutrition: NutritionData | null;
   hba1c: Hba1cData | null;
   meals: Record<string, number>;
-  weightKg: Record<string, number>;
-  dailyActivityDurationMinutes: number;
+  weightKg: Record<string, number> | null;
+  dailyActivityDurationMinutes: number | null;
 };

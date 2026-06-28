@@ -1,6 +1,6 @@
-import { secureStorage } from '../utils/secureStorage';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import { apiClient } from '../utils/apiClient';
+import { secureStorage } from '../utils/secureStorage';
 
 export interface LoginResponse {
   success: boolean;
@@ -16,6 +16,7 @@ export interface VerifyOtpResponse {
   tempToken?: string;        // For new users
   accessToken?: string;      // For existing users
   refreshToken?: string;     // For existing users
+  flow?: string;             // REGISTER or LOGIN
   userId?: string;
 }
 
@@ -150,12 +151,13 @@ export const verifyOtp = async (verificationId: string, otp: string): Promise<Ve
     const result = response.data;
 
     if (result.success && result.data) {
+      const flow = result.data.flow || (result.data.verifiedToken ? 'REGISTER' : 'LOGIN');
       const isFirstTimeUser = result.data.isFirstTimeUser ?? true;
       const isSubscriptionActive = result.data.isSubscriptionActive ?? false;
       const verifiedToken = result.data.verifiedToken;
-      const accessToken = result.data.accessToken || (!isFirstTimeUser ? verifiedToken : undefined);
+      const accessToken = result.data.accessToken || (flow === 'LOGIN' ? verifiedToken : undefined);
       const refreshToken = result.data.refreshToken;
-      const tempToken = isFirstTimeUser ? verifiedToken : undefined;
+      const tempToken = flow === 'REGISTER' ? verifiedToken : undefined;
 
       return {
         success: true,
@@ -165,6 +167,7 @@ export const verifyOtp = async (verificationId: string, otp: string): Promise<Ve
         tempToken,
         accessToken,
         refreshToken,
+        flow,
         userId: result.data.userId || 'user_' + Date.now(),
       };
     } else {
@@ -193,9 +196,9 @@ export const createUser = async (
   userData: CreateUserRequest
 ): Promise<CreateUserResponse> => {
   try {
-    const response = await apiClient.post('/api/users/register', userData, {
+    const response = await apiClient.post('/api/user/register', userData, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        authorization: `Bearer ${accessToken}`,
       },
     });
 

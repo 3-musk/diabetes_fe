@@ -63,9 +63,13 @@ export default function LoginScreen() {
 
         setIsLoading(true);
         try {
-            const isValid = await verifyOtp(otp);
-            if (isValid) {
-                router.replace(ROUTES.register);
+            const result = await verifyOtp(otp);
+            if (result.success) {
+                if (result.flow === 'REGISTER') {
+                    router.replace(ROUTES.register);
+                } else {
+                    router.replace(ROUTES.appHome);
+                }
             } else {
                 alert(loginTexts.error, loginTexts.invalidOtp2);
             }

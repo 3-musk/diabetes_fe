@@ -25,10 +25,9 @@ import { ROUTES } from '../constants/routes';
 import { useAuth } from '../context/AuthContext';
 
 import {
-  createSubscriptionCart,
+  checkout,
   getPlans,
   Plan,
-  SubscriptionCart,
 } from '../services/subscriptionService';
 
 import {
@@ -92,18 +91,20 @@ export default function SubscriptionScreen() {
     setIsProcessing(true);
 
     try {
-      const cart: SubscriptionCart = await createSubscriptionCart(
-        accessToken,
-        selectedPlan.id
-      );
+      if (!selectedPlan.variantId) {
+        throw new Error(subscriptionTexts.missingVariantInfo);
+      }
+
+      const checkoutData = await checkout(selectedPlan.variantId);
 
       router.push({
         pathname: ROUTES.payment,
         params: {
-          cartId: cart.id,
+          cartId: checkoutData.cartId,
           planId: selectedPlan.id,
           planName: selectedPlan.name,
-          amount: selectedPlan.price.toString(),
+          amount: checkoutData.amount.toString(),
+          razorpayOrderId: checkoutData.razorpayOrderId,
         },
       });
     } catch (error: any) {
