@@ -189,15 +189,13 @@ export default function LogGlucose() {
 
   const handleSave = async () => {
     setSubmitting(true);
-    const response = await saveGlucoseReading({ glucoseValue, session, readingType, symptoms: Array.from(symptoms) });
-    setSubmitting(false);
-
-    if (response.status === 'low' || response.status === 'high') {
-      setModalType(response.status as 'low' | 'high');
-      setModalNextSteps(response.next_steps || null);
-      setModalVisible(true);
-    } else {
-      router.back();
+    try {
+      await saveGlucoseReading({ glucoseValue, session, readingType, symptoms: Array.from(symptoms) });
+      router.replace(ROUTES.appHome as any);
+    } catch (error) {
+      console.error("Failed to save glucose reading:", error);
+    } finally {
+      setSubmitting(false);
     }
   };
 

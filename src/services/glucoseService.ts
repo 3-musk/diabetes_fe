@@ -1,3 +1,4 @@
+import { apiClient } from "../utils/apiClient";
 import { glucoseReadings } from "../constants/mockDb";
 
 export type ReadingSession = { id: string; label: string };
@@ -28,52 +29,41 @@ export const getGlucoseInitialData = async () => {
 };
 
 export const saveGlucoseReading = async (data: any) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  const value = data.glucoseValue;
-  const newReading = {
-    id: Math.random().toString(36).substring(2, 9),
-    glucoseValue: value,
-    session: data.session,
-    readingType: data.readingType,
-    symptoms: data.symptoms || [],
-    timestamp: new Date().toISOString(),
+  const readingSession = data.session.toUpperCase();
+  const typeOfReading = data.readingType.toUpperCase();
+  const symptoms = (data.symptoms || []).map((s: string) => s.toUpperCase());
+
+  const payload = {
+    glucoseValue: data.glucoseValue,
+    unit: "mg/dL",
+    readingSession,
+    typeOfReading,
+    symptoms,
   };
 
-  glucoseReadings.push(newReading);
+  const response = await apiClient.post('/api/glucose/readings', payload);
+  const result = response.data;
 
-  if (value < 70) {
+  if (result.success && result.data) {
+    const newReading = {
+      id: result.data.id || Math.random().toString(36).substring(2, 9),
+      glucoseValue: result.data.glucoseValue || data.glucoseValue,
+      session: data.session,
+      readingType: data.readingType,
+      symptoms: data.symptoms || [],
+      timestamp: result.data.timestamp || new Date().toISOString(),
+    };
+    glucoseReadings.push(newReading);
+
     return {
       success: true,
-      status: 'low',
-      next_steps: {
-        title: "Eat or drink something fast",
-        steps: [
-          "4-5 Glucose Tablets",
-          "1/2 cup juice",
-          "1 tbsp honey",
-          "3-4 biscuits",
-          "1 banana"
-        ]
-      }
+      status: result.data.status?.toLowerCase() || 'normal',
+      next_steps: result.data.guidelines ? {
+        title: result.data.guidelines.recheckTimer || "Immediate Action Required",
+        steps: result.data.guidelines.immediateAction ? result.data.guidelines.immediateAction.split('\n') : []
+      } : null
     };
-  } else if (value > 250) {
-    return {
-      success: true,
-      status: 'high',
-      next_steps: {
-        title: "Eat or drink something fast",
-        steps: [
-          "White Rice",
-          "Fruit Juice",
-          "Sweets",
-          "Bread/ Maida",
-          "Soft Drink"
-        ]
-      }
-    };
+  } else {
+    throw new Error(result.message || 'Failed to save glucose reading');
   }
-  
-  return { success: true, status: 'normal' };
 };

@@ -226,41 +226,37 @@ export const createUser = async (
 
 // Get user profile
 export const getUser = async (accessToken: string): Promise<User | null> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  try {
+    const response = await apiClient.get('/api/internal/ai/user-details/by-email', {
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+      }
+    });
 
-  // TODO: Replace with actual API call
-  // API: GET /api/users/me
-  // Headers: { Authorization: `Bearer ${accessToken}` }
-  
-  let isFirstTimeUser = true;
-  let isSubscriptionActive = false;
+    const result = response.data;
+    if (result.success && result.data) {
+      const u = result.data;
+      
+      const isFirstTimeUser = u.isFirstTimeUser ?? (u.name ? false : true);
+      const isSubscriptionActive = u.isSubscriptionActive ?? false;
 
-  const localActive = await secureStorage.getItem(STORAGE_KEYS.isSubscriptionActive);
-  const hasLocalActive = localActive === 'true';
-
-  if (accessToken.includes('88888')) {
-    isFirstTimeUser = false;
-    isSubscriptionActive = true;
-  } else if (accessToken.includes('77777')) {
-    isFirstTimeUser = false;
-    isSubscriptionActive = hasLocalActive;
-  } else if (accessToken.includes('new')) {
-    isSubscriptionActive = hasLocalActive;
-    isFirstTimeUser = !hasLocalActive;
+      return {
+        id: u.id,
+        phoneNumber: u.phoneNumber || '',
+        name: u.name || '',
+        email: u.email || '',
+        gender: u.gender || '',
+        isRegistered: !!u.name,
+        isFirstTimeUser,
+        isSubscriptionActive,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt,
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching user profile from API:', error);
   }
-
-  return {
-    id: 'user_demo',
-    phoneNumber: '+919876543210',
-    name: 'Demo User',
-    age: 30,
-    isRegistered: true,
-    isFirstTimeUser,
-    isSubscriptionActive,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  return null;
 };
 
 // Refresh access token
