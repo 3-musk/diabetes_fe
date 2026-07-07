@@ -10,6 +10,9 @@ import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
 import AppText from "../ui/AppText";
 import { OutlineAction, SetupCard } from "./Shared";
 import type { NutritionData, NutritionRange } from "./types";
+import { useFeatureAccess } from "../../hooks/useFeatureAccess";
+import { ROUTES } from "../../constants/routes";
+import { useRouter } from "expo-router";
 
 function getNutrientState(item: NutritionRange) {
   if (!item.status) {
@@ -48,13 +51,19 @@ function describeArc(cx: number, cy: number, radius: number, startAngle: number,
 }
 
 export function NutritionSection({ data, leftBorder=true }: { data: NutritionData | null, leftBorder?: boolean }) {
+  const router = useRouter();
+  const { checkFeature } = useFeatureAccess();
+
   if (!data) {
     return (
       <SetupCard title={NUTRITION_STRINGS.sectionTitle}>
         <AppText style={styles.mutedText}>
           {NUTRITION_STRINGS.emptyBody}
         </AppText>
-        <OutlineAction title={NUTRITION_STRINGS.emptyAction} />
+        <OutlineAction 
+          title={NUTRITION_STRINGS.emptyAction} 
+          onPress={() => checkFeature('meals', () => router.push(ROUTES.appMeals as any))}
+        />
       </SetupCard>
     );
   }

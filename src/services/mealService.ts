@@ -1,5 +1,7 @@
+import { Alert } from 'react-native';
 import type { NutritionData, NutritionRange } from '../components/home/types';
 import type { MealImpactResponse } from '../constants/mealImpact';
+import { apiClient } from '../utils/apiClient';
 import {
   DayMealsResponse,
   LoggedMeal,
@@ -63,8 +65,8 @@ const createEmptySlots = (): MealSlotData[] =>
       id,
       label: meta.label,
       icon: meta.icon,
-      recommendedCalories: meta.defaultRecommendedCalories,
-      recommendations: [...DEFAULT_RECOMMENDATIONS[id]],
+      recommendedCalories: 0,
+      recommendations: [],
       loggedMeals: [],
     };
   });
@@ -132,17 +134,107 @@ const findFoodMatches = (query: string) => {
 };
 
 export const getMealsByDate = async (date: Date): Promise<DayMealsResponse> => {
-  await delay();
-  const day = buildDayMeals(date);
+  const dateKey = formatDateKey(date);
+  try {
+    const response = await apiClient.get(`/api/meals/daily-summary?date=${dateKey}`);
+    const result = response.data;
+    
+    if (result.success && result.data) {
+      const summary = result.data.summary;
+      const apiSlots = result.data.mealSlots || [];
+      
+      const nutrition: NutritionData = {
+        carbohydrates: {
+          currentVal: summary.nutrients.carbohydrates?.currentVal ?? null,
+          rangeMax: summary.nutrients.carbohydrates?.rangeMax ?? 0,
+          rangeMin: summary.nutrients.carbohydrates?.rangeMin ?? 0,
+          status: summary.nutrients.carbohydrates?.status ?? null,
+        },
+        totalFat: {
+          currentVal: summary.nutrients.totalFat?.currentVal ?? null,
+          rangeMax: summary.nutrients.totalFat?.rangeMax ?? 0,
+          rangeMin: summary.nutrients.totalFat?.rangeMin ?? 0,
+          status: summary.nutrients.totalFat?.status ?? null,
+        },
+        protein: {
+          currentVal: summary.nutrients.protein?.currentVal ?? null,
+          rangeMax: summary.nutrients.protein?.rangeMax ?? 0,
+          rangeMin: summary.nutrients.protein?.rangeMin ?? 0,
+          status: summary.nutrients.protein?.status ?? null,
+        },
+        dietaryFiber: {
+          currentVal: summary.nutrients.dietaryFibre?.currentVal ?? null,
+          rangeMax: summary.nutrients.dietaryFibre?.rangeMax ?? 0,
+          rangeMin: summary.nutrients.dietaryFibre?.rangeMin ?? 0,
+          status: summary.nutrients.dietaryFibre?.status ?? null,
+        },
+        addedSugar: {
+          currentVal: summary.nutrients.addedSugar?.currentVal ?? null,
+          rangeMax: summary.nutrients.addedSugar?.rangeMax ?? 0,
+          rangeMin: summary.nutrients.addedSugar?.rangeMin ?? 0,
+          status: summary.nutrients.addedSugar?.status ?? null,
+        },
+      };
+
+      const mapSlotName = (name: string): MealSlotId => {
+        const lower = name.toLowerCase();
+        if (lower === 'snack') return 'evening';
+        return lower as MealSlotId;
+      };
+
+      const emptySlots = createEmptySlots();
+      
+      const slots: MealSlotData[] = emptySlots.map(defaultSlot => {
+        const apiSlot = apiSlots.find((s: any) => mapSlotName(s.mealTypeName) === defaultSlot.id);
+        if (apiSlot) {
+          return {
+            ...defaultSlot,
+            recommendedCalories: apiSlot.recommendedCalories ?? defaultSlot.recommendedCalories,
+            recommendations: apiSlot.recommendationLabel ? [apiSlot.recommendationLabel] : [],
+            loggedMeals: (apiSlot.loggedMeals || []).map((lm: any) => ({
+              id: lm.id || Date.now().toString(),
+              name: lm.name || '',
+              calories: lm.calories || 0,
+              timeLabel: lm.timeLabel || '',
+              approxCal: lm.approxCal || lm.calories || 0,
+            })),
+          };
+        }
+        return defaultSlot;
+      });
+
+      return {
+        date: dateKey,
+        nutrition,
+        calories: {
+          consumed: summary.caloriesConsumed ?? 0,
+          total: summary.dailyCalorieTargetFromCarePlan ?? 2000,
+        },
+        slots,
+      };
+    } else {
+      if (result.message) {
+        Alert.alert('Meals', result.message);
+      }
+    }
+  } catch (error: any) {
+    console.warn('Error fetching meals:', error.message || error);
+    const result = error.response?.data;
+    if (result && result.message) {
+      Alert.alert('Meals', result.message);
+    }
+  }
+
+  // Clean empty fallback if API fails
+  const emptySlots = createEmptySlots();
   return {
-    ...day,
-    nutrition: { ...day.nutrition },
-    calories: { ...day.calories },
-    slots: day.slots.map(slot => ({
-      ...slot,
-      recommendations: [...slot.recommendations],
-      loggedMeals: [...slot.loggedMeals],
-    })),
+    date: dateKey,
+    nutrition: createEmptyNutrition(),
+    calories: {
+      consumed: 0,
+      total: 0,
+    },
+    slots: emptySlots,
   };
 };
 

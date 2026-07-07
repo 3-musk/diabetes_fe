@@ -4,39 +4,47 @@ import AppText from '../ui/AppText';
 import { BMI_SEGMENTS } from '../../constants/uiConstants';
 import { weightTracker as WEIGHTTRACKERCONSTANTS } from '../../constants/weightTracker';
 
+import { BmiData } from '../../services/trackerService';
+
 interface BmiCardProps {
-    bmi: number;
+    bmi: BmiData;
 }
 
-function BmiBar({ bmi }: { bmi: number }) {
-    const segments = BMI_SEGMENTS;
+const CATEGORY_COLORS = ['#73BFE3', '#7ED987', '#F1C54C', '#F4A452', '#F27A7A'];
 
-    const min = 10;
-    const max = 40;
-    const pct = Math.max(0, Math.min(1, (bmi - min) / (max - min)));
+function BmiBar({ bmi }: { bmi: BmiData }) {
+    const segments = bmi.categories.map((c, i) => {
+        let label = c.min.toString();
+        if (i === 0) label = "0";
+        if (i === bmi.categories.length - 1) label = c.min.toString() + "+";
+        
+        return {
+            color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+            label,
+            min: c.min,
+            end: c.max,
+            width: 100 / bmi.categories.length
+        };
+    });
 
-    const getMarkerPosition = (bmi: number) => {
+    const val = bmi.value;
+
+    const getMarkerPosition = (val: number) => {
         let accumulatedWidth = 0;
 
         for (const segment of segments) {
-            if (bmi <= segment.end) {
+            if (val <= segment.end) {
                 const range = segment.end - segment.min;
-
-                const progress =
-                    range > 0
-                        ? (bmi - segment.min) / range
-                        : 0;
-
-                return accumulatedWidth + progress * segment.width;
+                const progress = range > 0 ? (val - segment.min) / range : 0;
+                return Math.min(100, Math.max(0, accumulatedWidth + progress * segment.width));
             }
-
             accumulatedWidth += segment.width;
         }
 
         return 100;
     };
 
-    const markerPosition = getMarkerPosition(bmi);
+    const markerPosition = getMarkerPosition(val);
 
     return (
         <View>
@@ -149,7 +157,7 @@ export function BmiCard({ bmi }: BmiCardProps) {
                             color: '#111',
                         }}
                     >
-                        {bmi}
+                        {bmi.value}
                     </AppText>
 
                     <AppText
@@ -157,51 +165,24 @@ export function BmiCard({ bmi }: BmiCardProps) {
                             color: '#666',
                         }}
                     >
-                        {WEIGHTTRACKERCONSTANTS.normalWeightText}
+                        {bmi.categoryLabel}
                     </AppText>
                 </View>
             </View>
             <BmiBar bmi={bmi} />
             <View style={s.bmiGrid}>
-                <View style={s.bmiTypeCard}>
-                    <View style={[s.dot, { backgroundColor: '#73BFE3' }]} />
-                    <View>
-                        <AppText>{WEIGHTTRACKERCONSTANTS.underweight}</AppText>
-                        <AppText variant="semibold">{'<18.5'}</AppText>
+                {bmi.categories.map((cat, i) => (
+                    <View key={i} style={[s.bmiTypeCard, i === bmi.categories.length - 1 ? { width: '100%' } : {}]}>
+                        <View style={[s.dot, { backgroundColor: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }]} />
+                        <View>
+                            <AppText>{cat.label}</AppText>
+                            <AppText variant="semibold">
+                                {i === bmi.categories.length - 1 ? `${cat.min} and above` : 
+                                 i === 0 ? `<${cat.max}` : `${cat.min} - ${cat.max}`}
+                            </AppText>
+                        </View>
                     </View>
-                </View>
-
-                <View style={s.bmiTypeCard}>
-                    <View style={[s.dot, { backgroundColor: '#7ED987' }]} />
-                    <View>
-                        <AppText>{WEIGHTTRACKERCONSTANTS.normalWeightText}</AppText>
-                        <AppText variant="semibold">18.5 - 24.9</AppText>
-                    </View>
-                </View>
-
-                <View style={s.bmiTypeCard}>
-                    <View style={[s.dot, { backgroundColor: '#F1C54C' }]} />
-                    <View>
-                        <AppText>{WEIGHTTRACKERCONSTANTS.overweight}</AppText>
-                        <AppText variant="semibold">25 - 29.9</AppText>
-                    </View>
-                </View>
-
-                <View style={s.bmiTypeCard}>
-                    <View style={[s.dot, { backgroundColor: '#F4A452' }]} />
-                    <View>
-                        <AppText>{WEIGHTTRACKERCONSTANTS.obese1}</AppText>
-                        <AppText variant="semibold">30 - 34.9</AppText>
-                    </View>
-                </View>
-
-                <View style={[s.bmiTypeCard, { width: '100%' }]}>
-                    <View style={[s.dot, { backgroundColor: '#F27A7A' }]} />
-                    <View>
-                        <AppText>{WEIGHTTRACKERCONSTANTS.obese2}</AppText>
-                        <AppText variant="semibold">35 and above</AppText>
-                    </View>
-                </View>
+                ))}
             </View>
         </View>
     );

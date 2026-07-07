@@ -11,10 +11,12 @@ import AppText from "../ui/AppText";
 import { OutlineAction, SetupCard } from "./Shared";
 import { medication } from "../../constants/medication";
 import type { MedicationData } from "./types";
+import { useFeatureAccess } from "../../hooks/useFeatureAccess";
 
 export function MedicationSection({ data, onRefresh }: { data: MedicationData[], onRefresh?: () => void }) {
   const router = useRouter();
-  const goToAddMedication = () => router.push(ROUTES.appAddMedication as any);
+  const { checkFeature } = useFeatureAccess();
+  const goToAddMedication = () => checkFeature('medications', () => router.push(ROUTES.appAddMedication as any));
 
   const [localChecked, setLocalChecked] = useState<Record<string, boolean>>({});
 

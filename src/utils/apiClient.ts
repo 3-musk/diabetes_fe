@@ -62,7 +62,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('[API Request Error]', error);
+    console.warn('[API Request Error]', error.message || error);
     return Promise.reject(error);
   }
 );
@@ -75,7 +75,7 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-    console.error(`[API Response Error] ${error.response?.status} ${originalRequest?.url}`, JSON.stringify(error.response?.data || error.message, null, 2));
+    console.warn(`[API Response Error] ${error.response?.status} ${originalRequest?.url}`, JSON.stringify(error.response?.data || error.message, null, 2));
 
     // If 401 Unauthorized and we haven't retried this request yet
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {

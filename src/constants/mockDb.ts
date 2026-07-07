@@ -1,24 +1,4 @@
-export type GlucoseReadingEntry = {
-  id: string;
-  glucoseValue: number;
-  session: string;
-  readingType: string;
-  symptoms: string[];
-  timestamp: string;
-};
 
-export type WeightEntry = {
-  id: string;
-  date: string;
-  weightKg: number;
-  onTarget: boolean;
-};
-
-export type WeightHistory = {
-  target: number;
-  bmi: number;
-  history: WeightEntry[];
-};
 
 export type HbA1cStatus = "Normal" | "Prediabetes" | "Diabetes";
 
@@ -56,13 +36,7 @@ export type LifestyleQuestion = {
 
 // ─── Shared In-Memory State ───────────────────────────────────────────────
 
-export const glucoseReadings: GlucoseReadingEntry[] = [];
 
-export const weightHistory: WeightHistory = {
-  target: 70,
-  bmi: 0,
-  history: [],
-};
 
 export const hba1cHistory: HbA1cEntry[] = [];
 

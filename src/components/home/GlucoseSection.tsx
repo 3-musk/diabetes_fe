@@ -7,6 +7,7 @@ import {
   GLUCOSE_STATUS_COLORS,
   GLUCOSE_STRINGS,
 } from "../../constants/glucoseConfig";
+import { useFeatureAccess } from "../../hooks/useFeatureAccess";
 import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
 import GlucoseGauge from "../features/GlucoseGauge";
 import AppText from "../ui/AppText";
@@ -18,7 +19,8 @@ const { width } = Dimensions.get('window');
 
 export function GlucoseSection({ data }: { data: GlucoseReading | null }) {
   const router = useRouter();
-  const logGlucose = () => router.push(ROUTES.appLogGlucose as any);
+  const { checkFeature } = useFeatureAccess();
+  const logGlucose = () => checkFeature('glucose', () => router.push(ROUTES.appLogGlucose as any));
 
   if (!data) {
     return (
@@ -34,9 +36,21 @@ export function GlucoseSection({ data }: { data: GlucoseReading | null }) {
   const tileColor = GLUCOSE_STATUS_COLORS[data.status as keyof typeof GLUCOSE_STATUS_COLORS]
     ?? GLUCOSE_STATUS_COLORS.danger;
 
+  const formattedDate = new Date(data.timestamp)
+    .toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .replace("am", "AM")
+    .replace("pm", "PM");
+
   return (
     <View style={[styles.monitorCard, { borderColor: tileColor }]}>
-      <AppText variant="semibold" style={styles.sectionTitle}>
+      <AppText variant="medium" style={styles.sectionTitle}>
         {GLUCOSE_STRINGS.sectionTitle}
       </AppText>
       <View style={styles.gaugeWrap}>
@@ -49,8 +63,8 @@ export function GlucoseSection({ data }: { data: GlucoseReading | null }) {
           ranges={[...GLUCOSE_GAUGE_RANGES]}
         />
       </View>
-      <AppText style={styles.timestamp}>
-        {GLUCOSE_STRINGS.lastLogPrefix}{new Date(data.timestamp).toLocaleString()}
+      <AppText variant="regular" style={styles.timestamp}>
+        {GLUCOSE_STRINGS.lastLogPrefix}{formattedDate}
       </AppText>
       <Button style={styles.logButton} onPress={logGlucose} >
         <AppText variant="semibold" style={styles.logButtonText}>
@@ -66,7 +80,7 @@ export function GlucoseSummarySection({ data }: { data: GlucoseReading | null })
 
   return (
     <View style={styles.summaryCard}>
-      <AppText variant="semibold" style={styles.sectionTitle}>
+      <AppText variant="medium" style={styles.sectionTitle}>
         {GLUCOSE_STRINGS.summaryTitle}
       </AppText>
       <View style={styles.summaryRow}>
@@ -105,7 +119,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   timestamp: {
-    color: colors.textTertiary,
+    color: colors.textPrimary,
     fontSize: fontSize.sm,
     textAlign: 'center',
   },

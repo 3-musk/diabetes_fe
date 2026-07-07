@@ -7,6 +7,7 @@ import AppText from "../ui/AppText";
 import { mealsTexts } from "../../constants/meals";
 import { weightTracker } from "../../constants/weightTracker";
 import { activityTrackerTexts } from "../../constants/activityTracker";
+import { useFeatureAccess } from "../../hooks/useFeatureAccess";
 
 type TrackingSummarySectionProps = {
   meals?: Record<string, number>;
@@ -28,6 +29,7 @@ export function TrackingSummarySection({
   activityMinutes,
 }: TrackingSummarySectionProps) {
   const router = useRouter();
+  const { checkFeature } = useFeatureAccess();
 
   return (
     <View style={styles.container}>
@@ -36,15 +38,24 @@ export function TrackingSummarySection({
         icon={<SvgIcon source={require("../../../assets/svgs/tabs/meal.svg")} size={60} />}
         title={mealsTexts.logMeal}
         subtitle={meals ? `${meals?.logged ?? 0}/${meals?.total ?? 0}` : ''}
-        onPress={() => router.push(ROUTES.appMeals as any)}
+        onPress={() => checkFeature('meals', () => router.push(ROUTES.appMeals as any))}
       />
 
       <TrackingTile
         accentColor={colors.error}
         icon={<SvgIcon source={require("../../../assets/svgs/weight.svg")} size={60} />}
-        title={weightKg ? `${weightKg?.current ?? 0}${weightTracker.kgUnitLower} / ${weightKg?.target ?? 0}${weightTracker.kgUnitLower}` : weightTracker.logWeight}
-        subtitle={weightKg ? weightTracker.logWeight : ''}
-        onPress={() => router.push(ROUTES.appWeightTracker as any)}
+        title={weightKg?.current ? `${weightKg.current}${weightTracker.kgUnitLower} / ${weightKg.target ?? '--'}${weightTracker.kgUnitLower}` : weightTracker.logWeight}
+        subtitle={weightKg?.current ? weightTracker.logWeight : ''}
+        onPress={() => checkFeature('weight', () => {
+          if (!weightKg || !weightKg.current) {
+            router.push({
+              pathname: ROUTES.appWeightTracker as any,
+              params: { openAddModal: Date.now().toString() }
+            });
+          } else {
+            router.push(ROUTES.appWeightTracker as any);
+          }
+        })}
       />
 
       <TrackingTile
@@ -52,7 +63,7 @@ export function TrackingSummarySection({
         icon={<SvgIcon source={require("../../../assets/svgs/activity.svg")} size={60} />}
         title={activityMinutes ? `${activityMinutes ?? 0} ${activityTrackerTexts.minsUnitLower}` : activityTrackerTexts.logActivity}
         subtitle={activityMinutes ? activityTrackerTexts.logActivities : ''}
-        onPress={() => router.push(ROUTES.appActivityTracker as any)}
+        onPress={() => checkFeature('activities', () => router.push(ROUTES.appActivityTracker as any))}
       />
     </View>
   );

@@ -4,11 +4,18 @@ import { HBA1C_COLORS, HBA1C_STRINGS } from "../../constants/hba1cConfig";
 import { ROUTES } from "../../constants/routes";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
 import AppText from "../ui/AppText";
+import { useFeatureAccess } from "../../hooks/useFeatureAccess";
 import type { Hba1cData } from "./types";
 
 export function Hba1cSection({ data }: { data: Hba1cData | null }) {
   const router = useRouter();
-  const goToTracker = () => router.push(ROUTES.appHba1cTracker as any);
+  const { checkFeature } = useFeatureAccess();
+  const goToTracker = () => checkFeature('hba1c', () => router.push(ROUTES.appHba1cTracker as any));
+  const goToAddHba1c = () => checkFeature('hba1c', () => router.push({
+    pathname: ROUTES.appHba1cTracker as any,
+    params: { openAddModal: Date.now().toString() }
+  }));
+
   if (!data) {
     return (
       <>
@@ -19,7 +26,7 @@ export function Hba1cSection({ data }: { data: Hba1cData | null }) {
           <AppText style={styles.hba1cIntroText}>
             {HBA1C_STRINGS.introBody}
           </AppText>
-          <Pressable style={styles.goldButton} onPress={goToTracker}>
+          <Pressable style={styles.goldButton} onPress={goToAddHba1c}>
             <AppText variant="semibold" style={styles.goldButtonText}>
               {HBA1C_STRINGS.introAction}
             </AppText>

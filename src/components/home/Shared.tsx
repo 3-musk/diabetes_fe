@@ -60,13 +60,13 @@ export function Metric({ color, value, label, unit, align }: MetricProps) {
   return (
     <View style={[styles.metric, { alignItems: align }]}>
       <View style={[styles.metricValueRow]}>
-        <AppText variant="bold" style={[styles.metricValue, {color:color}]}>
+        <AppText variant="semibold" style={[styles.metricValue, {color:color}]}>
           {value}
         </AppText>
         <AppText variant="medium" style={[styles.metricUnit, {color:color}]}>{unit}</AppText>
       </View>
       <AppText
-        variant="medium" 
+        variant="regular" 
         style={styles.metricLabel}
       >
         {label}

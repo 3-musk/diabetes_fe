@@ -7,9 +7,11 @@ import { useRouter } from "expo-router";
 import { ROUTES } from "../../constants/routes";
 import { lifestyleQuestions } from "../../constants/lifestyleQuestions";
 import type { LifestyleQuestionData } from "./types";
+import { useFeatureAccess } from "../../hooks/useFeatureAccess";
 
 export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData | null }) {
   const router = useRouter();
+  const { checkFeature } = useFeatureAccess();
 
   if (!data) return null;
 
@@ -27,7 +29,7 @@ export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData
         {data.question}
       </AppText>
       <Button
-        onPress={() => router.push(ROUTES.appLifestyleQuestions as any)}
+        onPress={() => checkFeature('care-plan', () => router.push(ROUTES.appLifestyleQuestions as any))}
       >
         <AppText variant="semibold" style={styles.primaryPillText}>
           {data.isCompleted ? lifestyleQuestions.viewAnswers : lifestyleQuestions.viewQuestions}

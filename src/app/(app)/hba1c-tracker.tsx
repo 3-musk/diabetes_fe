@@ -1,17 +1,15 @@
-import { FontAwesome } from '@react-native-vector-icons/fontawesome';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
-  Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
-  View,
+  View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, AppModal, BackButton, Button, DateInput, Input, ScreenContainer } from '../../components';
+import { AppModal, AppText, BackButton, Button, DateInput, Input, ScreenContainer } from '../../components';
 import { hba1cTracker as HBA1CTRACKERCONSTANTS, STATUS_CONFIG } from '../../constants/hba1cTracker';
 import { getHba1cHistory, saveHba1cEntry, type HbA1cEntry, type HbA1cStatus } from '../../services/trackerService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -41,26 +39,35 @@ const pill = StyleSheet.create({
 interface AddHba1cModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (entry: HbA1cEntry) => void;
+  onSave: (entry: HbA1cEntry) => Promise<{ success: boolean; message?: string }>;
 }
 
 function AddHba1cModal({ visible, onClose, onSave }: AddHba1cModalProps) {
   const insets = useSafeAreaInsets();
   const [value, setValue] = useState('');
   const [date, setDate] = useState<Date | undefined>(undefined);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const num = parseFloat(value);
     if (!num || !date) return;
+    
+    setIsSaving(true);
     const status: HbA1cStatus =
       num < 5.7 ? HBA1CTRACKERCONSTANTS.normalStatus as HbA1cStatus : num < 6.5 ? HBA1CTRACKERCONSTANTS.prediabetesStatus as HbA1cStatus : HBA1CTRACKERCONSTANTS.diabetesStatus as HbA1cStatus;
     
     const formattedDate = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
     
-    onSave({ id: Date.now().toString(), date: formattedDate, value: num, status });
-    setValue('');
-    setDate(undefined);
-    onClose();
+    const res = await onSave({ id: Date.now().toString(), date: formattedDate, value: num, status });
+    setIsSaving(false);
+    
+    if (res && res.success) {
+      setValue('');
+      setDate(undefined);
+      onClose();
+    } else {
+      Alert.alert('Invalid Entry', res?.message || 'Failed to save HbA1c reading. Please try again.');
+    }
   };
 
   return (
@@ -118,24 +125,31 @@ const modal = StyleSheet.create({
   },
 });
 
-// ─── Main screen ──────────────────────────────────────────────────────────────
-
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function Hba1cTracker() {
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
+  const params  = useLocalSearchParams();
   const [history, setHistory] = useState<HbA1cEntry[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const fetchHba1cData = async () => {
+    const data = await getHba1cHistory();
+    setHistory(data);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    (async () => {
-      const data = await getHba1cHistory();
-      setHistory(data);
-      setLoading(false);
-    })();
+    fetchHba1cData();
   }, []);
+  
+  useEffect(() => {
+    if (params.openAddModal) {
+      setShowModal(true);
+    }
+  }, [params]);
 
   const latest  = history[0];
   const avgNum = history.length
@@ -147,8 +161,11 @@ export default function Hba1cTracker() {
     : null;
 
   const handleSave = async (entry: HbA1cEntry) => {
-    await saveHba1cEntry(entry);
-    setHistory(prev => [entry, ...prev]);
+    const result = await saveHba1cEntry(entry);
+    if (result.success) {
+      await fetchHba1cData();
+    }
+    return result;
   };
 
   return (
@@ -216,7 +233,10 @@ export default function Hba1cTracker() {
 
       <AddHba1cModal
         visible={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={() => {
+          setShowModal(false);
+          router.setParams({ openAddModal: '' });
+        }}
         onSave={handleSave}
       />
     </ScreenContainer>

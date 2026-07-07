@@ -38,8 +38,8 @@ export const getHomeDashboardData =
         let weightKg = null;
         if (apiData.weightKg !== null && apiData.weightKg !== undefined) {
           weightKg = {
-            current: typeof apiData.weightKg === 'object' ? parseFloat(apiData.weightKg.current ?? 0) : parseFloat(apiData.weightKg),
-            target: typeof apiData.weightKg === 'object' ? parseFloat(apiData.weightKg.target ?? 70) : 70,
+            current: typeof apiData.weightKg === 'object' ? (apiData.weightKg.current !== null ? parseFloat(apiData.weightKg.current) : null) : parseFloat(apiData.weightKg),
+            target: typeof apiData.weightKg === 'object' ? (apiData.weightKg.target !== null ? parseFloat(apiData.weightKg.target) : undefined) : undefined,
           };
         }
 

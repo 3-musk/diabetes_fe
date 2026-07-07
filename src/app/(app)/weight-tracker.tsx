@@ -1,9 +1,10 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,8 +15,9 @@ import { AppText, BackButton, Button, ScreenContainer } from '../../components';
 import { AddWeightModal } from '../../components/features/AddWeightModal';
 import { BmiCard } from '../../components/features/BmiCard';
 import { WeightGauge } from '../../components/features/WeightGauge';
+import DateInput from '../../components/inputs/DateInput';
 import { weightTracker as WEIGHTTRACKERCONSTANTS } from '../../constants/weightTracker';
-import { getWeightHistory, saveWeightEntry, type WeightEntry, type WeightHistory } from '../../services/trackerService';
+import { getWeightHistory, saveWeightEntry, type WeightEntry, type WeightHistory, type BmiData } from '../../services/trackerService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -24,38 +26,113 @@ import { TIME_FILTERS } from '../../constants/uiConstants';
 
 type TimeFilter = typeof TIME_FILTERS[number];
 
+const mapFilterToParams = (filter: TimeFilter, customFrom?: Date, customTo?: Date) => {
+  const to = filter === 'Custom' && customTo ? new Date(customTo) : new Date();
+  const from = filter === 'Custom' && customFrom ? new Date(customFrom) : new Date();
+  let range = '';
+  switch (filter) {
+    case '7 Days':
+      from.setDate(from.getDate() - 7);
+      range = '7d';
+      break;
+    case '1 Month':
+      from.setMonth(from.getMonth() - 1);
+      range = '1m';
+      break;
+    case '6 Months':
+      from.setMonth(from.getMonth() - 6);
+      range = '6m';
+      break;
+    case '1 Year':
+      from.setFullYear(from.getFullYear() - 1);
+      range = '1y';
+      break;
+    case 'Custom':
+      range = '';
+      break;
+  }
+  const toStr = `${to.getFullYear()}-${String(to.getMonth()+1).padStart(2, '0')}-${String(to.getDate()).padStart(2, '0')}`;
+  const fromStr = `${from.getFullYear()}-${String(from.getMonth()+1).padStart(2, '0')}-${String(from.getDate()).padStart(2, '0')}`;
+  return { from: fromStr, to: toStr, range };
+};
+
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function WeightTracker() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState<TimeFilter>('1 Month');
-  const [targetWeight, setTargetWeight] = useState(70);
-  const [currentWeight, setCurrentWeight] = useState(75.5);
-  const [bmi, setBmi] = useState(20.7);
+  const [targetWeight, setTargetWeight] = useState<number | undefined>(undefined);
+  const [currentWeight, setCurrentWeight] = useState<number | undefined>(undefined);
+  const [bmi, setBmi] = useState<BmiData | undefined>(undefined);
   const [history, setHistory] = useState<WeightEntry[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // Pagination State
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  
+  // Custom Date Modal State
+  const [showCustomDateModal, setShowCustomDateModal] = useState(false);
+  const [customFrom, setCustomFrom] = useState(new Date());
+  const [customTo, setCustomTo] = useState(new Date());
+
+  const fetchWeightData = async (forceFilter?: TimeFilter) => {
+    setPage(0);
+    const filterToUse = forceFilter || activeFilter;
+    const { from, to, range } = mapFilterToParams(filterToUse, customFrom, customTo);
+    const data: WeightHistory & { hasNext?: boolean } = await getWeightHistory(from, to, range, 0, 5, true);
+    setTargetWeight(data.target || undefined);
+    setBmi(data.bmi || undefined);
+    setHistory(data.history || []);
+    setHasNext(data.hasNext ?? false);
+    
+    if (data.history && data.history.length > 0) {
+      setCurrentWeight(data.history[0].weightKg);
+    } else {
+      setCurrentWeight(undefined);
+    }
+    setLoading(false);
+  };
+
+  const handleLoadMore = async () => {
+    if (!hasNext || loadingMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    const { from, to, range } = mapFilterToParams(activeFilter, customFrom, customTo);
+    const data = await getWeightHistory(from, to, range, nextPage, 5, false);
+    
+    if (data.history && data.history.length > 0) {
+      setHistory(prev => [...prev, ...data.history]);
+    }
+    setHasNext(data.hasNext ?? false);
+    setPage(nextPage);
+    setLoadingMore(false);
+  };
 
   useEffect(() => {
-    (async () => {
-      const data: WeightHistory = await getWeightHistory();
-      setTargetWeight(data.target);
-      setBmi(data.bmi);
-      setHistory(data.history);
-      if (data.history.length > 0) {
-        setCurrentWeight(data.history[0].weightKg);
-      }
-      setLoading(false);
-    })();
-  }, []);
+    if (activeFilter !== 'Custom') {
+      fetchWeightData();
+    }
+  }, [activeFilter]);
+
+  useEffect(() => {
+    if (params.openAddModal) {
+      setShowModal(true);
+    }
+  }, [params.openAddModal]);
 
   const handleSave = async (entry: WeightEntry) => {
-    await saveWeightEntry(entry);
-    setHistory(prev => [entry, ...prev]);
-    setCurrentWeight(entry.weightKg);
+    const result = await saveWeightEntry(entry);
+    if (result.success) {
+      await fetchWeightData();
+    }
+    return result;
   };
 
   return (
@@ -76,55 +153,63 @@ export default function WeightTracker() {
           contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 40, flexGrow: 1 }]}
         >
           {/* Gauge Section without wrapper card */}
-          <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
-            <WeightGauge current={currentWeight} target={targetWeight} />
+          {currentWeight ? (
+            <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
+              <WeightGauge current={currentWeight} target={targetWeight ?? 0} />
 
-            {/* Current / Target chips */}
-            <View style={s.chipRow}>
-              <LinearGradient
-                colors={['#F5BC1E', '#F7D57C']}
-                start={{ x: 0, y: 1 }}
-                end={{ x: 1, y: 0 }}
-                style={[s.chip, { marginRight: 3 }]}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                  <AppText variant="bold" style={s.chipValue}>
-                    {currentWeight}
+              {/* Current / Target chips */}
+              <View style={s.chipRow}>
+                <LinearGradient
+                  colors={['#F5BC1E', '#F7D57C']}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[s.chip, { marginRight: 3 }]}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                    <AppText variant="bold" style={s.chipValue}>
+                      {currentWeight}
+                    </AppText>
+                    <AppText style={s.chipUnit}> {WEIGHTTRACKERCONSTANTS.kgUnit}</AppText>
+                  </View>
+
+                  <AppText style={s.chipLabel}>
+                    {WEIGHTTRACKERCONSTANTS.currentWeight}
                   </AppText>
-                  <AppText style={s.chipUnit}> {WEIGHTTRACKERCONSTANTS.kgUnit}</AppText>
+                </LinearGradient>
+
+                <View style={s.vsBadge}>
+                  <AppText style={s.vsText}>{WEIGHTTRACKERCONSTANTS.vsText}</AppText>
                 </View>
 
-                <AppText style={s.chipLabel}>
-                  {WEIGHTTRACKERCONSTANTS.currentWeight}
-                </AppText>
-              </LinearGradient>
+                <LinearGradient
+                  colors={['#FA7878', '#F6BC5C']}
+                  start={{ x: 0, y: 1 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[s.chip, { marginLeft: 3 }]}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                    <AppText variant="bold" style={s.chipValue}>
+                      {targetWeight ?? '--'}
+                    </AppText>
+                    <AppText style={s.chipUnit}> {WEIGHTTRACKERCONSTANTS.kgUnit}</AppText>
+                  </View>
 
-              <View style={s.vsBadge}>
-                <AppText style={s.vsText}>{WEIGHTTRACKERCONSTANTS.vsText}</AppText>
+                  <AppText style={s.chipLabel}>
+                    {WEIGHTTRACKERCONSTANTS.targetWeight}
+                  </AppText>
+                </LinearGradient>
               </View>
-
-              <LinearGradient
-                colors={['#FA7878', '#F6BC5C']}
-                start={{ x: 0, y: 1 }}
-                end={{ x: 1, y: 0 }}
-                style={[s.chip, { marginLeft: 3 }]}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                  <AppText variant="bold" style={s.chipValue}>
-                    {targetWeight}
-                  </AppText>
-                  <AppText style={s.chipUnit}> {WEIGHTTRACKERCONSTANTS.kgUnit}</AppText>
-                </View>
-
-                <AppText style={s.chipLabel}>
-                  {WEIGHTTRACKERCONSTANTS.targetWeight}
-                </AppText>
-              </LinearGradient>
             </View>
-          </View>
+          ) : (
+            <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
+              <AppText variant="medium" style={{ fontSize: 18, color: colors.textSecondary, marginVertical: spacing.xl }}>
+                Log your first weight reading.
+              </AppText>
+            </View>
+          )}
 
           {/* BMI Card */}
-          <BmiCard bmi={bmi} />
+          {bmi ? <BmiCard bmi={bmi} /> : null}
 
           {/* Time filter */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.filterScroll}>
@@ -132,7 +217,13 @@ export default function WeightTracker() {
               <Pressable
                 key={f}
                 style={[s.filterChip, activeFilter === f && s.filterChipActive]}
-                onPress={() => setActiveFilter(f)}
+                onPress={() => {
+                  if (f === 'Custom') {
+                    setShowCustomDateModal(true);
+                  } else {
+                    setActiveFilter(f);
+                  }
+                }}
               >
                 <AppText style={[s.filterText, activeFilter === f && s.filterTextActive]}>
                   {f}
@@ -142,10 +233,22 @@ export default function WeightTracker() {
           </ScrollView>
 
           {/* History Card */}
-          <View style={[s.card, { minHeight: SCREEN_HEIGHT * 0.55 }]}>
+          <View style={[s.card, { minHeight: SCREEN_HEIGHT * 0.55, maxHeight: SCREEN_HEIGHT }]}>
             <AppText variant="semibold" style={s.sectionTitle}>{WEIGHTTRACKERCONSTANTS.historySectionTitle}</AppText>
 
-            <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, marginBottom: spacing.lg }}>
+            <ScrollView 
+              nestedScrollEnabled={true}
+              showsVerticalScrollIndicator={false} 
+              style={{ flex: 1, marginBottom: spacing.lg }}
+              onScroll={({ nativeEvent }) => {
+                const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+                const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+                if (isCloseToBottom) {
+                  handleLoadMore();
+                }
+              }}
+              scrollEventThrottle={400}
+            >
               <View style={{ gap: spacing.md }}>
                 {history.map(entry => (
                   <View key={entry.id} style={s.historyRow}>
@@ -160,6 +263,11 @@ export default function WeightTracker() {
                     )}
                   </View>
                 ))}
+                {loadingMore && (
+                  <View style={{ paddingVertical: spacing.md }}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  </View>
+                )}
               </View>
             </ScrollView>
 
@@ -177,9 +285,55 @@ export default function WeightTracker() {
 
       <AddWeightModal
         visible={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={() => {
+          setShowModal(false);
+          router.setParams({ openAddModal: '' });
+        }}
         onSave={handleSave}
       />
+      
+      {/* Custom Date Selection Modal */}
+      <Modal visible={showCustomDateModal} transparent animationType="fade">
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <AppText variant="semibold" style={s.modalTitle}>Select Custom Range</AppText>
+            
+            <DateInput
+              label="From Date"
+              value={customFrom}
+              onChange={setCustomFrom}
+              containerStyle={{ marginBottom: spacing.md }}
+              dateFormat="yy/mm/dd"
+            />
+            
+            <DateInput
+              label="To Date"
+              value={customTo}
+              onChange={setCustomTo}
+              containerStyle={{ marginBottom: spacing.lg }}
+              dateFormat="yy/mm/dd"
+            />
+            
+            <View style={s.modalActions}>
+              <Button
+                title="Cancel"
+                onPress={() => setShowCustomDateModal(false)}
+                style={{ flex: 1, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }}
+                textStyle={{ color: colors.textPrimary }}
+              />
+              <Button
+                title="Go"
+                style={{ flex: 1 }}
+                onPress={() => {
+                  setShowCustomDateModal(false);
+                  setActiveFilter('Custom');
+                  fetchWeightData('Custom');
+                }}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
@@ -192,6 +346,29 @@ const s = StyleSheet.create({
   },
   headerTitle: { fontSize: fontSize.xl, color: colors.textPrimary },
   scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    padding: spacing.xl,
+    ...shadows.md,
+  },
+  modalTitle: {
+    fontSize: fontSize.lg,
+    color: colors.textPrimary,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
   chipRow: {
     flexDirection: 'row',
     justifyContent: 'center',

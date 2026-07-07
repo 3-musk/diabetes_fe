@@ -52,6 +52,7 @@ export interface User {
   isFirstTimeUser: boolean;
   isSubscriptionActive: boolean;
   subscriptionPlan?: string;
+  subscriptionFeatures?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -249,6 +250,7 @@ export const getUser = async (accessToken: string): Promise<User | null> => {
         isRegistered: !!u.name,
         isFirstTimeUser,
         isSubscriptionActive,
+        subscriptionFeatures: u.subscriptionFeatures || [],
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,
       };

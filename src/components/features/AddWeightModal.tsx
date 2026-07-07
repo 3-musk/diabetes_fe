@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+    Alert,
     ScrollView,
     StyleSheet,
     View
@@ -13,7 +14,7 @@ import { colors, spacing } from '../../theme';
 interface AddWeightModalProps {
     visible: boolean;
     onClose: () => void;
-    onSave: (entry: WeightEntry) => void;
+    onSave: (entry: WeightEntry) => Promise<{ success: boolean; message?: string }>;
 }
 
 export function AddWeightModal({ visible, onClose, onSave }: AddWeightModalProps) {
@@ -21,16 +22,25 @@ export function AddWeightModal({ visible, onClose, onSave }: AddWeightModalProps
     const [weight, setWeight] = useState('');
     const [height, setHeight] = useState('');
     const [date, setDate] = useState<Date | undefined>(undefined);
+    const [isSaving, setIsSaving] = useState(false);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         const w = parseFloat(weight);
-        if (!w || !date) return;
+        const h = parseFloat(height);
+        if (!w || !h || !date) return;
 
+        setIsSaving(true);
         const formattedDate = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
 
-        onSave({ id: Date.now().toString(), date: formattedDate, weightKg: w, onTarget: w <= 76 });
-        setWeight(''); setHeight(''); setDate(undefined);
-        onClose();
+        const res = await onSave({ id: Date.now().toString(), date: formattedDate, weightKg: w, heightCm: h, onTarget: w <= 76 });
+        setIsSaving(false);
+        
+        if (res && res.success) {
+            setWeight(''); setHeight(''); setDate(undefined);
+            onClose();
+        } else {
+            Alert.alert('Invalid Entry', res?.message || 'Failed to save weight reading. Please try again.');
+        }
     };
 
     return (

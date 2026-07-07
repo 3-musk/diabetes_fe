@@ -19,6 +19,7 @@ export { BackButton } from "./navigation/BackButton";
 export { PlanCard } from "./features/PlanCard";
 export { ReminderModal, ReminderData } from "./features/ReminderModal";
 export { default as GlucoseGauge } from "./features/GlucoseGauge";
+export { GlucoseCriticalModal } from "./features/GlucoseCriticalModal";
 export { GlucoseEscalationModal, NextStepsData } from "./features/GlucoseEscalationModal";
 export { AddActivityModal, NewActivityData } from "./features/AddActivityModal";
 export { DateStrip } from "./ui/DateStrip";
