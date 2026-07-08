@@ -73,7 +73,7 @@ function AddHba1cModal({ visible, onClose, onSave }: AddHba1cModalProps) {
   return (
     <AppModal visible={visible} onClose={onClose}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[modal.scrollContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
-        <AppText variant="semibold" style={modal.sheetTitle}>Add HbA1c</AppText>
+        <AppText variant="medium" style={modal.sheetTitle}>Add HbA1c</AppText>
 
         <Input
           label={HBA1CTRACKERCONSTANTS.valueLabel}
@@ -81,7 +81,7 @@ function AddHba1cModal({ visible, onClose, onSave }: AddHba1cModalProps) {
           placeholder={HBA1CTRACKERCONSTANTS.placeholder}
           keyboardType="decimal-pad"
           value={value}
-          onChangeText={setValue}
+          onChangeText={(val) => setValue(val.replace(/[^0-9.]/g, ''))}
         />
 
         <DateInput
@@ -108,7 +108,7 @@ const modal = StyleSheet.create({
     paddingTop: spacing.xxxxl,
   },
   sheetTitle: {
-    fontSize: 20,
+    fontSize: 16,
     color: colors.textPrimary,
     marginBottom: spacing.xxxl,
   },
@@ -131,14 +131,36 @@ export default function Hba1cTracker() {
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
   const params  = useLocalSearchParams();
+  
   const [history, setHistory] = useState<HbA1cEntry[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Pagination State
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  
   const fetchHba1cData = async () => {
-    const data = await getHba1cHistory();
-    setHistory(data);
+    setPage(0);
+    const data = await getHba1cHistory(0, 5, true);
+    setHistory(data.history || []);
+    setHasNext(data.hasNext ?? false);
     setLoading(false);
+  };
+
+  const handleLoadMore = async () => {
+    if (!hasNext || loadingMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    const data = await getHba1cHistory(nextPage, 5, false);
+    
+    if (data.history && data.history.length > 0) {
+      setHistory(prev => [...prev, ...data.history]);
+    }
+    setHasNext(data.hasNext ?? false);
+    setPage(nextPage);
+    setLoadingMore(false);
   };
 
   useEffect(() => {
@@ -173,7 +195,7 @@ export default function Hba1cTracker() {
       {/* Header */}
       <View style={s.header}>
         <BackButton color={colors.primaryBackground} />
-        <AppText variant="semibold" style={s.headerTitle}>{HBA1CTRACKERCONSTANTS.pageTitle}</AppText>
+        <AppText variant="medium" style={s.headerTitle}>{HBA1CTRACKERCONSTANTS.pageTitle}</AppText>
       </View>
 
       {loading ? (
@@ -188,34 +210,57 @@ export default function Hba1cTracker() {
         {/* Summary cards */}
         <View style={s.summaryRow}>
           <View style={s.summaryCard}>
-            <AppText variant="bold" style={s.summaryValue}>
+            <AppText variant="medium" style={s.summaryValue}>
               {latest ? `${latest.value}%` : '--'}
             </AppText>
             {latest && <StatusPill status={latest.status} />}
             <AppText style={s.summaryLabel}>{HBA1CTRACKERCONSTANTS.latestLabel}</AppText>
           </View>
           <View style={s.summaryCard}>
-            <AppText variant="bold" style={s.summaryValue}>{averageStr}%</AppText>
+            <AppText variant="medium" style={s.summaryValue}>{averageStr}%</AppText>
             {averageStatus && <StatusPill status={averageStatus} />}
             <AppText style={s.summaryLabel}>{HBA1CTRACKERCONSTANTS.averageLabel}</AppText>
           </View>
         </View>
 
         {/* History Card */}
-        <View style={[s.card, { minHeight: SCREEN_HEIGHT * 0.55 }]}>
-          <AppText variant="semibold" style={s.sectionTitle}>{HBA1CTRACKERCONSTANTS.historySectionTitle}</AppText>
+        <View style={[s.card, { minHeight: SCREEN_HEIGHT * 0.55, maxHeight: SCREEN_HEIGHT}]}>
+          <AppText variant="medium" style={s.sectionTitle}>{HBA1CTRACKERCONSTANTS.historySectionTitle}</AppText>
           
-          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, marginBottom: spacing.lg }}>
+          <ScrollView 
+            nestedScrollEnabled={true}
+            showsVerticalScrollIndicator={false} 
+            style={{ flex: 1, marginBottom: spacing.lg }}
+            onScroll={({ nativeEvent }) => {
+              const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+              const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+              if (isCloseToBottom) {
+                handleLoadMore();
+              }
+            }}
+            scrollEventThrottle={400}
+          >
             <View style={{ gap: spacing.md }}>
               {history.map(entry => (
                 <View key={entry.id} style={s.historyRow}>
                   <View>
-                    <AppText style={s.historyDate}>{entry.date}</AppText>
-                    <AppText variant="semibold" style={s.historyValue}>{entry.value}%</AppText>
+                    <AppText style={s.historyDate}>
+                      {new Date(entry.date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </AppText>
+                    <AppText variant="regular" style={s.historyValue}>{entry.value}%</AppText>
                   </View>
                   <StatusPill status={entry.status} />
                 </View>
               ))}
+              {loadingMore && (
+                <View style={{ paddingVertical: spacing.md }}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                </View>
+              )}
             </View>
           </ScrollView>
 

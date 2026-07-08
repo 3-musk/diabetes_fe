@@ -1,21 +1,42 @@
-import {
-  hba1cHistory,
-  HbA1cEntry,
-  HbA1cStatus,
-} from "../constants/mockDb";
+
 import { WeightEntry, WeightHistory, BmiData } from "../types/weight";
+import { HbA1cEntry, HbA1cStatus, HbA1cHistory } from "../types/hba1c";
 import { apiClient } from "../utils/apiClient";
 
-export { HbA1cEntry, HbA1cStatus, WeightEntry, WeightHistory, BmiData };
+export { HbA1cEntry, HbA1cStatus, HbA1cHistory, WeightEntry, WeightHistory, BmiData };
 
 // ─── HbA1c Tracker Service ───
 
-export const getHba1cHistory = async (): Promise<HbA1cEntry[]> => {
+export const getHba1cHistory = async (
+  page: number = 0,
+  size: number = 5,
+  fetchSummary: boolean = true
+): Promise<HbA1cHistory> => {
   try {
-    const response = await apiClient.get("/api/hba1c");
-    if (response.data && response.data.success) {
-      const data = response.data.data;
-      return (data.history || []).map((e: any) => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('size', size.toString());
+
+    const promises: Promise<any>[] = [
+      apiClient.get(`/api/hba1c/history?${params.toString()}`)
+    ];
+    
+    if (fetchSummary) {
+      promises.push(apiClient.get('/api/hba1c/summary'));
+    }
+
+    const results = await Promise.all(promises);
+    const historyRes = results[0];
+    // We don't currently use summaryRes as the UI calculates latest/average from loaded data
+    
+    let mappedHistory: HbA1cEntry[] = [];
+    let hasNext = false;
+
+    if (historyRes.data && historyRes.data.success) {
+      const historyData = historyRes.data.data;
+      hasNext = historyData?.hasNext ?? false;
+      const items = historyData?.items || [];
+      mappedHistory = items.map((e: any) => {
         let status: HbA1cStatus = "Normal";
         if (e.status) {
           const s = e.status.toLowerCase();
@@ -23,17 +44,21 @@ export const getHba1cHistory = async (): Promise<HbA1cEntry[]> => {
           else if (s === "diabetes") status = "Diabetes";
         }
         return {
-          id: e.id || Date.now().toString(),
+          id: e.id || Date.now().toString() + Math.random(),
           date: e.testDate || e.date,
           value: e.valuePercent,
           status,
         };
       });
     }
-    return [];
+
+    return {
+      history: mappedHistory,
+      hasNext
+    };
   } catch (error) {
     console.error("Error getting HbA1c history", error);
-    return [];
+    return { history: [], hasNext: false };
   }
 };
 
@@ -51,7 +76,6 @@ export const saveHba1cEntry = async (
     const response = await apiClient.post("/api/hba1c", payload);
 
     if (response.data && response.data.success) {
-      hba1cHistory.unshift(entry);
       return { success: true };
     } else {
       throw new Error(response.data?.message || "Failed to save HbA1c reading");

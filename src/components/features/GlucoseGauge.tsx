@@ -14,7 +14,8 @@ type Props = {
   max: number;
   unit: string;
   status: string;
-  ranges: GaugeRange[];
+  ranges?: GaugeRange[];
+  labels?: string[];
   size?: number;
 };
 
@@ -25,6 +26,7 @@ export default function GlucoseGauge({
   unit,
   status,
   ranges,
+  labels,
   size = 280,
 }: Props) {
   const strokeWidth = 6;
@@ -74,10 +76,42 @@ export default function GlucoseGauge({
     ].join(" ");
   };
 
-  const valuePercentage = Math.max(
-    0,
-    Math.min(1, (value - min) / (max - min))
-  );
+  const DEFAULT_COLORS = ['#15933A', '#c9b90d', '#e99313ff', '#e3130b', '#7b0909', '#5c0000'];
+  
+  const LABEL_COLORS: Record<string, string> = {
+    NORMAL: '#15933A',
+    MODERATE: '#c9b90d',
+    HIGH_RISK: '#e99313ff',
+    CRITICAL: '#e3130b',
+    EMERGENCY: '#7b0909',
+  };
+
+  let computedRanges = ranges || [];
+  let valuePercentage = 0;
+  let strokeColor = "#000";
+
+  const isLabelMode = labels && labels.length > 0;
+
+  if (isLabelMode) {
+    const segmentSize = 100 / labels!.length;
+    computedRanges = labels!.map((label, i) => {
+      const color = LABEL_COLORS[label.toUpperCase()] || DEFAULT_COLORS[i % DEFAULT_COLORS.length];
+      return {
+        from: i * segmentSize,
+        to: (i + 1) * segmentSize,
+        color
+      };
+    });
+    
+    const statusIndex = labels!.indexOf(status);
+    if (statusIndex !== -1) {
+      valuePercentage = (statusIndex * segmentSize + segmentSize / 2) / 100;
+      strokeColor = computedRanges[statusIndex].color;
+    }
+  } else {
+    valuePercentage = Math.max(0, Math.min(1, (value - min) / (max - min)));
+    strokeColor = computedRanges.find(r => value >= r.from && value <= r.to)?.color ?? "#000";
+  }
 
   const pointerAngle = -90 + valuePercentage * 180;
 
@@ -91,15 +125,16 @@ export default function GlucoseGauge({
   return (
     <View style={[styles.container, { width: size }]}>
       <Svg width={size} height={size / 2 + 30}>
-        {ranges.map((range, index) => {
-
-          const start =
-            -90 +
-            ((range.from - min) / (max - min)) * 180 + gap;
-
-          const end =
-            -90 +
-            ((range.to - min) / (max - min)) * 180 - gap;
+        {computedRanges.map((range, index) => {
+          
+          let startAngle, endAngle;
+          if (isLabelMode) {
+            startAngle = -90 + (range.from / 100) * 180 + gap;
+            endAngle = -90 + (range.to / 100) * 180 - gap;
+          } else {
+            startAngle = -90 + ((range.from - min) / (max - min)) * 180 + gap;
+            endAngle = -90 + ((range.to - min) / (max - min)) * 180 - gap;
+          }
 
           return (
             <Path
@@ -108,8 +143,8 @@ export default function GlucoseGauge({
                 centerX,
                 centerY,
                 radius,
-                start,
-                end
+                startAngle,
+                endAngle
               )}
               stroke={range.color}
               strokeWidth={strokeWidth}
@@ -124,11 +159,7 @@ export default function GlucoseGauge({
           cy={pointer.y}
           r={10}
           fill="#fff"
-          stroke={
-            ranges.find(
-              (r) => value >= r.from && value <= r.to
-            )?.color ?? "#000"
-          }
+          stroke={strokeColor}
           strokeWidth={5}
         />
       </Svg>

@@ -47,10 +47,18 @@ export interface User {
   id: string;
   phoneNumber: string;
   name?: string;
+  email?: string;
+  gender?: string;
+  yearOfBirth?: number;
+  heightCm?: number;
+  currentWeightKg?: number;
   age?: number;
   isRegistered: boolean;
   isFirstTimeUser: boolean;
   isSubscriptionActive: boolean;
+  hasBmiDetails?: boolean;
+  hasCarePlan?: boolean;
+  hasLifestyleQuestion?: boolean;
   subscriptionPlan?: string;
   subscriptionFeatures?: string[];
   createdAt: string;
@@ -226,13 +234,10 @@ export const createUser = async (
 };
 
 // Get user profile
-export const getUser = async (accessToken: string): Promise<User | null> => {
+export const getUser = async (accessToken?: string): Promise<User | null> => {
   try {
-    const response = await apiClient.get('/api/internal/ai/user-details/by-email', {
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-      }
-    });
+    const headers = accessToken ? { authorization: `Bearer ${accessToken}` } : undefined;
+    const response = await apiClient.get('/api/internal/ai/user-details/by-email', { headers });
 
     const result = response.data;
     if (result.success && result.data) {
@@ -247,9 +252,15 @@ export const getUser = async (accessToken: string): Promise<User | null> => {
         name: u.name || '',
         email: u.email || '',
         gender: u.gender || '',
+        yearOfBirth: u.yearOfBirth,
+        heightCm: u.heightCm,
+        currentWeightKg: u.currentWeightKg,
         isRegistered: !!u.name,
         isFirstTimeUser,
         isSubscriptionActive,
+        hasBmiDetails: u.hasBmiDetails,
+        hasCarePlan: u.hasCarePlan,
+        hasLifestyleQuestion: u.hasLifestyleQuestion,
         subscriptionFeatures: u.subscriptionFeatures || [],
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,

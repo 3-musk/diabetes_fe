@@ -6,7 +6,7 @@ import {
     View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, AppModal, Button, DateInput, Input } from '..';
+import { AppModal, AppText, Button, DateInput, Input } from '..';
 import { weightTracker as WEIGHTTRACKERCONSTANTS } from '../../constants/weightTracker';
 import type { WeightEntry } from '../../services/trackerService';
 import { colors, spacing } from '../../theme';
@@ -46,7 +46,7 @@ export function AddWeightModal({ visible, onClose, onSave }: AddWeightModalProps
     return (
         <AppModal visible={visible} onClose={onClose}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scrollContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
-                <AppText variant="semibold" style={s.sheetTitle}>{WEIGHTTRACKERCONSTANTS.addWeightTitle}</AppText>
+                <AppText variant="medium" style={s.sheetTitle}>{WEIGHTTRACKERCONSTANTS.addWeightTitle}</AppText>
 
                 <Input
                     label={WEIGHTTRACKERCONSTANTS.weightLabel}
@@ -54,7 +54,7 @@ export function AddWeightModal({ visible, onClose, onSave }: AddWeightModalProps
                     placeholder={WEIGHTTRACKERCONSTANTS.weightPlaceholder}
                     keyboardType="decimal-pad"
                     value={weight}
-                    onChangeText={setWeight}
+                    onChangeText={(val) => setWeight(val.replace(/[^0-9.]/g, ''))}
                 />
 
                 <Input
@@ -63,7 +63,7 @@ export function AddWeightModal({ visible, onClose, onSave }: AddWeightModalProps
                     placeholder={WEIGHTTRACKERCONSTANTS.heightPlaceholder}
                     keyboardType="decimal-pad"
                     value={height}
-                    onChangeText={setHeight}
+                    onChangeText={(val) => setHeight(val.replace(/[^0-9.]/g, ''))}
                 />
 
                 <DateInput
@@ -90,7 +90,7 @@ const s = StyleSheet.create({
         paddingTop: spacing.xxxl,
     },
     sheetTitle: {
-        fontSize: 20,
+        fontSize: 16,
         color: colors.textPrimary,
         marginBottom: spacing.xxxl,
     },

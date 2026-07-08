@@ -61,6 +61,7 @@ export function GlucoseSection({ data }: { data: GlucoseReading | null }) {
           min={GLUCOSE_GAUGE_RANGE.min}
           max={GLUCOSE_GAUGE_RANGE.max}
           ranges={[...GLUCOSE_GAUGE_RANGES]}
+          labels={data.Label}
         />
       </View>
       <AppText variant="regular" style={styles.timestamp}>

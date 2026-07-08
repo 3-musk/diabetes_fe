@@ -1,8 +1,7 @@
 import { StyleSheet, View } from 'react-native';
+import { weightTracker as WEIGHTTRACKERCONSTANTS } from '../../constants/weightTracker';
 import { colors, shadows, spacing } from '../../theme';
 import AppText from '../ui/AppText';
-import { BMI_SEGMENTS } from '../../constants/uiConstants';
-import { weightTracker as WEIGHTTRACKERCONSTANTS } from '../../constants/weightTracker';
 
 import { BmiData } from '../../services/trackerService';
 
@@ -153,7 +152,7 @@ export function BmiCard({ bmi }: BmiCardProps) {
                     <AppText
                         variant="semibold"
                         style={{
-                            fontSize: 28,
+                            fontSize: 24,
                             color: '#111',
                         }}
                     >
@@ -176,7 +175,7 @@ export function BmiCard({ bmi }: BmiCardProps) {
                         <View style={[s.dot, { backgroundColor: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }]} />
                         <View>
                             <AppText>{cat.label}</AppText>
-                            <AppText variant="semibold">
+                            <AppText variant="medium">
                                 {i === bmi.categories.length - 1 ? `${cat.min} and above` : 
                                  i === 0 ? `<${cat.max}` : `${cat.min} - ${cat.max}`}
                             </AppText>

@@ -4,12 +4,12 @@ import {
   StyleSheet
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing } from '../../theme';
 import { activityTrackerTexts } from '../../constants/activityTracker';
+import { colors, spacing } from '../../theme';
 import Input from '../inputs/Input';
+import { AppModal } from '../ui/AppModal';
 import AppText from '../ui/AppText';
 import Button from '../ui/Button';
-import { AppModal } from '../ui/AppModal';
 
 export type NewActivityData = {
   exerciseType: string;
@@ -54,7 +54,7 @@ export function AddActivityModal({ visible, onClose, onSave }: AddActivityModalP
   return (
     <AppModal visible={visible} onClose={onClose}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scrollContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
-        <AppText variant="semibold" style={s.sheetTitle}>{activityTrackerTexts.addActivity}</AppText>
+        <AppText variant="medium" style={s.sheetTitle}>{activityTrackerTexts.addActivity}</AppText>
 
         <Input
           label={activityTrackerTexts.exerciseType}
@@ -69,7 +69,7 @@ export function AddActivityModal({ visible, onClose, onSave }: AddActivityModalP
           required
           placeholder={activityTrackerTexts.enterDetails}
           value={duration}
-          onChangeText={setDuration}
+          onChangeText={(val) => setDuration(val.replace(/[^0-9]/g, ''))}
           keyboardType="numeric"
         />
 
@@ -98,7 +98,7 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.xxl,
   },
   sheetTitle: {
-    fontSize: 20,
+    fontSize: 16,
     color: colors.textPrimary,
     marginBottom: spacing.xxxl,
   },

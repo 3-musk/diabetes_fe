@@ -8,6 +8,7 @@ export type GlucoseReading = {
   status: string;
   timestamp: string;
   statistics: GlucoseStatistics;
+  Label?: string[];
 };
 
 export type GlucoseStatistics = {
@@ -82,4 +83,7 @@ export type HomeDashboardData = {
   meals: Record<string, number>;
   weightKg: Record<string, number> | null;
   dailyActivityDurationMinutes: number | null;
+  totalLifestyleQuestions?: number;
+  lifestyleQuestion?: string;
+  currentQuestionNumber?: number;
 };

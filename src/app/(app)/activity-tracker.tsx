@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddActivityModal, AppText, BackButton, Button, DateStrip, NewActivityData, RoundCheckBox, ScreenContainer } from '../../components';
-import { Activity, addActivity, fetchActivities, saveCompletedActivity } from '../../services/activityService';
 import { activityTrackerTexts } from '../../constants/activityTracker';
+import { Activity, addActivity, fetchActivities, saveCompletedActivities } from '../../services/activityService';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
 
 const ACTIVITY_SVG_MAP: Record<string, any> = {
@@ -26,29 +26,49 @@ export default function ActivityTracker() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
+  const [selectedActivityIds, setSelectedActivityIds] = useState<Set<string>>(new Set());
   
   const [modalVisible, setModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     loadActivities(selectedDate);
   }, [selectedDate]);
 
-  const loadActivities = async (date: Date) => {
-    setLoading(true);
-    // Use ISO string date prefix (YYYY-MM-DD) as the key for API simulation
-    const dateKey = date.toISOString().split('T')[0];
-    const data = await fetchActivities(dateKey);
-    setActivities(data);
+  const loadActivities = async (date: Date, isLoadMore = false) => {
+    if (!isLoadMore) {
+      setLoading(true);
+      setPage(0);
+    } else {
+      if (!hasNext || loadingMore) return;
+      setLoadingMore(true);
+    }
+
+    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const pageToFetch = isLoadMore ? page + 1 : 0;
+    
+    const response = await fetchActivities(dateKey, dateKey, pageToFetch, 10);
+    
+    if (isLoadMore) {
+      setActivities(prev => [...prev, ...response.activities]);
+    } else {
+      setActivities(response.activities);
+    }
+    
+    setHasNext(response.hasNext);
+    setPage(pageToFetch);
     setLoading(false);
+    setLoadingMore(false);
   };
 
   const handleSaveActivity = async () => {
-    if (!selectedActivityId) return;
+    if (selectedActivityIds.size === 0) return;
     setSubmitting(true);
-    const dateKey = selectedDate.toISOString().split('T')[0];
-    await saveCompletedActivity(dateKey, selectedActivityId);
+    await saveCompletedActivities(Array.from(selectedActivityIds));
     setSubmitting(false);
     router.back();
   };
@@ -56,11 +76,15 @@ export default function ActivityTracker() {
   const handleAddCustomActivity = async (data: NewActivityData) => {
     setModalVisible(false);
     setLoading(true);
-    const dateKey = selectedDate.toISOString().split('T')[0];
+    const dateKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
     const response = await addActivity({ ...data, date: dateKey });
-    if (response.success) {
-      setActivities(prev => [...prev, response.data]);
-      setSelectedActivityId(response.data.id);
+    if (response.success && response.data) {
+      const newActivity = response.data as Activity;
+      setActivities(prev => [...prev, newActivity]);
+      // If it's not completed on backend, we could auto-select it, but custom activities are usually pre-completed.
+      if (!newActivity.completed) {
+        setSelectedActivityIds(prev => new Set(prev).add(newActivity.id));
+      }
     }
     setLoading(false);
   };
@@ -70,27 +94,49 @@ export default function ActivityTracker() {
       {/* Header */}
       <View style={styles.header}>
         <BackButton color={colors.primaryBackground} />
-        <AppText variant="semibold" style={styles.headerTitle}>{activityTrackerTexts.pageTitle}</AppText>
+        <AppText variant="medium" style={styles.headerTitle}>{activityTrackerTexts.pageTitle}</AppText>
       </View>
 
       <View style={[styles.scroll, { flex: 1, paddingBottom: spacing.lg }]}>
         <DateStrip selectedDate={selectedDate} onSelectDate={setSelectedDate} />
 
         <View style={styles.card}>
-          <AppText variant="semibold" style={styles.cardTitle}>{activityTrackerTexts.workoutType}</AppText>
+          <AppText variant="medium" style={styles.cardTitle}>{activityTrackerTexts.workoutType}</AppText>
 
           {loading ? (
             <ActivityIndicator size="large" color={colors.primary} style={{ marginVertical: 40 }} />
           ) : (
-            <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, marginBottom: spacing.lg }}>
+            <ScrollView 
+              showsVerticalScrollIndicator={false} 
+              style={{ flex: 1, marginBottom: spacing.lg }}
+              onScroll={({ nativeEvent }) => {
+                const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+                const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+                if (isCloseToBottom) {
+                  loadActivities(selectedDate, true);
+                }
+              }}
+              scrollEventThrottle={400}
+            >
               <View style={styles.activitiesList}>
                 {activities.map(activity => {
-                  const isSelected = selectedActivityId === activity.id;
+                  const isSelected = !!activity.completed || selectedActivityIds.has(activity.id);
                   return (
                     <Pressable
                       key={activity.id}
                       style={styles.activityRow}
-                      onPress={() => setSelectedActivityId(activity.id)}
+                      onPress={() => {
+                        if (activity.completed) return; // cannot unselect already completed
+                        setSelectedActivityIds(prev => {
+                          const newSet = new Set(prev);
+                          if (newSet.has(activity.id)) {
+                            newSet.delete(activity.id);
+                          } else {
+                            newSet.add(activity.id);
+                          }
+                          return newSet;
+                        });
+                      }}
                     >
                       <View style={styles.activityIconWrapper}>
                         <SvgIcon 
@@ -102,10 +148,15 @@ export default function ActivityTracker() {
                         <AppText style={styles.durationText}>{activity.durationMins} {activityTrackerTexts.minsUnit}</AppText>
                         <AppText style={styles.activityName}>{activity.name}</AppText>
                       </View>
-                      <RoundCheckBox selected={isSelected} />
+                      <RoundCheckBox selected={isSelected} disabled={activity.completed} />
                     </Pressable>
                   );
                 })}
+                {loadingMore && (
+                  <View style={{ paddingVertical: spacing.md }}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  </View>
+                )}
               </View>
             </ScrollView>
           )}
@@ -125,6 +176,7 @@ export default function ActivityTracker() {
               title={activityTrackerTexts.save}
               onPress={handleSaveActivity}
               loading={submitting}
+              disabled={selectedActivityIds.size === 0}
               style={styles.saveBtn}
             />
           </View>

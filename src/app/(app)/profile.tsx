@@ -5,6 +5,7 @@ import { BackHandler, ScrollView, StyleSheet, TouchableOpacity, View } from "rea
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText, BackButton, Button, Input, ScreenContainer } from "../../components";
 import { markProfileComplete } from "../../services/carePlanService";
+import { getUser } from "../../services/authService";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
 import { profileTexts } from "../../constants/profile";
 
@@ -13,8 +14,47 @@ export default function Profile() {
   const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const insets = useSafeAreaInsets();
 
+  const [loading, setLoading] = useState(true);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [yob, setYob] = useState('');
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [bmi, setBmi] = useState('');
   const [gender, setGender] = useState('');
   const [showGender, setShowGender] = useState(false);
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const user = await getUser();
+        if (user) {
+          setName(user.name || '');
+          setEmail(user.email || '');
+          setYob(user.yearOfBirth ? String(user.yearOfBirth) : '');
+          setHeight(user.heightCm ? String(user.heightCm) : '');
+          setWeight(user.currentWeightKg ? String(user.currentWeightKg) : '');
+          
+          if (user.heightCm && user.currentWeightKg) {
+            const hM = user.heightCm / 100;
+            const b = user.currentWeightKg / (hM * hM);
+            setBmi(b.toFixed(1));
+          }
+          
+          if (user.gender) {
+            if (user.gender.toUpperCase() === 'MALE') setGender(profileTexts.male);
+            else if (user.gender.toUpperCase() === 'FEMALE') setGender(profileTexts.female);
+            else setGender(user.gender);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load user", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, []);
 
   const handleBack = useCallback(() => {
     if (returnTo) {
@@ -58,12 +98,17 @@ export default function Profile() {
           label={profileTexts.fullNameLabel}
           placeholder={profileTexts.enterDetails}
           required
+          value={name}
+          onChangeText={setName}
           containerStyle={styles.inputContainer}
         />
         <Input
           label={profileTexts.emailLabel}
           placeholder={profileTexts.enterDetails}
           required
+          value={email}
+          onChangeText={setEmail}
+          editable={false}
           containerStyle={styles.inputContainer}
         />
         <Input
@@ -71,27 +116,35 @@ export default function Profile() {
           placeholder={profileTexts.enterDetails}
           required
           keyboardType="numeric"
+          value={yob}
+          onChangeText={(val) => setYob(val.replace(/[^0-9]/g, ''))}
           containerStyle={styles.inputContainer}
         />
         <Input
           label={profileTexts.heightLabel}
           placeholder={profileTexts.enterDetails}
           required
-          keyboardType="numeric"
+          keyboardType="decimal-pad"
+          value={height}
+          onChangeText={(val) => setHeight(val.replace(/[^0-9.]/g, ''))}
           containerStyle={styles.inputContainer}
         />
         <Input
           label={profileTexts.weightLabel}
           placeholder={profileTexts.enterDetails}
           required
-          keyboardType="numeric"
+          keyboardType="decimal-pad"
+          value={weight}
+          onChangeText={(val) => setWeight(val.replace(/[^0-9.]/g, ''))}
           containerStyle={styles.inputContainer}
         />
         <Input
           label={profileTexts.bmiLabel}
           placeholder={profileTexts.enterDetails}
           required
-          keyboardType="numeric"
+          keyboardType="decimal-pad"
+          value={bmi}
+          onChangeText={(val) => setBmi(val.replace(/[^0-9.]/g, ''))}
           containerStyle={styles.inputContainer}
         />
 

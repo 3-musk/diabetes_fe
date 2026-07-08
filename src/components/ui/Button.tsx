@@ -39,11 +39,13 @@ export const Button: React.FC<ButtonProps> = ({
         return {
           ...baseStyle,
           backgroundColor: disabled ? colors.disabled : colors.primary,
+          opacity: disabled ? 0.5 : 1,
         };
       case 'secondary':
         return {
           ...baseStyle,
           backgroundColor: disabled ? colors.disabled : colors.secondary,
+          opacity: disabled ? 0.5 : 1,
         };
       case 'outline':
         return {
@@ -51,11 +53,13 @@ export const Button: React.FC<ButtonProps> = ({
           backgroundColor: 'transparent',
           borderWidth: 1,
           borderColor: disabled ? colors.disabled : colors.primary,
+          opacity: disabled ? 0.5 : 1,
         };
       case 'ghost':
         return {
           ...baseStyle,
           backgroundColor: 'transparent',
+          opacity: disabled ? 0.5 : 1,
         };
       default:
         return baseStyle;

@@ -1,20 +1,38 @@
 // Care Plan API service
 import { lifestyleAnswers } from "../constants/mockDb";
 
+import { apiClient } from "../utils/apiClient";
+
 export type CarePlanStatus = 'active' | 'pending' | null;
 
+export type CarePlanTask = {
+  id?: string;
+  name?: string;
+  type?: string;
+  isCompleted?: boolean;
+};
+
+export type CarePlanSession = {
+  session: string;
+  tasks: CarePlanTask[];
+};
+
 export type CarePlan = {
-  id: string;
-  status: CarePlanStatus;
-  questions?: CarePlanQuestion[];
-  currentQuestionIndex?: number;
+  date: string;
+  hasPlan: boolean;
+  sessions: CarePlanSession[];
+};
+
+export type CarePlanQuestionOption = {
+  key: string;
+  value: string;
 };
 
 export type CarePlanQuestion = {
   id: string;
   question: string;
-  options: string[];
-  type: 'single' | 'multiple';
+  options: CarePlanQuestionOption[];
+  selectionMode: 'SINGLE' | 'MULTI';
 };
 
 export type ProfileCompletion = {
@@ -37,15 +55,17 @@ export let mockProfileComplete = false;
 export const markProfileComplete = () => { mockProfileComplete = true; };
 
 /** Fetch the user's care plan. Returns null if none exists. */
-export const getCarePlan = async (accessToken: string): Promise<CarePlan | null> => {
-  await new Promise(r => setTimeout(r, 800));
-
-  if (!mockCarePlanGenerated) return null;
-
-  return {
-    id: 'plan_1',
-    status: 'active',
-  };
+export const getCarePlan = async (accessToken?: string): Promise<CarePlan | null> => {
+  try {
+    const headers = accessToken ? { authorization: `Bearer ${accessToken}` } : undefined;
+    const response = await apiClient.get('/api/care-plan/daily', { headers });
+    if (response.data && response.data.success) {
+      return response.data.data;
+    }
+  } catch (error) {
+    console.error("Failed to fetch care plan:", error);
+  }
+  return null;
 };
 
 export const getProfileCompletion = async (token: string): Promise<ProfileCompletion> => {
@@ -58,10 +78,18 @@ export const getProfileCompletion = async (token: string): Promise<ProfileComple
 
 
 
-export const submitLifestyleAnswers = async (token: string, answers: Record<string, string[]>) => {
-  await new Promise(r => setTimeout(r, 800));
-  Object.assign(lifestyleAnswers, answers);
-  return { success: true };
+export const submitLifestyleAnswers = async (token: string, answers: Record<string, string | string[]>) => {
+  try {
+    const response = await apiClient.post('/api/care-plan/lifestyle-answers', { answers }, {
+      headers: { authorization: `Bearer ${token}` }
+    });
+    if (response.data && response.data.success) {
+      return { success: true };
+    }
+  } catch (error) {
+    console.error("Failed to submit lifestyle answers:", error);
+  }
+  return { success: false };
 };
 
 /** Check whether lifestyle questions have been answered */
@@ -80,43 +108,19 @@ export const getLifestyleQuestionsStatus = async (
   };
 };
 
-/** Sample lifestyle questions (replace with API data) */
+/** Fetch lifestyle questions from API */
 export const getLifestyleQuestions = async (
   accessToken: string,
 ): Promise<CarePlanQuestion[]> => {
-  await new Promise(r => setTimeout(r, 600));
-
-  // TODO: GET /api/lifestyle-questions
-  return [
-    {
-      id: 'q1',
-      question: 'Which carbohydrate foods do you eat most often?',
-      options: ['White rice', 'Brown Rice/ Whole grains', 'White roti (chapati)', 'Whole wheat bread', 'Potatoes'],
-      type: 'single',
-    },
-    {
-      id: 'q2',
-      question: 'How often do you eat meals outside home (restaurants, takeaway)?',
-      options: ['Rarely (less than once/week)', '1–2 times per week', '3–4 times per week', 'Almost daily'],
-      type: 'single',
-    },
-    {
-      id: 'q3',
-      question: 'How often do you engage in moderate physical activity per week?',
-      options: ['Never', '1–2 days', '3–4 days', '5 or more days'],
-      type: 'single',
-    },
-    {
-      id: 'q4',
-      question: 'Do you smoke or use tobacco products?',
-      options: ['No, never', 'Yes, currently', 'Previously but quit'],
-      type: 'single',
-    },
-    {
-      id: 'q5',
-      question: 'How many hours of sleep do you get on average?',
-      options: ['Less than 5 hours', '5–6 hours', '7–8 hours', 'More than 8 hours'],
-      type: 'single',
-    },
-  ];
+  try {
+    const response = await apiClient.get('/api/care-plan/lifestyle', {
+      headers: { authorization: `Bearer ${accessToken}` }
+    });
+    if (response.data && response.data.success && response.data.data.questionnaire) {
+      return response.data.data.questionnaire.questions || [];
+    }
+  } catch (error) {
+    console.error("Failed to fetch lifestyle questions:", error);
+  }
+  return [];
 };

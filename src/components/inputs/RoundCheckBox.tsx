@@ -5,12 +5,17 @@ import { colors } from '../../theme';
 
 interface RoundCheckBoxProps {
   selected: boolean;
+  disabled?: boolean;
 }
 
-export function RoundCheckBox({ selected }: RoundCheckBoxProps) {
+export function RoundCheckBox({ selected, disabled }: RoundCheckBoxProps) {
   return (
-    <View style={[styles.radioOuter, selected && styles.radioOuterSelected]}>
-      {selected && <FontAwesome name="check" size={10} color={colors.primaryBackground} />}
+    <View style={[
+      styles.radioOuter, 
+      selected && styles.radioOuterSelected,
+      disabled && styles.radioOuterDisabled
+    ]}>
+      {selected && <FontAwesome name="check" size={10} color={disabled ? colors.textTertiary : colors.primaryBackground} />}
     </View>
   );
 }
@@ -28,5 +33,9 @@ const styles = StyleSheet.create({
   radioOuterSelected: {
     borderColor: colors.primary,
     backgroundColor: colors.primary,
+  },
+  radioOuterDisabled: {
+    borderColor: colors.border,
+    backgroundColor: colors.border,
   },
 });

@@ -78,13 +78,13 @@ export function DateStrip({ selectedDate, onSelectDate }: DateStripProps) {
               onPress={() => onSelectDate(date)}
             >
               <AppText
-              variant='semibold'
+              variant='regular'
                 style={[styles.dayName, isSelected && styles.textSelected]}
               >
                 {dayName}
               </AppText>
               <AppText
-                variant="semibold"
+                variant="medium"
                 style={[styles.dayNum, isSelected && styles.textSelected]}
               >
                 {dayNum}
@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
     marginVertical: spacing.xl,
   },
   monthYear: {
+    fontWeight: 500,
     fontSize: fontSize.lg,
     color: colors.textPrimary,
     textAlign: 'center',

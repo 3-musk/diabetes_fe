@@ -1,14 +1,4 @@
 
-
-export type HbA1cStatus = "Normal" | "Prediabetes" | "Diabetes";
-
-export type HbA1cEntry = {
-  id: string;
-  date: string;
-  value: number;
-  status: HbA1cStatus;
-};
-
 export type MedicationEntry = {
   id: string;
   category: 'Capsules' | 'Pills' | 'Liquid' | 'Others';
@@ -21,12 +11,7 @@ export type MedicationEntry = {
   time?: string;
 };
 
-export type Activity = {
-  id: string;
-  name: string;
-  durationMins: number;
-  iconName?: string;
-};
+
 
 export type LifestyleQuestion = {
   id: string;
@@ -38,20 +23,11 @@ export type LifestyleQuestion = {
 
 
 
-export const hba1cHistory: HbA1cEntry[] = [];
 
 export let medications: MedicationEntry[] = [];
 
-export const mockActivities: Record<string, Activity[]> = {
-  default: [
-    { id: '1', name: 'Running', durationMins: 30, iconName: 'person-running' },
-    { id: '2', name: 'Yoga', durationMins: 30, iconName: 'spa' },
-    { id: '3', name: 'Strength Training', durationMins: 30, iconName: 'dumbbell' },
-    { id: '4', name: 'Evening Walk', durationMins: 45, iconName: 'shoe-prints' },
-  ],
-};
 
-export const completedActivityIds: Record<string, string[]> = {};
+
 
 export const completedMedicationIds: Record<string, string[]> = {};
 

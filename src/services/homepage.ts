@@ -30,7 +30,8 @@ export const getHomeDashboardData =
               average: parseFloat(apiData.glucose.value),
               lowest: parseFloat(apiData.glucose.value),
               highest: parseFloat(apiData.glucose.value),
-            }
+            },
+            Label: apiData.glucose.Label || [],
           };
         }
 
@@ -105,6 +106,9 @@ export const getHomeDashboardData =
           dailyActivityDurationMinutes,
           hba1c,
           nutrition,
+          totalLifestyleQuestions: apiData.totalLifestyleQuestions,
+          lifestyleQuestion: apiData.lifestyleQuestion,
+          currentQuestionNumber: apiData.currentQuestionNumber,
         };
       }
     } catch (error) {

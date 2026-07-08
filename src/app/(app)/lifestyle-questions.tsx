@@ -42,11 +42,11 @@ export default function LifestyleQuestions() {
   const total    = questions.length;
   const selected = answers[q?.id] ?? [];
 
-  const toggleOption = (option: string) => {
+  const toggleOption = (optionKey: string) => {
     const prev = answers[q.id] ?? [];
-    const next = q.type === 'single'
-      ? [option]
-      : prev.includes(option) ? prev.filter(o => o !== option) : [...prev, option];
+    const next = q.selectionMode === 'SINGLE'
+      ? [optionKey]
+      : prev.includes(optionKey) ? prev.filter(o => o !== optionKey) : [...prev, optionKey];
     setAnswers(a => ({ ...a, [q.id]: next }));
   };
 
@@ -62,7 +62,19 @@ export default function LifestyleQuestions() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    await submitLifestyleAnswers(accessToken ?? '', answers);
+    
+    // Format answers for API payload based on selectionMode
+    const payloadAnswers: Record<string, string | string[]> = {};
+    for (const question of questions) {
+      const selectedKeys = answers[question.id] || [];
+      if (question.selectionMode === 'SINGLE') {
+        payloadAnswers[question.id] = selectedKeys[0] || '';
+      } else {
+        payloadAnswers[question.id] = selectedKeys;
+      }
+    }
+
+    await submitLifestyleAnswers(accessToken ?? '', payloadAnswers);
     setSubmitting(false);
     if (returnTo) {
       router.navigate(returnTo as any);
@@ -93,18 +105,18 @@ export default function LifestyleQuestions() {
           {/* Options */}
           <View style={s.options}>
             {q.options.map(option => {
-              const isSelected = selected.includes(option);
+              const isSelected = selected.includes(option.key);
               return (
                 <Pressable
-                  key={option}
+                  key={option.key}
                   style={s.option}
-                  onPress={() => toggleOption(option)}
+                  onPress={() => toggleOption(option.key)}
                 >
                   <View style={[s.radio, isSelected && s.radioSelected]}>
                     {isSelected && <View style={s.radioInner} />}
                   </View>
                   <AppText style={s.optionText}>
-                    {option}
+                    {option.value}
                   </AppText>
                 </Pressable>
               );

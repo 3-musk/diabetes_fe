@@ -17,11 +17,9 @@ import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
 import {
   getCarePlan,
-  getLifestyleQuestionsStatus,
-  getProfileCompletion,
-  type CarePlan,
-  type ProfileCompletion
+  type CarePlan
 } from '../../services/carePlanService';
+import { getUser } from '../../services/authService';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
 import { SvgIcon } from '../../utils/icon';
 
@@ -238,7 +236,6 @@ export default function CarePlanScreen() {
 
   const [screenState,      setScreenState]     = useState<ScreenState>('loading');
   const [carePlan,         setCarePlan]         = useState<CarePlan | null>(null);
-  const [profileStatus,    setProfileStatus]    = useState<ProfileCompletion | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [selectedDate,     setSelectedDate]     = useState(new Date());
 
@@ -253,27 +250,26 @@ export default function CarePlanScreen() {
 
           if (!active) return;
 
-          if (plan) {
+          if (plan && plan.hasPlan) {
             setCarePlan(plan);
             setScreenState('has_care_plan');
             return;
           }
 
-          const [profile, lifestyle] = await Promise.all([
-            getProfileCompletion(token),
-            getLifestyleQuestionsStatus(token),
-          ]);
+          const user = await getUser(token);
 
           if (!active) return;
 
-          setProfileStatus(profile);
-
-          if (!profile.isComplete) {
-            setScreenState('needs_profile');
-          } else if (!lifestyle.answered) {
-            setScreenState('needs_lifestyle');
+          if (user) {
+            if (!user.hasBmiDetails) {
+              setScreenState('needs_profile');
+            } else if (!user.hasLifestyleQuestion) {
+              setScreenState('needs_lifestyle');
+            } else {
+              setScreenState('pending');
+            }
           } else {
-            setScreenState('pending');
+            setScreenState('needs_profile');
           }
         } catch (e) {
           console.error('Care plan load error:', e);
@@ -304,7 +300,7 @@ export default function CarePlanScreen() {
   }, [screenState]);
 
   const handlePersonalisePress = () => {
-    if (!profileStatus?.isComplete) {
+    if (screenState === 'needs_profile') {
       setShowProfilePopup(true);
     } else {
       router.push({

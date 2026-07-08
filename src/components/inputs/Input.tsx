@@ -36,7 +36,7 @@ export const Input: React.FC<InputProps> = ({
       {label && (
         <View style={styles.labelContainer}>
           <AppText
-            variant="medium"
+            variant="regular"
             style={styles.label}
           >
             {label}
@@ -55,6 +55,7 @@ export const Input: React.FC<InputProps> = ({
           style={[
             styles.input,
             error && styles.inputError,
+            props.editable === false && styles.inputDisabled,
             style,
           ]}
           placeholderTextColor={colors.textLight}
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: fontSize.lg,
+    fontSize: fontSize.md,
     color: colors.textPrimary,
   },
 
@@ -111,6 +112,12 @@ const styles = StyleSheet.create({
 
   inputError: {
     borderColor: colors.error,
+  },
+
+  inputDisabled: {
+    backgroundColor: '#F9F9F9',
+    color: colors.textTertiary,
+    borderColor: '#E5E5E5',
   },
 
   errorText: {

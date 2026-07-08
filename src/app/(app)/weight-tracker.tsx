@@ -17,7 +17,7 @@ import { BmiCard } from '../../components/features/BmiCard';
 import { WeightGauge } from '../../components/features/WeightGauge';
 import DateInput from '../../components/inputs/DateInput';
 import { weightTracker as WEIGHTTRACKERCONSTANTS } from '../../constants/weightTracker';
-import { getWeightHistory, saveWeightEntry, type WeightEntry, type WeightHistory, type BmiData } from '../../services/trackerService';
+import { getWeightHistory, saveWeightEntry, type BmiData, type WeightEntry, type WeightHistory } from '../../services/trackerService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -140,7 +140,7 @@ export default function WeightTracker() {
       {/* Header */}
       <View style={s.header}>
         <BackButton color={colors.primaryBackground} />
-        <AppText variant="semibold" style={s.headerTitle}>{WEIGHTTRACKERCONSTANTS.pageTitle}</AppText>
+        <AppText variant="medium" style={s.headerTitle}>{WEIGHTTRACKERCONSTANTS.pageTitle}</AppText>
       </View>
 
       {loading ? (
@@ -234,7 +234,7 @@ export default function WeightTracker() {
 
           {/* History Card */}
           <View style={[s.card, { minHeight: SCREEN_HEIGHT * 0.55, maxHeight: SCREEN_HEIGHT }]}>
-            <AppText variant="semibold" style={s.sectionTitle}>{WEIGHTTRACKERCONSTANTS.historySectionTitle}</AppText>
+            <AppText variant="medium" style={s.sectionTitle}>{WEIGHTTRACKERCONSTANTS.historySectionTitle}</AppText>
 
             <ScrollView 
               nestedScrollEnabled={true}
@@ -253,8 +253,14 @@ export default function WeightTracker() {
                 {history.map(entry => (
                   <View key={entry.id} style={s.historyRow}>
                     <View>
-                      <AppText style={s.histDate}>{entry.date}</AppText>
-                      <AppText variant="semibold" style={s.histValue}>{entry.weightKg} {WEIGHTTRACKERCONSTANTS.kgUnitLower}</AppText>
+                      <AppText style={s.histDate}>
+                        {new Date(entry.date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </AppText>
+                      <AppText variant="regular" style={s.histValue}>{entry.weightKg} {WEIGHTTRACKERCONSTANTS.kgUnitLower}</AppText>
                     </View>
                     {entry.onTarget && (
                       <View style={s.targetBadge}>

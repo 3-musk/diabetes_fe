@@ -18,7 +18,7 @@ import {
   TrackingSummarySection,
 } from "../../components/home";
 import { useAuth } from "../../context/AuthContext";
-import { getHomeDashboardData, getLifestyleQuestions, getMedication } from "../../services/homepage";
+import { getHomeDashboardData, getMedication } from "../../services/homepage";
 import { colors, spacing } from "../../theme";
 import { UI_STRINGS } from "../../constants/uiConstants";
 
@@ -44,15 +44,23 @@ export default function Home() {
     }
 
     try {
-      const [data, medicationData, lifestyleqnaData] = await Promise.all([
+      const [data, medicationData] = await Promise.all([
         getHomeDashboardData(),
         getMedication(),
-        getLifestyleQuestions(),
       ]);
 
       setHomeData(data);
       setMedication(medicationData?.data || null);
-      setLifestyleQuestions(lifestyleqnaData?.data || null);
+      if (data && data.totalLifestyleQuestions) {
+        setLifestyleQuestions({
+          current: data.currentQuestionNumber || 1,
+          total: data.totalLifestyleQuestions || 12,
+          question: data.lifestyleQuestion || "Please answer the lifestyle questionnaire.",
+          isCompleted: data.currentQuestionNumber ? data.currentQuestionNumber > data.totalLifestyleQuestions : false,
+        });
+      } else {
+        setLifestyleQuestions(null);
+      }
       hasLoadedRef.current = true;
     } catch (error) {
       console.error("Error fetching home data:", error);
