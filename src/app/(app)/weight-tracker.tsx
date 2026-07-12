@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -67,6 +67,8 @@ export default function WeightTracker() {
   const [activeFilter, setActiveFilter] = useState<TimeFilter>('1 Month');
   const [targetWeight, setTargetWeight] = useState<number | undefined>(undefined);
   const [currentWeight, setCurrentWeight] = useState<number | undefined>(undefined);
+  const [kgToReachGoal, setKgToReachGoal] = useState<number | undefined>(undefined);
+  const [goalDirection, setGoalDirection] = useState<string | undefined>(undefined);
   const [bmi, setBmi] = useState<BmiData | undefined>(undefined);
   const [history, setHistory] = useState<WeightEntry[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -88,6 +90,8 @@ export default function WeightTracker() {
     const { from, to, range } = mapFilterToParams(filterToUse, customFrom, customTo);
     const data: WeightHistory & { hasNext?: boolean } = await getWeightHistory(from, to, range, 0, 5, true);
     setTargetWeight(data.target || undefined);
+    setKgToReachGoal(data.kgToReachGoal);
+    setGoalDirection(data.goalDirection);
     setBmi(data.bmi || undefined);
     setHistory(data.history || []);
     setHasNext(data.hasNext ?? false);
@@ -115,11 +119,13 @@ export default function WeightTracker() {
     setLoadingMore(false);
   };
 
-  useEffect(() => {
-    if (activeFilter !== 'Custom') {
-      fetchWeightData();
-    }
-  }, [activeFilter]);
+  useFocusEffect(
+    useCallback(() => {
+      if (activeFilter !== 'Custom') {
+        fetchWeightData();
+      }
+    }, [activeFilter])
+  );
 
   useEffect(() => {
     if (params.openAddModal) {
@@ -156,6 +162,17 @@ export default function WeightTracker() {
           {currentWeight ? (
             <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
               <WeightGauge current={currentWeight} target={targetWeight ?? 0} />
+
+              {kgToReachGoal !== undefined && goalDirection && goalDirection !== 'MAINTAIN' && (
+                <AppText variant="semibold" style={{ color: colors.textSecondary, marginTop: spacing.sm, fontSize: 16 }}>
+                  {kgToReachGoal} kg to {goalDirection.toLowerCase()}
+                </AppText>
+              )}
+              {goalDirection === 'MAINTAIN' && (
+                <AppText variant="semibold" style={{ color: colors.textSecondary, marginTop: spacing.sm, fontSize: 16 }}>
+                  Goal reached. Maintain weight.
+                </AppText>
+              )}
 
               {/* Current / Target chips */}
               <View style={s.chipRow}>

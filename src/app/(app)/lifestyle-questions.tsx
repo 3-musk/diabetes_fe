@@ -22,8 +22,18 @@ export default function LifestyleQuestions() {
 
   useEffect(() => {
     (async () => {
-      const qs = await getLifestyleQuestions(accessToken ?? '');
+      const { questions: qs, existingAnswers } = await getLifestyleQuestions(accessToken ?? '');
       setQuestions(qs);
+      
+      if (existingAnswers) {
+        const mappedAnswers: Record<string, string[]> = {};
+        Object.keys(existingAnswers).forEach(key => {
+          const val = existingAnswers[key];
+          mappedAnswers[key] = Array.isArray(val) ? val : [val];
+        });
+        setAnswers(mappedAnswers);
+      }
+      
       setLoading(false);
     })();
   }, []);

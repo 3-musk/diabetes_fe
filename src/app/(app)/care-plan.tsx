@@ -29,8 +29,8 @@ import { MOCK_MEAL_SLOTS, MealSlot } from '../../constants/uiConstants';
 
 // ─── Accordion slot card ──────────────────────────────────────────────────────
 
-function SlotCard({ slot }: { slot: MealSlot }) {
-  const [open, setOpen] = useState(slot.id === 'morning');
+function SlotCard({ slot, initiallyOpen }: { slot: MealSlot; initiallyOpen: boolean }) {
+  const [open, setOpen] = useState(initiallyOpen);
   const hasDetail = !!(slot.diet || slot.physicalActivity || slot.medications);
 
   return (
@@ -246,7 +246,10 @@ export default function CarePlanScreen() {
       (async () => {
         try {
           const token = accessToken ?? '';
-          const plan  = await getCarePlan(token);
+          const format = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          const dateStr = format(selectedDate);
+          setScreenState('loading');
+          const plan  = await getCarePlan(token, dateStr);
 
           if (!active) return;
 
@@ -282,7 +285,7 @@ export default function CarePlanScreen() {
       return () => {
         active = false;
       };
-    }, [accessToken])
+    }, [accessToken, selectedDate])
   );
 
   useEffect(() => {
@@ -336,6 +339,42 @@ export default function CarePlanScreen() {
 
   // ── Has care plan ──
   if (screenState === 'has_care_plan') {
+    const slots: MealSlot[] = carePlan?.sessions?.map((s) => {
+      const dietTasks = (s.tasks || []).filter(t => t.category === 'diet').map(t => t.description).join('\n\n');
+      const physicalTasks = (s.tasks || []).filter(t => t.category === 'physical_activity').map(t => t.description).join('\n\n');
+      const medTasks = (s.tasks || []).filter(t => t.category === 'medication').map(t => t.description).join('\n\n');
+
+      let icon = require('../../../assets/svgs/care_plan/morning.svg');
+      let label = 'Morning';
+      if (s.session.toLowerCase() === 'afternoon') {
+        icon = require('../../../assets/svgs/care_plan/afternoon.svg');
+        label = 'Afternoon';
+      } else if (s.session.toLowerCase() === 'evening') {
+        icon = require('../../../assets/svgs/care_plan/evening.svg');
+        label = 'Evening';
+      } else if (s.session.toLowerCase() === 'night' || s.session.toLowerCase() === 'dinner') {
+        icon = require('../../../assets/svgs/care_plan/dinner.svg');
+        label = 'Night';
+      }
+
+      return {
+        id: s.session,
+        label,
+        icon,
+        diet: dietTasks || undefined,
+        physicalActivity: physicalTasks || undefined,
+        medications: medTasks || undefined,
+      };
+    }) || [];
+
+    const activeSlotId = (() => {
+      const h = new Date().getHours();
+      if (h < 11) return 'morning';
+      if (h < 16) return 'afternoon';
+      if (h < 20) return 'evening';
+      return 'night';
+    })();
+
     return (
       <ScreenContainer edges={['top']}>
         <View style={s.pageHeader}>
@@ -350,9 +389,15 @@ export default function CarePlanScreen() {
           contentContainerStyle={[s.carePlanScroll, { paddingBottom: insets.bottom + 20 }]}
         >
           <View style={s.slotsCard}>
-            {MOCK_MEAL_SLOTS.map(slot => (
-              <SlotCard key={slot.id} slot={slot} />
-            ))}
+            {slots.map(slot => {
+              // The API may return 'night' but we map its id to 'night' or 'dinner'
+              const initiallyOpen = slot.id.toLowerCase() === activeSlotId || 
+                (activeSlotId === 'night' && slot.id.toLowerCase() === 'dinner');
+              
+              return (
+                <SlotCard key={slot.id} slot={slot} initiallyOpen={initiallyOpen} />
+              );
+            })}
           </View>
         </ScrollView>
       </ScreenContainer>

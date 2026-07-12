@@ -25,8 +25,19 @@ function getNutrientState(item: NutritionRange) {
     };
   }
 
-  const status   = NUTRITION_STATUS_CONFIG[item.status];
-  const position = NUTRITION_STATUS_GAUGE[item.status];
+  const normalizedStatus = item.status.toLowerCase() as keyof typeof NUTRITION_STATUS_CONFIG;
+  const status   = NUTRITION_STATUS_CONFIG[normalizedStatus];
+  const position = NUTRITION_STATUS_GAUGE[normalizedStatus];
+
+  if (!status || !position) {
+    return {
+      subtitle: item.status,
+      accentColor: colors.textTertiary,
+      needleAngle: null,
+      arcStartAngle: undefined,
+      arcEndAngle: undefined,
+    };
+  }
 
   return {
     subtitle: status.label,
@@ -72,7 +83,7 @@ export function NutritionSection({ data, leftBorder=true }: { data: NutritionDat
 }
 
 function getBorderLeftColor(data: NutritionData): string {
-  const statuses = Object.values(data).map(r => r.status);
+  const statuses = Object.values(data).map(r => r.status?.toLowerCase());
 
   if (statuses.some(s => s === "limit" || s === "high")) {
     return NUTRITION_STATUS_CONFIG.limit.color;

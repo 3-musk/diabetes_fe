@@ -2,10 +2,11 @@ import { FontAwesome } from "@react-native-vector-icons/fontawesome";
 export const METRICS = ["Glucose", "Meal", "Exercise", "Weight"] as const;
 
 export const GLUCOSE_FILTERS = [
-  "All",
-  "Fasting",
-  "Pre-Meal",
-  "Post-Meal",
+  "ALL",
+  "FASTING",
+  "BEFORE_MEAL",
+  "AFTER_MEAL",
+  "BEDTIME",
 ] as const;
 
 export const FREQUENCIES = ["Only Once", "Daily", "Custom"] as const;

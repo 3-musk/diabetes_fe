@@ -125,11 +125,13 @@ export const getWeightHistory = async (
     const historyRes = results[0];
     const summaryRes = fetchSummary ? results[1] : null;
     
-    let target, bmi;
+    let target, bmi, kgToReachGoal, goalDirection;
     if (summaryRes && summaryRes.data && summaryRes.data.success) {
       const summaryData = summaryRes.data.data;
-      target = summaryData?.targetWeight ?? summaryData?.target ?? undefined;
+      target = summaryData?.targetKg ?? summaryData?.targetWeight ?? summaryData?.target ?? undefined;
       bmi = summaryData?.bmi ?? undefined;
+      kgToReachGoal = summaryData?.kgToReachGoal;
+      goalDirection = summaryData?.goalDirection;
     }
 
     let mappedHistory: any[] = [];
@@ -149,13 +151,15 @@ export const getWeightHistory = async (
 
     return {
       target,
+      kgToReachGoal,
+      goalDirection,
       bmi,
       history: mappedHistory,
       hasNext,
     };
   } catch (error) {
     console.error("Error getting weight history", error);
-    return { target: undefined, bmi: undefined, history: [], hasNext: false };
+    return { target: undefined, kgToReachGoal: undefined, goalDirection: undefined, bmi: undefined, history: [], hasNext: false };
   }
 };
 

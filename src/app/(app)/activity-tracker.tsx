@@ -1,6 +1,6 @@
 import { SvgIcon } from '@/utils/icon';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddActivityModal, AppText, BackButton, Button, DateStrip, NewActivityData, RoundCheckBox, ScreenContainer } from '../../components';
@@ -35,14 +35,17 @@ export default function ActivityTracker() {
   const [hasNext, setHasNext] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  useEffect(() => {
-    loadActivities(selectedDate);
-  }, [selectedDate]);
+  useFocusEffect(
+    useCallback(() => {
+      loadActivities(selectedDate);
+    }, [selectedDate])
+  );
 
   const loadActivities = async (date: Date, isLoadMore = false) => {
     if (!isLoadMore) {
       setLoading(true);
       setPage(0);
+      setSelectedActivityIds(new Set());
     } else {
       if (!hasNext || loadingMore) return;
       setLoadingMore(true);

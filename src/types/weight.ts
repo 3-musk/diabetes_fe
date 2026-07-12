@@ -20,6 +20,8 @@ export type BmiData = {
 
 export type WeightHistory = {
   target?: number;
+  kgToReachGoal?: number;
+  goalDirection?: string;
   bmi?: BmiData;
   history: WeightEntry[];
 };

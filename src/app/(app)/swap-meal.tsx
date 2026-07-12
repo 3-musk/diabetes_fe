@@ -94,10 +94,20 @@ export default function SwapMealScreen() {
 
     setLoading(true);
     const data = await getSwapMealOptions(activeDate, activeSlotId, mealId);
+    if (!data) {
+      router.replace({
+        pathname: ROUTES.appMealImpact as any,
+        params: {
+          slotId: activeSlotId,
+          date: activeDate,
+        },
+      });
+      return;
+    }
     setSwapData(data);
-    setSelectedOptionId(data?.options[0]?.id ?? null);
+    setSelectedOptionId(data.options[0]?.id ?? null);
     setLoading(false);
-  }, [activeDate, activeSlotId, mealId]);
+  }, [activeDate, activeSlotId, mealId, router]);
 
   useEffect(() => {
     loadSwapOptions();

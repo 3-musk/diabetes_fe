@@ -1,10 +1,9 @@
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { LineChart as GiftedLineChart } from 'react-native-gifted-charts';
+import { BarChart as GiftedBarChart } from 'react-native-gifted-charts';
 import { colors, spacing } from '../../theme';
 
-export interface LineChartProps {
+export interface BarChartProps {
   data: number[];
-  displayDataPoints?: boolean;
   labels: string[];
   yAxisLabels: number[];
   optimalRange?: [number, number]; // [min, max]
@@ -14,48 +13,49 @@ export interface LineChartProps {
   dataPointLabels?: string[];
 }
 
-export function LineChart({
+export function BarChart({
   data,
   labels,
   yAxisLabels,
   height = 200,
   width: propWidth,
-  color = '#4CAF50',
-  displayDataPoints = true,
+  color = colors.primary,
   dataPointLabels,
-}: LineChartProps) {
+}: BarChartProps) {
   const { width: screenWidth } = useWindowDimensions();
   const containerWidth = propWidth || screenWidth - spacing.xl * 2 - 40;
 
   // Sticky Y-axis dimensions
   const yAxisLabelWidth = 40;
-  const xAxisLabelsHeight = 60;
-  const yAxisExtraHeight = 10; // small top padding
+  const xAxisLabelsHeight = 30;
+  const yAxisExtraHeight = 10;
 
-  // Scrollable area width (excludes sticky y-axis)
+  // Scrollable area (excludes sticky y-axis)
   const scrollAreaWidth = containerWidth - yAxisLabelWidth;
 
-  const pointSpacing = 60;
+  const barWidth = 32;
+  const barSpacing = 32;
   const initialSpacing = 16;
   const endSpacing = 30;
 
-  // Natural content width (no y-axis — we render it ourselves)
-  const contentWidth = initialSpacing + (data.length - 1) * pointSpacing + endSpacing;
+  // Natural content width (no y-axis)
+  const contentWidth = initialSpacing + data.length * (barWidth + barSpacing) + endSpacing;
   const chartInnerWidth = Math.max(scrollAreaWidth, contentWidth);
 
   // Format data for gifted-charts
   const chartData = data.map((val, index) => ({
     value: val,
     label: labels[index] || '',
-    dataPointText: '',
+    topLabelComponent: () => null,
     customLabel: dataPointLabels ? dataPointLabels[index] : '',
+    frontColor: color,
   }));
 
   const maxY = Math.max(...(yAxisLabels.length ? yAxisLabels : [100]));
   const noOfSections = yAxisLabels.length > 1 ? yAxisLabels.length - 1 : 1;
   const stepValue = maxY / noOfSections;
 
-  // Build sorted Y labels from bottom to top for rendering top→bottom
+  // Sorted top→bottom for rendering
   const sortedYLabels = [...yAxisLabels].sort((a, b) => b - a);
 
   return (
@@ -86,23 +86,21 @@ export function LineChart({
         bounces={false}
       >
         <View style={styles.container}>
-          <GiftedLineChart
+          <GiftedBarChart
             data={chartData}
             height={height}
             width={chartInnerWidth}
             maxValue={maxY}
             noOfSections={noOfSections}
             stepValue={stepValue}
-            // Hide the built-in y-axis — we render our own sticky one
+            // Hide built-in y-axis — we render our own sticky one
             yAxisLabelWidth={0}
             hideYAxisText={true}
             yAxisColor="transparent"
-            color={color}
-            thickness={2}
-            dataPointsColor={color}
-            dataPointsRadius={displayDataPoints ? 4 : 0}
-            textFontSize={10}
-            textColor={colors.textSecondary}
+            barWidth={barWidth}
+            spacing={barSpacing}
+            roundedTop
+            roundedBottom={false}
             xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 10, textAlign: 'left' }}
             yAxisTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
             rulesType="solid"
@@ -118,39 +116,28 @@ export function LineChart({
             yAxisExtraHeight={yAxisExtraHeight}
             initialSpacing={initialSpacing}
             endSpacing={endSpacing}
-            spacing={pointSpacing}
             isAnimated={true}
             animationDuration={600}
-            pointerConfig={{
-              pointerStripUptoDataPoint: true,
-              pointerStripColor: 'rgba(0,0,0,0.2)',
-              pointerStripWidth: 2,
-              strokeDashArray: [2, 5],
-              pointerColor: color,
-              radius: 6,
-              pointerLabelWidth: 80,
-              pointerLabelHeight: 30,
-              pointerLabelComponent: (items: any) => {
-                return (
-                  <View
-                    style={{
-                      width: 80,
-                      backgroundColor: '#333',
-                      paddingHorizontal: 6,
-                      paddingVertical: 4,
-                      borderRadius: 6,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginTop: -30,
-                      marginLeft: -40,
-                    }}
-                  >
-                    <Text style={{ color: 'white', fontSize: 10, textAlign: 'center' }}>
-                      {items[0]?.customLabel || ''}
-                    </Text>
-                  </View>
-                );
-              },
+            renderTooltip={(item: any) => {
+              return (
+                <View
+                  style={{
+                    width: 80,
+                    backgroundColor: '#333',
+                    paddingHorizontal: 6,
+                    paddingVertical: 4,
+                    borderRadius: 6,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginTop: -30,
+                    marginLeft: -10,
+                  }}
+                >
+                  <Text style={{ color: 'white', fontSize: 10, textAlign: 'center' }}>
+                    {item.customLabel || ''}
+                  </Text>
+                </View>
+              );
             }}
           />
         </View>

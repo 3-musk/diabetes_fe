@@ -195,13 +195,15 @@ export default function AddMealScreen() {
     setAddingItem(true);
     try {
       const calories = Math.round(searchResult.calories * pieces / Math.max(searchResult.pieces, 1));
+      const currentMealId = selection.length > 0 ? selection[0].mealId : undefined;
       const items = await addMealItem(activeDate, activeSlotId, {
         name: searchResult.name,
         calories,
         imageUri: searchResult.imageUri,
         portionType,
         pieces,
-      });
+        foodMasterId: searchResult.id,
+      }, currentMealId);
       setSelection(items);
       setDescription('');
       setSearchResult(null);

@@ -67,10 +67,20 @@ export default function MealImpactScreen() {
   const loadImpact = useCallback(async () => {
     setLoading(true);
     const data = await getMealImpact(activeDate, activeSlotId);
+    if (!data) {
+      router.replace({
+        pathname: ROUTES.appAddMeal as any,
+        params: {
+          slotId: activeSlotId,
+          date: activeDate,
+        },
+      });
+      return;
+    }
     setImpact(data);
     setSelectedMeals(data.selectedMeals);
     setLoading(false);
-  }, [activeDate, activeSlotId]);
+  }, [activeDate, activeSlotId, router]);
 
   useFocusEffect(
     useCallback(() => {
@@ -209,9 +219,6 @@ export default function MealImpactScreen() {
               <View style={styles.suggestionContent}>
                 <AppText variant="medium" style={styles.suggestionTitle}>
                   {suggestion.title}
-                </AppText>
-                <AppText style={styles.suggestionPeak}>
-                  {mealImpactTexts.predictedPeak} - {suggestion.predictedPeak} {mealImpactTexts.mgDlUnit}
                 </AppText>
               </View>
               {suggestion.withinTarget && (

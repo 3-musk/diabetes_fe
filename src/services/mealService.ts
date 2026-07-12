@@ -31,25 +31,7 @@ export const createEmptyNutrition = (): NutritionData => ({
   addedSugar: { ...EMPTY_RANGE },
 });
 
-type FoodCatalogItem = {
-  id: string;
-  name: string;
-  calories: number;
-  portionType: MealPortionType;
-  pieces: number;
-  imageUri: string;
-};
-
-const FOOD_CATALOG: FoodCatalogItem[] = [
-  { id: 'idly', name: 'Idly', calories: 160, portionType: 'count', pieces: 2, imageUri: 'https://images.unsplash.com/photo-1589302167528-5dd771b2263f?w=120&h=120&fit=crop' },
-  { id: 'white-rice', name: 'White Rice', calories: 165, portionType: 'volume', pieces: 1, imageUri: 'https://images.unsplash.com/photo-1516684732162-798a0062be99?w=120&h=120&fit=crop' },
-  { id: 'oats', name: 'Oats', calories: 280, portionType: 'volume', pieces: 1, imageUri: 'https://images.unsplash.com/photo-1517673400267-0251441c45ba?w=120&h=120&fit=crop' },
-  { id: 'banana', name: 'Banana', calories: 105, portionType: 'count', pieces: 1, imageUri: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=120&h=120&fit=crop' },
-  { id: 'dal', name: 'Dal', calories: 180, portionType: 'volume', pieces: 1, imageUri: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=120&h=120&fit=crop' },
-  { id: 'chicken', name: 'Grilled Chicken', calories: 220, portionType: 'count', pieces: 1, imageUri: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=120&h=120&fit=crop' },
-  { id: 'salad', name: 'Green Salad', calories: 90, portionType: 'volume', pieces: 1, imageUri: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=120&h=120&fit=crop' },
-  { id: 'coffee', name: 'Coffee', calories: 45, portionType: 'volume', pieces: 1, imageUri: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=120&h=120&fit=crop' },
-];
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=120&h=120&fit=crop';
 
 const DEFAULT_RECOMMENDATIONS: Record<MealSlotId, string[]> = {
   breakfast: ['Omelet + Coffee + Banana'],
@@ -90,6 +72,12 @@ const selectionSessions: Record<string, MealSelectionItem[]> = {};
 
 const sessionKey = (dateKey: string, slotId: MealSlotId) => `${dateKey}:${slotId}`;
 
+/** Clear all in-memory meal data — call this on logout */
+export const clearMealCache = () => {
+  Object.keys(mealsByDate).forEach(k => delete mealsByDate[k]);
+  Object.keys(selectionSessions).forEach(k => delete selectionSessions[k]);
+};
+
 const buildDayMeals = (date: Date): DayMealsResponse => {
   const dateKey = formatDateKey(date);
 
@@ -115,23 +103,7 @@ const recalculateConsumed = (day: DayMealsResponse) => {
   );
 };
 
-const toSelectionItem = (food: FoodCatalogItem, pieces?: number): MealSelectionItem => ({
-  id: `${food.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-  name: food.name,
-  calories: Math.round(food.calories * (pieces ?? food.pieces) / food.pieces),
-  imageUri: food.imageUri,
-  portionType: food.portionType,
-  pieces: pieces ?? food.pieces,
-});
 
-const findFoodMatches = (query: string) => {
-  const normalized = query.trim().toLowerCase();
-  if (!normalized) return [];
-
-  return FOOD_CATALOG.filter(food =>
-    food.name.toLowerCase().includes(normalized)
-  );
-};
 
 export const getMealsByDate = async (date: Date): Promise<DayMealsResponse> => {
   const dateKey = formatDateKey(date);
@@ -179,6 +151,7 @@ export const getMealsByDate = async (date: Date): Promise<DayMealsResponse> => {
       const mapSlotName = (name: string): MealSlotId => {
         const lower = name.toLowerCase();
         if (lower === 'snack') return 'evening';
+        if (lower === 'afternoon') return 'lunch';
         return lower as MealSlotId;
       };
 
@@ -191,13 +164,23 @@ export const getMealsByDate = async (date: Date): Promise<DayMealsResponse> => {
             ...defaultSlot,
             recommendedCalories: apiSlot.recommendedCalories ?? defaultSlot.recommendedCalories,
             recommendations: apiSlot.recommendationLabel ? [apiSlot.recommendationLabel] : [],
-            loggedMeals: (apiSlot.loggedMeals || []).map((lm: any) => ({
-              id: lm.id || Date.now().toString(),
-              name: lm.name || '',
-              calories: lm.calories || 0,
-              timeLabel: lm.timeLabel || '',
-              approxCal: lm.approxCal || lm.calories || 0,
-            })),
+            loggedMeals: (apiSlot.loggedMeals || []).map((lm: any) => {
+              let timeLabel = lm.timeLabel || '';
+              if (lm.loggedAt) {
+                 const d = new Date(lm.loggedAt);
+                 if (!isNaN(d.getTime())) {
+                   timeLabel = `${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} - ${apiSlot.mealTypeName || defaultSlot.label}`;
+                 }
+              }
+              
+              return {
+                id: lm.mealId || lm.id || Date.now().toString(),
+                name: lm.description || lm.name || '',
+                calories: lm.approxCalories || lm.calories || 0,
+                timeLabel,
+                approxCal: lm.approxCalories || lm.approxCal || lm.calories || 0,
+              };
+            }),
           };
         }
         return defaultSlot;
@@ -253,52 +236,101 @@ export const uploadMealImage = async (
 ): Promise<MealSelectionItem[]> => {
   await delay(900);
   const key = sessionKey(dateKey, slotId);
-  const detected = [FOOD_CATALOG[0], FOOD_CATALOG[1]].map(food => toSelectionItem(food));
-  selectionSessions[key] = [...(selectionSessions[key] ?? []), ...detected];
-  return [...selectionSessions[key]];
+  return [...(selectionSessions[key] ?? [])];
 };
 
 export const searchMealsContinuous = async (
   query: string
 ): Promise<MealSearchSuggestion[]> => {
-  await delay(250);
-  return findFoodMatches(query).map(food => ({
-    id: food.id,
-    name: food.name,
-  }));
+  if (!query || query.trim() === '') return [];
+  try {
+    const res = await apiClient.get(`/api/meals/search?query=${encodeURIComponent(query.trim())}`);
+    if (res.data?.success && res.data?.data) {
+       return res.data.data.map((item: any) => ({
+         id: item.id,
+         name: item.name,
+         portionType: item.portionType
+       }));
+    }
+  } catch (err) {
+    console.warn('Search meals error', err);
+  }
+  return [];
 };
 
 export const searchMealFinal = async (query: string): Promise<MealSearchResult | null> => {
-  await delay(500);
-  const matches = findFoodMatches(query);
-  if (matches.length === 0) return null;
-
-  const exact = matches.find(food => food.name.toLowerCase() === query.trim().toLowerCase());
-  const food = exact ?? matches[0];
-
-  return {
-    id: food.id,
-    name: food.name,
-    calories: food.calories,
-    portionType: food.portionType,
-    pieces: food.pieces,
-    imageUri: food.imageUri,
-  };
+  if (!query || query.trim() === '') return null;
+  try {
+    const res = await apiClient.post(`/api/meals/ai-lookup?query=${encodeURIComponent(query.trim())}`);
+    if (res.data?.success && res.data?.data) {
+       const food = res.data.data;
+       return {
+         id: food.id,
+         name: food.name,
+         calories: food.calories || 0,
+         portionType: (food.portionType?.toLowerCase() === 'ml' || food.portionType?.toLowerCase() === 'grams' || food.portionType?.toLowerCase() === 'volume') ? 'volume' : 'count',
+         pieces: food.pieces || 1,
+         imageUri: food.imageUri || FALLBACK_IMAGE,
+       };
+    }
+  } catch(err: any) {
+    console.warn('AI lookup error', err.message || err);
+    if (err.response?.data?.message) {
+      Alert.alert('Search', err.response.data.message);
+    }
+  }
+  return null;
 };
 
 export const addMealItem = async (
   dateKey: string,
   slotId: MealSlotId,
-  item: Omit<MealSelectionItem, 'id'>
+  item: Omit<MealSelectionItem, 'id'>,
+  currentMealId?: string
 ): Promise<MealSelectionItem[]> => {
-  await delay(300);
-  const key = sessionKey(dateKey, slotId);
-  const newItem: MealSelectionItem = {
-    ...item,
-    id: `${item.name}-${Date.now()}`,
-  };
-  selectionSessions[key] = [...(selectionSessions[key] ?? []), newItem];
-  return [...selectionSessions[key]];
+  try {
+    const mealTypeIdMap: Record<MealSlotId, string> = {
+      breakfast: '1',
+      lunch: '2',
+      evening: '4',
+      dinner: '3',
+    };
+    
+    const formData = new FormData();
+    formData.append('mealTypeId', mealTypeIdMap[slotId] || '1');
+    formData.append('foodMasterId', item.foodMasterId || '');
+    formData.append('quantity', String(item.pieces || 1));
+    formData.append('mealId', currentMealId || '');
+
+    const res = await apiClient.post('/api/meals/add-meal-item', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    if (res.data?.success && Array.isArray(res.data.data)) {
+      const items: MealSelectionItem[] = res.data.data.map((apiItem: any) => ({
+        id: apiItem.mealItemId,
+        name: apiItem.name,
+        calories: apiItem.calories,
+        foodMasterId: apiItem.foodMasterId,
+        mealId: apiItem.mealId,
+        pieces: apiItem.quantity,
+        portionType: item.portionType, // Carry over UI portion type
+        imageUri: item.imageUri || FALLBACK_IMAGE, // Carry over UI image
+      }));
+      const key = sessionKey(dateKey, slotId);
+      selectionSessions[key] = items;
+      return items;
+    }
+  } catch (err: any) {
+    console.warn('Error adding meal item', err.message || err);
+    if (err.response?.data?.message) {
+      Alert.alert('Meals', err.response.data.message);
+    }
+  }
+  
+  return [];
 };
 
 export const removeMealSelectionItem = async (
@@ -306,348 +338,301 @@ export const removeMealSelectionItem = async (
   slotId: MealSlotId,
   itemId: string
 ): Promise<MealSelectionItem[]> => {
-  await delay(150);
   const key = sessionKey(dateKey, slotId);
-  selectionSessions[key] = (selectionSessions[key] ?? []).filter(item => item.id !== itemId);
-  return [...selectionSessions[key]];
+  try {
+    const res = await apiClient.delete(`/api/meals/delete-meal-item?itemId=${encodeURIComponent(itemId)}`);
+    if (res.data?.success) {
+      selectionSessions[key] = (selectionSessions[key] ?? []).filter(item => item.id !== itemId);
+    } else {
+      if (res.data?.message) {
+        Alert.alert('Delete failed', res.data.message);
+      }
+    }
+  } catch (err: any) {
+    console.warn('Error deleting meal item', err.message || err);
+    if (err.response?.data?.message) {
+      Alert.alert('Delete Error', err.response.data.message);
+    }
+  }
+  return [...(selectionSessions[key] ?? [])];
 };
 
 export const saveMealSession = async (
   dateKey: string,
   slotId: MealSlotId
 ): Promise<DayMealsResponse> => {
-  await delay(500);
-  const date = parseDateKey(dateKey);
-  const day = buildDayMeals(date);
-  const slot = day.slots.find(item => item.id === slotId);
   const selection = selectionSessions[sessionKey(dateKey, slotId)] ?? [];
-
-  if (!slot) {
-    return getMealsByDate(date);
+  const date = parseDateKey(dateKey);
+  
+  if (selection.length > 0) {
+    const mealId = selection[0].mealId;
+    if (mealId) {
+      try {
+        const payload = {
+          mealId: mealId,
+          loggedAt: new Date().toISOString(), // Use current timestamp in ISO format
+        };
+        const res = await apiClient.post('/api/meals/save-meal', payload);
+        if (!res.data?.success && res.data?.message) {
+          Alert.alert('Save Meal Error', res.data.message);
+        }
+      } catch (err: any) {
+        console.warn('Error saving meal session', err.message || err);
+        if (err.response?.data?.message) {
+          Alert.alert('Save Meal Error', err.response.data.message);
+        }
+      }
+    }
   }
 
-  const now = new Date();
-  const timeLabel = `${now.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  })} - ${slot.label}`;
-
-  selection.forEach(item => {
-    const loggedMeal: LoggedMeal = {
-      id: item.id,
-      name: item.name,
-      calories: item.calories,
-      timeLabel,
-      approxCal: item.calories,
-    };
-    slot.loggedMeals.push(loggedMeal);
-  });
-
-  recalculateConsumed(day);
+  // Clear local session cache
   selectionSessions[sessionKey(dateKey, slotId)] = [];
-
+  
+  // Re-fetch the daily summary so the dashboard updates
   return getMealsByDate(date);
 };
 
-const ALTERNATIVE_SWAPS: Record<string, FoodCatalogItem[]> = {
-  'white-rice': [
-    {
-      id: 'brown-rice',
-      name: 'Brown Rice',
-      calories: 133,
-      portionType: 'volume',
-      pieces: 1,
-      imageUri: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=120&h=120&fit=crop',
-    },
-    {
-      id: 'cauliflower-rice',
-      name: 'Cauliflower Rice',
-      calories: 165,
-      portionType: 'volume',
-      pieces: 1,
-      imageUri: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=120&h=120&fit=crop',
-    },
-    FOOD_CATALOG.find(f => f.id === 'oats')!,
-  ],
-  idly: [
-    FOOD_CATALOG.find(f => f.id === 'dal')!,
-    FOOD_CATALOG.find(f => f.id === 'oats')!,
-    FOOD_CATALOG.find(f => f.id === 'salad')!,
-  ],
-  oats: [
-    FOOD_CATALOG.find(f => f.id === 'salad')!,
-    FOOD_CATALOG.find(f => f.id === 'banana')!,
-    FOOD_CATALOG.find(f => f.id === 'dal')!,
-  ],
-  dal: [
-    FOOD_CATALOG.find(f => f.id === 'chicken')!,
-    FOOD_CATALOG.find(f => f.id === 'salad')!,
-    FOOD_CATALOG.find(f => f.id === 'oats')!,
-  ],
-};
 
-const PEAK_GLUCOSE_BY_FOOD: Record<string, number> = {
-  'white-rice': 154,
-  'brown-rice': 121,
-  'cauliflower-rice': 118,
-  oats: 132,
-  idly: 142,
-  dal: 125,
-  salad: 108,
-  chicken: 115,
-  banana: 130,
-};
-
-type NutrientProfile = {
-  carbs: string;
-  fiber: string;
-  calories: string;
-  protein: string;
-};
-
-const NUTRIENT_PROFILE_BY_FOOD: Record<string, NutrientProfile> = {
-  'white-rice': { carbs: '28g', fiber: '0.0g', calories: '165 kcl', protein: '3.0g' },
-  'brown-rice': { carbs: '24g', fiber: '1.8g', calories: '133 kcl', protein: '3.0g' },
-  'cauliflower-rice': { carbs: '5g', fiber: '2.0g', calories: '165 kcl', protein: '2.0g' },
-  oats: { carbs: '27g', fiber: '4.0g', calories: '280 kcl', protein: '10.0g' },
-  idly: { carbs: '30g', fiber: '1.2g', calories: '160 kcl', protein: '4.0g' },
-  dal: { carbs: '18g', fiber: '5.0g', calories: '180 kcl', protein: '9.0g' },
-  salad: { carbs: '6g', fiber: '3.0g', calories: '90 kcl', protein: '2.0g' },
-  chicken: { carbs: '0g', fiber: '0.0g', calories: '220 kcl', protein: '35.0g' },
-  banana: { carbs: '27g', fiber: '3.0g', calories: '105 kcl', protein: '1.0g' },
-};
-
-const WEEKLY_GLUCOSE_CURVES: Record<string, number[]> = {
-  'white-rice': [95, 120, 154, 140, 125, 110, 100],
-  'brown-rice': [90, 105, 121, 115, 105, 98, 92],
-  'cauliflower-rice': [88, 98, 118, 110, 100, 94, 90],
-  oats: [92, 110, 132, 125, 115, 105, 98],
-  idly: [100, 125, 142, 135, 120, 110, 102],
-  dal: [90, 108, 125, 118, 108, 100, 95],
-  salad: [85, 95, 108, 102, 96, 90, 88],
-  chicken: [88, 100, 115, 110, 102, 96, 90],
-  banana: [92, 112, 130, 122, 112, 104, 98],
-};
-
-const DEFAULT_NUTRIENT_PROFILE: NutrientProfile = {
-  carbs: '28g',
-  fiber: '0.0g',
-  calories: '294 kcl',
-  protein: '0.0g',
-};
-
-const getNutrientProfile = (foodId: string) =>
-  NUTRIENT_PROFILE_BY_FOOD[foodId] ?? DEFAULT_NUTRIENT_PROFILE;
-
-const findFoodIdByName = (name: string) =>
-  FOOD_CATALOG.find(f => f.name === name)?.id
-  ?? Object.values(ALTERNATIVE_SWAPS).flat().find(f => f.name === name)?.id;
-
-const findSwapFoodById = (foodId: string): FoodCatalogItem | undefined => {
-  const catalogMatch = FOOD_CATALOG.find(f => f.id === foodId);
-  if (catalogMatch) return catalogMatch;
-
-  for (const options of Object.values(ALTERNATIVE_SWAPS)) {
-    const match = options.find(f => f.id === foodId);
-    if (match) return match;
-  }
-
-  return undefined;
-};
-
-const getSelectionOrDemo = (dateKey: string, slotId: MealSlotId): MealSelectionItem[] => {
-  const key = sessionKey(dateKey, slotId);
-  const selection = selectionSessions[key] ?? [];
-  if (selection.length > 0) return selection;
-
-  const demo = [FOOD_CATALOG[1], FOOD_CATALOG[0]].map(food => toSelectionItem(food));
-  selectionSessions[key] = demo;
-  return demo;
-};
-
-const calcCalorieChangePercent = (currentCalories: number, altCalories: number) => {
-  if (currentCalories === 0) return null;
-  const percent = Math.round(((altCalories - currentCalories) / currentCalories) * 100);
-  return percent === 0 ? null : percent;
-};
 
 export const getMealImpact = async (
   dateKey: string,
   slotId: MealSlotId
-): Promise<MealImpactResponse> => {
-  await delay(700);
+): Promise<MealImpactResponse | null> => {
+  const key = sessionKey(dateKey, slotId);
+  const sourceItems = selectionSessions[key] ?? [];
+  const mealId = sourceItems.length > 0 ? sourceItems[0].mealId : null;
 
-  const sourceItems = getSelectionOrDemo(dateKey, slotId);
+  if (mealId) {
+    try {
+      const res = await apiClient.post(`/api/meals/${mealId}/impact`, null, {
+        timeout: 60000 // High timeout because AI processing takes longer
+      });
+      if (res.data?.success && res.data?.data) {
+        const data = res.data.data;
+        const mealImpact = data.mealImpact;
+        
+        const glucoseCurveKeys = Object.keys(mealImpact.glucoseCurve).sort((a,b) => Number(a) - Number(b));
+        const glucoseData = glucoseCurveKeys.map(k => mealImpact.glucoseCurve[k]);
+        
+        const suggestions = mealImpact.recommendations.map((rec: string, index: number) => ({
+          id: `rec-${index}`,
+          title: rec,
+          icon: 'leaf',
+          predictedPeak: mealImpact.peakGlucose,
+          statusLabel: mealImpact.isSpiking ? 'Action needed' : 'Within target range',
+          withinTarget: !mealImpact.isSpiking,
+        }));
 
-  const selectedMeals = sourceItems.map(item => ({
-    id: item.id,
-    name: item.name,
-    calories: item.calories,
-    imageUri: item.imageUri,
-  }));
+        return {
+          selectedMeals: sourceItems.map((item) => ({
+            id: item.id,
+            name: item.name,
+            calories: item.calories,
+            imageUri: item.imageUri,
+          })),
+          glucoseCurve: {
+            data: glucoseData,
+            labels: glucoseCurveKeys,
+            yAxisLabels: [0, 100, 200, 300, 400],
+          },
+          peakGlucose: mealImpact.peakGlucose,
+          peakGlucoseUnit: 'mg/dl',
+          timeToPeak: String(mealImpact.timeToPeak / 60),
+          warningMessage: mealImpact.isSpiking ? 'This meal may spike your Glucose above your target range' : null,
+          suggestions,
+          suggestionsFooter: 'meal simulation page- While these actions help, you might still feel hungry with smaller portions. Swap ingredients to stay full and keep your glucose stable.',
+        };
+      }
+    } catch (err: any) {
+      console.warn('Error fetching meal impact', err.message || err);
+      const message = err.response?.data?.message || err.message || 'Service Unavailable';
+      Alert.alert('Impact Error', message);
+      return null;
+    }
+  }
 
-  return {
-    selectedMeals,
-    glucoseCurve: {
-      data: [95, 110, 130, 154, 148, 132, 118, 105],
-      labels: ['0', '30', '60', '90', '120', '150', '180', '210'],
-      yAxisLabels: [0, 100, 200, 300, 400],
-    },
-    peakGlucose: 154,
-    peakGlucoseUnit: 'mg/dl',
-    timeToPeak: '1.5',
-    warningMessage: 'This meal may spike your Glucose above your target range',
-    suggestions: [
-      {
-        id: 'walk',
-        title: '15 min walk after eating',
-        icon: 'male',
-        predictedPeak: 135,
-        statusLabel: 'Within target range',
-        withinTarget: true,
-      },
-      {
-        id: 'portion',
-        title: 'Try to smaller portion',
-        icon: 'cutlery',
-        predictedPeak: 135,
-        statusLabel: 'Within target range',
-        withinTarget: true,
-      },
-    ],
-    suggestionsFooter:
-      'meal simulation page- While these actions help, you might still feel hungry with smaller portions. Swap ingredients to stay full and keep your glucose stable.',
-  };
+  return null;
 };
 
 export const getSwapMealOptions = async (
   dateKey: string,
   slotId: MealSlotId,
-  mealId: string
+  mealItemId: string
 ): Promise<SwapMealResponse | null> => {
-  await delay(500);
+  const key = sessionKey(dateKey, slotId);
+  const sourceItems = selectionSessions[key] ?? [];
+  const parentMealId = sourceItems.length > 0 ? sourceItems[0].mealId : null;
+  const currentItem = sourceItems.find(item => item.id === mealItemId);
 
-  const sourceItems = getSelectionOrDemo(dateKey, slotId);
-  const currentItem = sourceItems.find(item => item.id === mealId);
-  if (!currentItem) return null;
+  if (!parentMealId || !currentItem) {
+    return null;
+  }
 
-  const foodKey = findFoodIdByName(currentItem.name);
-  const alternatives = foodKey && ALTERNATIVE_SWAPS[foodKey]
-    ? ALTERNATIVE_SWAPS[foodKey]
-    : [FOOD_CATALOG[6], FOOD_CATALOG[2], FOOD_CATALOG[4]];
+  try {
+    const res = await apiClient.post(`/api/meals/${parentMealId}/swap`, null, {
+      timeout: 60000
+    });
+    if (res.data?.success && res.data?.data) {
+      const allSwaps = res.data.data;
+      const match = allSwaps.find((s: any) => s.mealItemId === mealItemId);
+      if (match && match.alternatives) {
+        return {
+          currentMeal: {
+            id: currentItem.id,
+            name: currentItem.name,
+            calories: currentItem.calories,
+            imageUri: currentItem.imageUri,
+          },
+          options: match.alternatives.map((alt: any, index: number) => ({
+            id: `alt-${index}-${alt.name}`, // Fallback ID since API doesn't provide foodMasterId for alts
+            name: alt.name,
+            calories: alt.calories,
+            imageUri: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=120&h=120&fit=crop',
+            calorieChangePercent: alt.calorieDeltaPercent ?? null,
+            // We can also store extra data like peakGlucose if needed later
+          })),
+        };
+      }
+    }
+  } catch (err: any) {
+    console.warn('Error fetching swap options', err.message || err);
+    const message = err.response?.data?.message || err.message || 'Service Unavailable';
+    Alert.alert('Swap Error', message);
+  }
 
-  return {
-    currentMeal: {
-      id: currentItem.id,
-      name: currentItem.name,
-      calories: currentItem.calories,
-      imageUri: currentItem.imageUri,
-    },
-    options: alternatives.map(alt => ({
-      id: alt.id,
-      name: alt.name,
-      calories: alt.calories,
-      imageUri: alt.imageUri,
-      calorieChangePercent: calcCalorieChangePercent(currentItem.calories, alt.calories),
-    })),
-  };
+  return null;
 };
 
 export const saveMealSwap = async (
   dateKey: string,
   slotId: MealSlotId,
-  mealId: string,
+  mealItemId: string,
   alternativeId: string
 ): Promise<void> => {
-  await delay(400);
-
   const key = sessionKey(dateKey, slotId);
-  const session = selectionSessions[key] ?? getSelectionOrDemo(dateKey, slotId);
-  const index = session.findIndex(item => item.id === mealId);
-  const altFood = findSwapFoodById(alternativeId);
+  const session = selectionSessions[key] ?? [];
+  const parentMealId = session.length > 0 ? session[0].mealId : null;
+  const index = session.findIndex(item => item.id === mealItemId);
 
-  if (index === -1 || !altFood) return;
+  if (index === -1 || !parentMealId) return;
 
-  const existing = session[index];
-  session[index] = {
-    ...existing,
-    name: altFood.name,
-    calories: altFood.calories,
-    imageUri: altFood.imageUri,
-    portionType: altFood.portionType,
-    pieces: altFood.pieces,
-  };
-  selectionSessions[key] = [...session];
+  const swapWithName = alternativeId.replace(/^alt-\d+-/, '');
+
+  try {
+    const payload = {
+      mealItemId,
+      swapWith: swapWithName
+    };
+    const res = await apiClient.put(`/api/meals/${parentMealId}/save-swap`, payload);
+    
+    if (res.data?.success) {
+      const existing = session[index];
+      session[index] = {
+        ...existing,
+        name: swapWithName,
+      };
+      selectionSessions[key] = [...session];
+    } else if (res.data?.message) {
+       Alert.alert('Save Swap Failed', res.data.message);
+    }
+  } catch (err: any) {
+    console.warn('Error saving meal swap', err.message || err);
+    Alert.alert('Swap Error', err.response?.data?.message || err.message);
+  }
 };
 
 export const getMealCompare = async (
   dateKey: string,
   slotId: MealSlotId,
-  mealId: string,
+  mealItemId: string,
   alternativeId: string
 ): Promise<MealCompareResponse | null> => {
-  await delay(500);
+  const key = sessionKey(dateKey, slotId);
+  const sourceItems = selectionSessions[key] ?? [];
+  const parentMealId = sourceItems.length > 0 ? sourceItems[0].mealId : null;
+  const currentItem = sourceItems.find(item => item.id === mealItemId);
 
-  const sourceItems = getSelectionOrDemo(dateKey, slotId);
-  const currentItem = sourceItems.find(item => item.id === mealId);
-  if (!currentItem) return null;
+  if (!parentMealId || !currentItem) {
+    return null;
+  }
 
-  const alternative = findSwapFoodById(alternativeId);
-  if (!alternative) return null;
+  const swapWithName = alternativeId.replace(/^alt-\d+-/, '');
 
-  const currentFoodId = findFoodIdByName(currentItem.name) ?? 'white-rice';
-  const originalPeak = PEAK_GLUCOSE_BY_FOOD[currentFoodId] ?? 150;
-  const newPeak = PEAK_GLUCOSE_BY_FOOD[alternative.id] ?? 130;
-  const originalNutrients = getNutrientProfile(currentFoodId);
-  const optimizedNutrients = getNutrientProfile(alternative.id);
-  const weekLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  try {
+    const payload = {
+      mealItemId,
+      swapWith: swapWithName
+    };
+    const res = await apiClient.post(`/api/meals/${parentMealId}/compare`, payload, {
+      timeout: 60000
+    });
 
-  return {
-    finalizedMealName: alternative.name,
-    swappedFromLabel: `Swapped from ${currentItem.name.toLowerCase()}`,
-    newPeakGlucose: newPeak,
-    originalPeakGlucose: originalPeak,
-    peakImprovement: originalPeak - newPeak,
-    nutrients: [
-      {
-        label: 'Carbs',
-        original: originalNutrients.carbs,
-        optimized: optimizedNutrients.carbs,
-      },
-      {
-        label: 'Fiber',
-        original: originalNutrients.fiber,
-        optimized: optimizedNutrients.fiber,
-      },
-      {
-        label: 'Calories',
-        original: originalNutrients.calories,
-        optimized: optimizedNutrients.calories,
-      },
-      {
-        label: 'Protein',
-        original: originalNutrients.protein,
-        optimized: optimizedNutrients.protein,
-      },
-      {
-        label: 'Peak Glucose',
-        original: `${originalPeak} mg/dl`,
-        optimized: `${newPeak} mg/dl`,
-      },
-    ],
-    glucoseComparison: {
-      labels: weekLabels,
-      yAxisLabels: [0, 100, 200, 300, 400],
-      original: {
-        data: WEEKLY_GLUCOSE_CURVES[currentFoodId] ?? WEEKLY_GLUCOSE_CURVES['white-rice'],
-        color: '#7B5EA7',
-        legendLabel: currentItem.name,
-      },
-      optimized: {
-        data: WEEKLY_GLUCOSE_CURVES[alternative.id] ?? WEEKLY_GLUCOSE_CURVES['brown-rice'],
-        color: '#4CAF50',
-        legendLabel: alternative.name,
-      },
-    },
-  };
+    if (res.data?.success && res.data?.data) {
+      const data = res.data.data;
+      const original = data.originalMealItem;
+      const optimized = data.optimisedMealItem;
+
+      if (!original || !optimized) {
+        throw new Error('Comparison data is incomplete. Please try another alternative.');
+      }
+
+      const originalCurveKeys = Object.keys(original.glucoseCurve).sort((a,b) => Number(a) - Number(b));
+      const optimizedCurveKeys = Object.keys(optimized.glucoseCurve).sort((a,b) => Number(a) - Number(b));
+
+      return {
+        finalizedMealName: optimized.name,
+        swappedFromLabel: `Swapped from ${original.name.toLowerCase()}`,
+        newPeakGlucose: optimized.peakGlucose,
+        originalPeakGlucose: original.peakGlucose,
+        peakImprovement: data.improvementMgDl,
+        nutrients: [
+          {
+            label: 'Carbs',
+            original: `${original.nutrients.carbs}g`,
+            optimized: `${optimized.nutrients.carbs}g`,
+          },
+          {
+            label: 'Fiber',
+            original: `${original.nutrients.fiber}g`,
+            optimized: `${optimized.nutrients.fiber}g`,
+          },
+          {
+            label: 'Calories',
+            original: `${original.nutrients.calories} kcal`,
+            optimized: `${optimized.nutrients.calories} kcal`,
+          },
+          {
+            label: 'Protein',
+            original: `${original.nutrients.protein}g`,
+            optimized: `${optimized.nutrients.protein}g`,
+          },
+          {
+            label: 'Peak Glucose',
+            original: `${original.peakGlucose} mg/dl`,
+            optimized: `${optimized.peakGlucose} mg/dl`,
+          },
+        ],
+        glucoseComparison: {
+          labels: originalCurveKeys, // Use minutes from curve keys e.g. "0", "30", "60"
+          yAxisLabels: [0, 100, 200, 300, 400],
+          original: {
+            data: originalCurveKeys.map(k => original.glucoseCurve[k]),
+            color: '#7B5EA7',
+            legendLabel: original.name,
+          },
+          optimized: {
+            data: optimizedCurveKeys.map(k => optimized.glucoseCurve[k]),
+            color: '#4CAF50',
+            legendLabel: optimized.name,
+          },
+        },
+      };
+    }
+  } catch (err: any) {
+    console.warn('Error fetching meal compare', err.message || err);
+    const message = err.response?.data?.message || err.message || 'Service Unavailable';
+    Alert.alert('Compare Error', message);
+  }
+
+  return null;
 };

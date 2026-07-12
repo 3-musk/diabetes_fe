@@ -36,12 +36,20 @@ export const getHomeDashboardData =
         }
 
         // 2. Weight
-        let weightKg = null;
+        let weightKg: Record<string, number> | null = null;
         if (apiData.weightKg !== null && apiData.weightKg !== undefined) {
-          weightKg = {
-            current: typeof apiData.weightKg === 'object' ? (apiData.weightKg.current !== null ? parseFloat(apiData.weightKg.current) : null) : parseFloat(apiData.weightKg),
-            target: typeof apiData.weightKg === 'object' ? (apiData.weightKg.target !== null ? parseFloat(apiData.weightKg.target) : undefined) : undefined,
-          };
+          const w: Record<string, number> = {};
+          if (typeof apiData.weightKg === 'object') {
+            if (apiData.weightKg.current !== null && apiData.weightKg.current !== undefined) {
+              w.current = parseFloat(apiData.weightKg.current);
+            }
+            if (apiData.weightKg.target !== null && apiData.weightKg.target !== undefined) {
+              w.target = parseFloat(apiData.weightKg.target);
+            }
+          } else {
+            w.current = parseFloat(apiData.weightKg);
+          }
+          weightKg = w;
         }
 
         // 3. Meals
@@ -134,24 +142,34 @@ export const getMedication = async (): Promise<{
   try {
     const response = await apiClient.get('/api/medications');
     if (response.data && response.data.success && response.data.data) {
-      const list = (response.data.data || []).map((med: any) => {
-        let icon: IconName = "medkit";
-        if (med.category === "Pills") icon = "circle-o";
-        else if (med.category === "Liquid") icon = "flask";
-        else if (med.category === "Others") icon = "user-md";
+      const dataObj = response.data.data;
+      const carePlanMeds = dataObj.carePlan || [];
+      const userAddedMeds = dataObj.userAdded || [];
+      const combined = [...carePlanMeds, ...userAddedMeds];
 
-        let dose = med.strength || med.dose || '';
-        if (med.isSystemGenerated && med.time) {
-          dose += ` . ${med.time}`;
+      const list = combined.map((med: any) => {
+        let icon: IconName = "medkit";
+        if (med.category === "PILLS" || med.category === "Pills") icon = "circle-o";
+        else if (med.category === "LIQUID" || med.category === "Liquid") icon = "flask";
+        else if (med.category === "OTHERS" || med.category === "Others") icon = "user-md";
+
+        let dose = med.strength || med.dosageStrength || med.dose || '';
+        const isSystemGenerated = med.source === 'CARE_PLAN' || med.source === 'CAREPLAN';
+        
+        if (isSystemGenerated && (med.session || med.time)) {
+          const timeStr = med.session || med.time;
+          // Capitalize first letter (e.g. NIGHT -> Night, BEFORE_BREAKFAST -> Before_breakfast)
+          const formattedTime = timeStr.charAt(0).toUpperCase() + timeStr.slice(1).toLowerCase().replace('_', ' ');
+          dose += ` . ${formattedTime}`;
         }
 
         return {
-          id: med.id,
+          id: med.id || med.key,
           name: med.medName || med.name || '',
           dose,
           icon,
-          isSystemGenerated: !!med.isSystemGenerated,
-          isTaken: !!med.isTaken,
+          isSystemGenerated,
+          isTaken: !!med.consumed || !!med.isTaken,
         };
       });
       return { data: list };

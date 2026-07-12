@@ -96,7 +96,8 @@ function CompareGlucoseChart({ data }: { data: MealCompareResponse['glucoseCompa
           yAxisColor={colors.border}
           xAxisColor={colors.border}
           initialSpacing={16}
-          endSpacing={16}
+          endSpacing={30}
+          spacing={60}
           isAnimated
           animationDuration={600}
         />
@@ -148,9 +149,13 @@ export default function MealCompareScreen() {
 
     setLoading(true);
     const data = await getMealCompare(activeDate, activeSlotId, mealId, alternativeId);
+    if (!data) {
+      goBackToSwapMeal();
+      return;
+    }
     setCompareData(data);
     setLoading(false);
-  }, [activeDate, activeSlotId, mealId, alternativeId]);
+  }, [activeDate, activeSlotId, mealId, alternativeId, goBackToSwapMeal]);
 
   useEffect(() => {
     loadCompare();

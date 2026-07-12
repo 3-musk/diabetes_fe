@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -163,9 +163,11 @@ export default function Hba1cTracker() {
     setLoadingMore(false);
   };
 
-  useEffect(() => {
-    fetchHba1cData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchHba1cData();
+    }, [])
+  );
   
   useEffect(() => {
     if (params.openAddModal) {

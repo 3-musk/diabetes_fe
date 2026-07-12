@@ -1,6 +1,4 @@
 // Care Plan API service
-import { lifestyleAnswers } from "../constants/mockDb";
-
 import { apiClient } from "../utils/apiClient";
 
 export type CarePlanStatus = 'active' | 'pending' | null;
@@ -10,6 +8,8 @@ export type CarePlanTask = {
   name?: string;
   type?: string;
   isCompleted?: boolean;
+  category?: string;
+  description?: string;
 };
 
 export type CarePlanSession = {
@@ -55,10 +55,11 @@ export let mockProfileComplete = false;
 export const markProfileComplete = () => { mockProfileComplete = true; };
 
 /** Fetch the user's care plan. Returns null if none exists. */
-export const getCarePlan = async (accessToken?: string): Promise<CarePlan | null> => {
+export const getCarePlan = async (accessToken?: string, date?: string): Promise<CarePlan | null> => {
   try {
     const headers = accessToken ? { authorization: `Bearer ${accessToken}` } : undefined;
-    const response = await apiClient.get('/api/care-plan/daily', { headers });
+    const dateParam = date || new Date().toISOString().split('T')[0];
+    const response = await apiClient.get(`/api/care-plan/daily?date=${dateParam}`, { headers });
     if (response.data && response.data.success) {
       return response.data.data;
     }
@@ -97,30 +98,30 @@ export const getLifestyleQuestionsStatus = async (
   accessToken: string,
 ): Promise<LifestyleQuestionsStatus> => {
   await new Promise(r => setTimeout(r, 400));
-
-  const totalQuestions = 5;
-  const answeredCount = Object.keys(lifestyleAnswers).length;
-
   return {
-    answered: answeredCount >= totalQuestions,
-    totalAnswered: answeredCount,
-    totalQuestions: totalQuestions,
+    answered: true,
+    totalAnswered: 5,
+    totalQuestions: 5,
   };
 };
 
 /** Fetch lifestyle questions from API */
 export const getLifestyleQuestions = async (
   accessToken: string,
-): Promise<CarePlanQuestion[]> => {
+): Promise<{ questions: CarePlanQuestion[], existingAnswers: Record<string, string | string[]> }> => {
   try {
     const response = await apiClient.get('/api/care-plan/lifestyle', {
       headers: { authorization: `Bearer ${accessToken}` }
     });
-    if (response.data && response.data.success && response.data.data.questionnaire) {
-      return response.data.data.questionnaire.questions || [];
+    if (response.data && response.data.success && response.data.data) {
+      const { questionnaire, lifestyleAnswers } = response.data.data;
+      return {
+        questions: questionnaire?.questions || [],
+        existingAnswers: lifestyleAnswers?.answers || {}
+      };
     }
   } catch (error) {
     console.error("Failed to fetch lifestyle questions:", error);
   }
-  return [];
+  return { questions: [], existingAnswers: {} };
 };

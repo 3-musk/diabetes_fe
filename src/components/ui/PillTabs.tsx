@@ -35,7 +35,7 @@ export function PillTabs<T extends string>({
                 isActive ? styles.textActive : styles.textInactive,
               ]}
             >
-              {option}
+              {option.replace(/_/g, ' ').replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())}
             </AppText>
           </Pressable>
         );

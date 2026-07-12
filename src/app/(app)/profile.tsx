@@ -5,7 +5,7 @@ import { BackHandler, ScrollView, StyleSheet, TouchableOpacity, View } from "rea
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText, BackButton, Button, Input, ScreenContainer } from "../../components";
 import { markProfileComplete } from "../../services/carePlanService";
-import { getUser } from "../../services/authService";
+import { getUser, updateUser } from "../../services/authService";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
 import { profileTexts } from "../../constants/profile";
 
@@ -19,8 +19,8 @@ export default function Profile() {
   const [email, setEmail] = useState('');
   const [yob, setYob] = useState('');
   const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
-  const [bmi, setBmi] = useState('');
+  const [targetWeight, setTargetWeight] = useState('');
+  const [diagnosisYear, setDiagnosisYear] = useState('');
   const [gender, setGender] = useState('');
   const [showGender, setShowGender] = useState(false);
 
@@ -33,13 +33,8 @@ export default function Profile() {
           setEmail(user.email || '');
           setYob(user.yearOfBirth ? String(user.yearOfBirth) : '');
           setHeight(user.heightCm ? String(user.heightCm) : '');
-          setWeight(user.currentWeightKg ? String(user.currentWeightKg) : '');
-          
-          if (user.heightCm && user.currentWeightKg) {
-            const hM = user.heightCm / 100;
-            const b = user.currentWeightKg / (hM * hM);
-            setBmi(b.toFixed(1));
-          }
+          setTargetWeight(user.targetWeightKg ? String(user.targetWeightKg) : '');
+          setDiagnosisYear(user.diagnosisYear ? String(user.diagnosisYear) : '');
           
           if (user.gender) {
             if (user.gender.toUpperCase() === 'MALE') setGender(profileTexts.male);
@@ -64,7 +59,22 @@ export default function Profile() {
     }
   }, [router, returnTo]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setLoading(true);
+    let mappedGender = gender;
+    if (gender === profileTexts.male) mappedGender = 'MALE';
+    else if (gender === profileTexts.female) mappedGender = 'FEMALE';
+    
+    await updateUser({
+      name,
+      email,
+      yearOfBirth: yob ? parseInt(yob) : undefined,
+      diagnosisYear: diagnosisYear ? parseInt(diagnosisYear) : undefined,
+      targetWeightKg: targetWeight ? parseFloat(targetWeight) : undefined,
+      gender: mappedGender
+    });
+    setLoading(false);
+    
     markProfileComplete();
     handleBack();
   };
@@ -108,7 +118,6 @@ export default function Profile() {
           required
           value={email}
           onChangeText={setEmail}
-          editable={false}
           containerStyle={styles.inputContainer}
         />
         <Input
@@ -130,21 +139,21 @@ export default function Profile() {
           containerStyle={styles.inputContainer}
         />
         <Input
-          label={profileTexts.weightLabel}
+          label={profileTexts.targetWeightLabel}
           placeholder={profileTexts.enterDetails}
           required
           keyboardType="decimal-pad"
-          value={weight}
-          onChangeText={(val) => setWeight(val.replace(/[^0-9.]/g, ''))}
+          value={targetWeight}
+          onChangeText={(val) => setTargetWeight(val.replace(/[^0-9.]/g, ''))}
           containerStyle={styles.inputContainer}
         />
         <Input
-          label={profileTexts.bmiLabel}
+          label={profileTexts.diagnosisYearLabel}
           placeholder={profileTexts.enterDetails}
           required
-          keyboardType="decimal-pad"
-          value={bmi}
-          onChangeText={(val) => setBmi(val.replace(/[^0-9.]/g, ''))}
+          keyboardType="numeric"
+          value={diagnosisYear}
+          onChangeText={(val) => setDiagnosisYear(val.replace(/[^0-9]/g, ''))}
           containerStyle={styles.inputContainer}
         />
 

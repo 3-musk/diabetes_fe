@@ -39,6 +39,8 @@ export type MealSelectionItem = {
   imageUri?: string;
   portionType?: MealPortionType;
   pieces?: number;
+  foodMasterId?: string;
+  mealId?: string;
 };
 
 export type MealSearchSuggestion = {

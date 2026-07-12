@@ -110,9 +110,9 @@ export default function Home() {
             <GlucoseSummarySection data={homeData?.glucose || null} />
             <NutritionSection data={homeData?.nutrition || null} />
             <TrackingSummarySection
-              meals={homeData?.meals}
-              weightKg={homeData?.weightKg}
-              activityMinutes={homeData?.dailyActivityDurationMinutes}
+              meals={homeData?.meals ?? undefined}
+              weightKg={homeData?.weightKg ?? undefined}
+              activityMinutes={homeData?.dailyActivityDurationMinutes ?? undefined}
             />
             <Hba1cSection data={homeData?.hba1c || null} />
             <LifestyleQuestionSection data={lifestyleQuestions || null} />

@@ -12,6 +12,7 @@ import {
     CreateUserRequest
 } from '../services/authService';
 import { getSubscription } from '../services/subscriptionService';
+import { clearMealCache } from '../services/mealService';
 
 interface AuthContextType {
     isLoggedIn: boolean;
@@ -327,8 +328,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const logout = async () => {
         try {
-            if (accessToken) {
-                await apiLogout(accessToken);
+            if (refreshToken) {
+                await apiLogout(refreshToken);
             }
 
             await Promise.all([
@@ -343,6 +344,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 secureStorage.removeItem(STORAGE_KEYS.userData),
                 secureStorage.removeItem(STORAGE_KEYS.subscriptionPlan),
             ]);
+
+            // Clear in-memory caches so stale data doesn't persist
+            clearMealCache();
 
             // Reset all state
             setUserPhoneNumber(null);

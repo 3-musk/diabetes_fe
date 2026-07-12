@@ -52,6 +52,8 @@ export interface User {
   yearOfBirth?: number;
   heightCm?: number;
   currentWeightKg?: number;
+  targetWeightKg?: number;
+  diagnosisYear?: number;
   age?: number;
   isRegistered: boolean;
   isFirstTimeUser: boolean;
@@ -255,6 +257,8 @@ export const getUser = async (accessToken?: string): Promise<User | null> => {
         yearOfBirth: u.yearOfBirth,
         heightCm: u.heightCm,
         currentWeightKg: u.currentWeightKg,
+        targetWeightKg: u.targetWeightKg,
+        diagnosisYear: u.diagnosisYear,
         isRegistered: !!u.name,
         isFirstTimeUser,
         isSubscriptionActive,
@@ -270,6 +274,19 @@ export const getUser = async (accessToken?: string): Promise<User | null> => {
     console.error('Error fetching user profile from API:', error);
   }
   return null;
+};
+
+export const updateUser = async (userData: any): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const response = await apiClient.put('/api/user/update', userData);
+    if (response.data && response.data.success) {
+      return { success: true };
+    }
+    return { success: false, message: response.data?.message || 'Update failed' };
+  } catch (error) {
+    console.error('Error updating user:', error);
+    return { success: false, message: 'Update failed' };
+  }
 };
 
 // Refresh access token
@@ -288,17 +305,19 @@ export const refreshAccessToken = async (refreshToken: string): Promise<{ access
 };
 
 // Logout
-export const logout = async (accessToken: string): Promise<{ success: boolean }> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  // TODO: Replace with actual API call
-  // API: POST /api/auth/logout
-  // Headers: { Authorization: `Bearer ${accessToken}` }
-  
-  return {
-    success: true,
-  };
+export const logout = async (refreshToken: string): Promise<{ success: boolean }> => {
+  try {
+    await apiClient.post('/api/auth/logout', null, {
+      headers: {
+        Authorization: `Bearer ${refreshToken}`,
+      },
+    });
+  } catch (err) {
+    // Even if the API call fails (e.g. token already expired), we still
+    // clear local data so the user is logged out on-device.
+    console.warn('Logout API error (ignoring):', err);
+  }
+  return { success: true };
 };
 
 // Alias for backward compatibility

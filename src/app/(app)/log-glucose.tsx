@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TextInput,
   View,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -288,7 +289,7 @@ export default function LogGlucose() {
       if (statusUpper === "CRITICAL" || statusUpper === "EMERGENCY") {
         setCriticalText(response.guidelines?.escalation || "");
         setCriticalModalVisible(true);
-      } else if (statusUpper === "HIGH_RISK" || statusUpper === "MODERATE") {
+      } else if (statusUpper === "HIGH_RISK") {
         setModalType(response.guidelines?.type === "HYPO" ? "low" : "high");
         setModalGuidelines(response.guidelines);
         setModalShowRecheck(response.showRecheckOption);
@@ -297,8 +298,9 @@ export default function LogGlucose() {
         // NORMAL or anything else
         router.replace(ROUTES.appHome as any);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save glucose reading:", error);
+      Alert.alert("Error", error?.response?.data?.message || error?.message || "Failed to save reading");
     } finally {
       setSubmitting(false);
     }
