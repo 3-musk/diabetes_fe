@@ -319,6 +319,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 await Promise.all([
                     secureStorage.setItem(STORAGE_KEYS.isFirstTimeUser, userProfile.isFirstTimeUser ? 'true' : 'false'),
                     secureStorage.setItem(STORAGE_KEYS.isSubscriptionActive, userProfile.isSubscriptionActive ? 'true' : 'false'),
+                    secureStorage.setItem(STORAGE_KEYS.userData, JSON.stringify(userProfile)),
                 ]);
             }
         } catch (error) {

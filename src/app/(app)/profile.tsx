@@ -70,6 +70,7 @@ export default function Profile() {
       email,
       yearOfBirth: yob ? parseInt(yob) : undefined,
       diagnosisYear: diagnosisYear ? parseInt(diagnosisYear) : undefined,
+      heightCm: height ? parseFloat(height) : undefined,
       targetWeightKg: targetWeight ? parseFloat(targetWeight) : undefined,
       gender: mappedGender
     });

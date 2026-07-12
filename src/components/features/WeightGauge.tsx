@@ -33,6 +33,8 @@ export function WeightGauge({ current, target }: WeightGaugeProps) {
     const dotDeg = 0 + ratio * 180;
     const dot = arc(dotDeg);
 
+    const arrowChar = current < target ? '↑ ' : '↓ ';
+
     return (
         <View style={{
             alignItems: 'center',
@@ -57,7 +59,7 @@ export function WeightGauge({ current, target }: WeightGaugeProps) {
                 />
                 {/* Progress */}
                 <Path
-                    d={`M ${start.x} ${start.y} A ${r} ${r} 0 ${ratio > 0.5 ? 1 : 0} 1 ${dot.x} ${dot.y}`}
+                    d={`M ${start.x} ${start.y} A ${r} ${r} 0 0 1 ${dot.x} ${dot.y}`}
                     stroke="url(#gaugeGrad)"
                     strokeWidth={8}
                     fill="none"
@@ -75,7 +77,7 @@ export function WeightGauge({ current, target }: WeightGaugeProps) {
             </Svg>
             <View style={gaugeS.center}>
                 <View style={gaugeS.valueRow}>
-                    <AppText style={gaugeS.arrowIcon}>↓ </AppText>
+                    <AppText style={gaugeS.arrowIcon}>{arrowChar}</AppText>
                     <AppText variant="semibold" style={gaugeS.gapText}>
                         {gap.toFixed(1)}
                     </AppText>

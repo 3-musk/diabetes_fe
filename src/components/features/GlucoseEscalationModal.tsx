@@ -1,5 +1,5 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { glucose as GLUCOSECONSTANTS } from '../../constants/glucose';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
@@ -89,44 +89,22 @@ export function GlucoseEscalationModal({
           mg/dl
         </AppText>
       </View>
-      <View style={[styles.headerSection, { backgroundColor: headerBg }]}>
-        {/* Range Bar */}
-        <View style={styles.rangeContainer}>
-          <View style={styles.rangeBar}>
-            <View style={[styles.rangeSegment, { backgroundColor: '#FF3B30', flex: isHigh ? 1 : 1.5 }]} />
-            <View style={[styles.rangeSegment, { backgroundColor: '#FF9500', flex: 1 }]} />
-            <View style={[styles.rangeSegment, { backgroundColor: '#34C759', flex: isHigh ? 2 : 4 }]} />
-            <View style={[styles.rangeSegment, { backgroundColor: '#FF3B30', flex: isHigh ? 1.5 : 1 }]} />
-            
-            {/* Thumb Indicator */}
-            <View style={[
-              styles.rangeThumb, 
-              { left: isHigh ? '85%' : '15%' } // Approximate thumb position
-            ]} />
-          </View>
-          <View style={styles.rangeLabels}>
-            <AppText style={styles.rangeLabelText}>{GLUCOSECONSTANTS.criticalPrefix} {isHigh ? '54' : '40'}</AppText>
-            <AppText style={styles.rangeLabelText}>{GLUCOSECONSTANTS.lowPrefix} {isHigh ? '70' : '54'}</AppText>
-            <AppText style={styles.rangeLabelText}>{GLUCOSECONSTANTS.highPrefix} {isHigh ? '' : '> 250'}</AppText>
-          </View>
-        </View>
-      </View>
 
       {/* Bottom Content Section */}
       <View style={styles.contentSection}>
-        {guidelines?.immediateAction && guidelines.immediateAction.length > 0 && (
-          <View style={styles.gridContainer}>
-            {guidelines.immediateAction.map((action, idx) => (
-              <View key={idx} style={styles.gridCard}>
-                <FontAwesome name={getFaIcon(action.icon)} size={20} color={colors.textPrimary} style={styles.cardIcon} />
-                <AppText variant='medium' style={styles.cardTitle}>{action.title}</AppText>
-                <AppText style={styles.cardSubTitle}>{action.shortText}</AppText>
-              </View>
-            ))}
-          </View>
-        )}
-
-        <View style={{ flex: 1 }} />
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+          {guidelines?.immediateAction && guidelines.immediateAction.length > 0 && (
+            <View style={styles.gridContainer}>
+              {guidelines.immediateAction.map((action, idx) => (
+                <View key={idx} style={styles.gridCard}>
+                  <FontAwesome name={getFaIcon(action.icon)} size={20} color={colors.textPrimary} style={styles.cardIcon} />
+                  <AppText variant='medium' style={styles.cardTitle}>{action.title}</AppText>
+                  <AppText style={styles.cardSubTitle}>{action.shortText}</AppText>
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
 
         {showRecheckOption && (
           <Pressable style={styles.recheckBtn} onPress={onRecheck}>

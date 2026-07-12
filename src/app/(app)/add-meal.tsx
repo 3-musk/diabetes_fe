@@ -1,9 +1,11 @@
+import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -140,14 +142,63 @@ export default function AddMealScreen() {
     return () => clearTimeout(timeout);
   }, [description, suggestionsEnabled]);
 
-  const handleTakePicture = async () => {
+  const processImage = async (uri: string) => {
     setUploadingImage(true);
     try {
-      const items = await uploadMealImage('mock-image-uri', activeDate, activeSlotId);
+      const items = await uploadMealImage(uri, activeDate, activeSlotId);
       setSelection(items);
+    } catch (e) {
+      console.warn('Image processing failed', e);
     } finally {
       setUploadingImage(false);
     }
+  };
+
+  const handleTakePicture = async () => {
+    Alert.alert(
+      'Upload Meal Image',
+      'Choose an option',
+      [
+        {
+          text: 'Take Photo',
+          onPress: async () => {
+            const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+            if (permissionResult.granted === false) {
+              alert(addMealTexts.missingDetailsAlertTitle, 'You need to allow camera access to take a picture.');
+              return;
+            }
+            const result = await ImagePicker.launchCameraAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              quality: 0.8,
+            });
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+              await processImage(result.assets[0].uri);
+            }
+          }
+        },
+        {
+          text: 'Choose from Gallery',
+          onPress: async () => {
+            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (permissionResult.granted === false) {
+              alert(addMealTexts.missingDetailsAlertTitle, 'You need to allow gallery access to choose a picture.');
+              return;
+            }
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              quality: 0.8,
+            });
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+              await processImage(result.assets[0].uri);
+            }
+          }
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        }
+      ]
+    );
   };
 
   const applySearchResult = (result: MealSearchResult) => {

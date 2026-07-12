@@ -230,11 +230,65 @@ export const getMealSelection = async (
 };
 
 export const uploadMealImage = async (
-  _imageUri: string,
+  imageUri: string,
   dateKey: string,
   slotId: MealSlotId
 ): Promise<MealSelectionItem[]> => {
-  await delay(900);
+  try {
+    const mealTypeIdMap: Record<MealSlotId, string> = {
+      breakfast: '1',
+      lunch: '2',
+      evening: '4',
+      dinner: '3',
+    };
+    
+    const formData = new FormData();
+    formData.append('mealTypeId', mealTypeIdMap[slotId] || '1');
+    
+    const filename = imageUri.split('/').pop() || 'upload.jpg';
+    const type = filename.toLowerCase().endsWith('png') ? 'image/png' : 'image/jpeg';
+    
+    formData.append('image', {
+      uri: imageUri,
+      name: filename,
+      type,
+    } as any);
+
+    const key = sessionKey(dateKey, slotId);
+    const existingSession = selectionSessions[key] ?? [];
+    const currentMealId = existingSession.length > 0 ? existingSession[0].mealId : '';
+    if (currentMealId) {
+      formData.append('mealId', currentMealId);
+    }
+
+    const res = await apiClient.post('/api/meals/add-meal-item', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 60000,
+    });
+
+    if (res.data?.success && Array.isArray(res.data.data)) {
+      const items: MealSelectionItem[] = res.data.data.map((apiItem: any) => ({
+        id: apiItem.mealItemId,
+        name: apiItem.name,
+        calories: apiItem.calories,
+        foodMasterId: apiItem.foodMasterId,
+        mealId: apiItem.mealId,
+        pieces: apiItem.quantity,
+        portionType: 'count', // default fallback
+        imageUri: imageUri,
+      }));
+      selectionSessions[key] = items;
+      return items;
+    }
+  } catch (err: any) {
+    console.warn('Error uploading meal image', err.message || err);
+    if (err.response?.data?.message) {
+      Alert.alert('Upload Error', err.response.data.message);
+    }
+  }
+  
   const key = sessionKey(dateKey, slotId);
   return [...(selectionSessions[key] ?? [])];
 };
@@ -523,7 +577,9 @@ export const saveMealSwap = async (
       mealItemId,
       swapWith: swapWithName
     };
-    const res = await apiClient.put(`/api/meals/${parentMealId}/save-swap`, payload);
+    const res = await apiClient.put(`/api/meals/${parentMealId}/save-swap`, payload, {
+      timeout: 60000
+    });
     
     if (res.data?.success) {
       const existing = session[index];

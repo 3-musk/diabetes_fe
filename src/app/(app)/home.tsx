@@ -23,7 +23,7 @@ import { colors, spacing } from "../../theme";
 import { UI_STRINGS } from "../../constants/uiConstants";
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, refreshAuth } = useAuth();
   const insets = useSafeAreaInsets();
   const firstName = user?.name?.split(" ")[0] || "User";
   const hasLoadedRef = useRef(false);
@@ -44,6 +44,9 @@ export default function Home() {
     }
 
     try {
+      // Refresh user profile in the background on every dashboard visit
+      refreshAuth().catch(err => console.warn('User refresh failed:', err));
+
       const [data, medicationData] = await Promise.all([
         getHomeDashboardData(),
         getMedication(),
