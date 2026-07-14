@@ -10,4 +10,5 @@ export const STORAGE_KEYS = {
   userData: "userData",
   subscriptionPlan: "subscriptionPlan",
   deviceId: "deviceId",
+  fcmToken: "fcmToken",
 } as const;

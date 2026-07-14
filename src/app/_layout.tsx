@@ -12,7 +12,7 @@ import { APP_PATHS, ROUTES } from "../constants/routes";
 import { AlertProvider } from "../context/AlertContext";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { borderRadius, colors, fontSize, fontWeight, spacing } from "../theme";
-import { checkMaintenanceMode } from "../utils/deviceAndConfig";
+import { checkMaintenanceMode, fetchAndStoreFCMToken } from "../utils/deviceAndConfig";
 
 // Prevent splash screen from hiding automatically
 SplashScreen.preventAutoHideAsync();
@@ -173,6 +173,7 @@ function RootLayoutNav() {
 export default function RootLayout() {
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(colors.background);
+    fetchAndStoreFCMToken();
   }, []);
 
   return (

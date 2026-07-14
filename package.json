@@ -8,6 +8,7 @@
     "@react-native-community/datetimepicker": "9.1.0",
     "@react-native-firebase/app": "^24.0.0",
     "@react-native-firebase/crashlytics": "^24.0.0",
+    "@react-native-firebase/messaging": "^24.0.0",
     "@react-native-firebase/remote-config": "^24.0.0",
     "@react-native-vector-icons/fontawesome": "^13.1.2",
     "axios": "^1.18.1",

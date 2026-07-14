@@ -31,6 +31,7 @@ export interface CreateUserRequest {
   aiAnalysisConsent: boolean;
   heightCm: number;
   targetWeightKg: number;
+  fcmToken?: string;
 }
 
 export interface CreateUserResponse {
@@ -150,6 +151,7 @@ export const resendOtp = async (phoneNumber: string): Promise<LoginResponse> => 
 // Verify OTP
 export const verifyOtp = async (verificationId: string, otp: string): Promise<VerifyOtpResponse> => {
   const rawPhone = await secureStorage.getItem(STORAGE_KEYS.userPhoneNumber) || '';
+  const fcmToken = await secureStorage.getItem(STORAGE_KEYS.fcmToken) || '';
   const formattedPhone = formatPhoneNumber(rawPhone);
 
   try {
@@ -157,6 +159,7 @@ export const verifyOtp = async (verificationId: string, otp: string): Promise<Ve
       otpToken: verificationId,
       otp: otp,
       phoneNumber: formattedPhone,
+      fcmToken: fcmToken,
     });
 
     const result = response.data;
@@ -207,7 +210,13 @@ export const createUser = async (
   userData: CreateUserRequest
 ): Promise<CreateUserResponse> => {
   try {
-    const response = await apiClient.post('/api/user/register', userData, {
+    const fcmToken = await secureStorage.getItem(STORAGE_KEYS.fcmToken) || '';
+    const payload = {
+      ...userData,
+      fcmToken,
+    };
+
+    const response = await apiClient.post('/api/user/register', payload, {
       headers: {
         authorization: `Bearer ${accessToken}`,
       },

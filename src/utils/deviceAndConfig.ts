@@ -1,3 +1,4 @@
+import messaging from '@react-native-firebase/messaging';
 import remoteConfig, {
   fetchAndActivate,
   getValue,
@@ -120,5 +121,26 @@ export const checkMaintenanceMode = async (): Promise<boolean> => {
     console.error('Error checking maintenance mode from Remote Config:', error);
     // If Remote Config fails and we have no base URL, treat it as under maintenance (no fallback URL)
     return true;
+  }
+};
+
+// Helper to fetch and store FCM token
+export const fetchAndStoreFCMToken = async (): Promise<void> => {
+  try {
+    // Request permission (required for iOS, does nothing on Android)
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    if (enabled) {
+      const token = await messaging().getToken();
+      if (token) {
+        await secureStorage.setItem(STORAGE_KEYS.fcmToken, token);
+        console.log('FCM Token generated and stored');
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching FCM token:', error);
   }
 };
