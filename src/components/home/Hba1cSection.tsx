@@ -2,9 +2,9 @@ import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from "react-native";
 import { HBA1C_COLORS, HBA1C_STRINGS } from "../../constants/hba1cConfig";
 import { ROUTES } from "../../constants/routes";
+import { useFeatureAccess } from "../../hooks/useFeatureAccess";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
 import AppText from "../ui/AppText";
-import { useFeatureAccess } from "../../hooks/useFeatureAccess";
 import type { Hba1cData } from "./types";
 
 export function Hba1cSection({ data }: { data: Hba1cData | null }) {
@@ -20,7 +20,7 @@ export function Hba1cSection({ data }: { data: Hba1cData | null }) {
     return (
       <>
         <View style={styles.hba1cIntro}>
-          <AppText variant="semibold" style={styles.hba1cIntroTitle}>
+          <AppText variant="medium" style={styles.hba1cIntroTitle}>
             {HBA1C_STRINGS.introTitle}
           </AppText>
           <AppText style={styles.hba1cIntroText}>
@@ -45,7 +45,7 @@ export function Hba1cSection({ data }: { data: Hba1cData | null }) {
   return (
     <Pressable style={styles.card} onPress={goToTracker}>
       <View style={styles.sectionHeaderRow}>
-        <AppText variant="semibold" style={styles.sectionTitle}>
+        <AppText variant="medium" style={styles.sectionTitle}>
           {HBA1C_STRINGS.sectionTitle}
         </AppText>
       </View>

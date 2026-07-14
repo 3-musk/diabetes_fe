@@ -1,13 +1,13 @@
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { StyleSheet } from "react-native";
+import { lifestyleQuestions } from "../../constants/lifestyleQuestions";
+import { ROUTES } from "../../constants/routes";
+import { useFeatureAccess } from "../../hooks/useFeatureAccess";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
 import AppText from "../ui/AppText";
 import Button from "../ui/Button";
-import { useRouter } from "expo-router";
-import { ROUTES } from "../../constants/routes";
-import { lifestyleQuestions } from "../../constants/lifestyleQuestions";
 import type { LifestyleQuestionData } from "./types";
-import { useFeatureAccess } from "../../hooks/useFeatureAccess";
 
 export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData | null }) {
   const router = useRouter();
@@ -22,7 +22,7 @@ export function LifestyleQuestionSection({ data }: { data: LifestyleQuestionData
       end={{ x: 0, y: 1 }}
       style={styles.questionCard}
     >
-      <AppText variant="semibold" style={styles.questionTitle}>
+      <AppText variant="medium" style={styles.questionTitle}>
         {data.isCompleted ? lifestyleQuestions.questionsAnswered : `${lifestyleQuestions.questionsProgressPrefix} (${data.current}/${data.total})`}
       </AppText>
       <AppText style={styles.questionText}>

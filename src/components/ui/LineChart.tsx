@@ -103,7 +103,7 @@ export function LineChart({
             dataPointsRadius={displayDataPoints ? 4 : 0}
             textFontSize={10}
             textColor={colors.textSecondary}
-            xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 10, textAlign: 'left' }}
+            xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 10, textAlign: 'center' }}
             yAxisTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
             rulesType="solid"
             rulesColor={colors.border}

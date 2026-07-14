@@ -48,20 +48,45 @@ function DrumPicker({
   items,
   selected,
   onSelect,
+  onScrollingChange,
   width = 60,
 }: {
   items: readonly string[];
   selected: string;
   onSelect: (v: string) => void;
+  onScrollingChange?: (scrolling: boolean) => void;
   width?: number;
 }) {
-  const selIdx  = items.indexOf(selected);
   const scrollRef = useRef<ScrollView>(null);
+  const isScrolling = useRef(false);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    if (!isScrolling.current) {
+      const idx = items.indexOf(selected);
+      if (idx >= 0) {
+        scrollRef.current?.scrollTo({ y: idx * ITEM_H, animated: mounted.current });
+      }
+    }
+    mounted.current = true;
+  }, [selected, items]);
 
   const handleScroll = (e: any) => {
+    if (!isScrolling.current) return;
     const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
     const clamped = Math.max(0, Math.min(items.length - 1, idx));
-    if (items[clamped] !== selected) onSelect(items[clamped]);
+    if (items[clamped] !== selected) {
+      onSelect(items[clamped]);
+    }
+  };
+
+  const handleMomentumScrollEnd = (e: any) => {
+    isScrolling.current = false;
+    const idx = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
+    const clamped = Math.max(0, Math.min(items.length - 1, idx));
+    if (items[clamped] !== selected) {
+      onSelect(items[clamped]);
+    }
   };
 
   return (
@@ -73,15 +98,25 @@ function DrumPicker({
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_H}
         decelerationRate="fast"
+        onScrollBeginDrag={() => {
+          isScrolling.current = true;
+          onScrollingChange?.(true);
+        }}
+        onMomentumScrollEnd={(e) => {
+          handleMomentumScrollEnd(e);
+          onScrollingChange?.(false);
+        }}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        contentOffset={{ x: 0, y: selIdx * ITEM_H }}
         contentContainerStyle={{ paddingVertical: ITEM_H }}
       >
         {items.map(item => {
           const isSelected = item === selected;
           return (
-            <Pressable key={item} style={drum.item} onPress={() => onSelect(item)}>
+            <Pressable key={item} style={drum.item} onPress={() => {
+              isScrolling.current = false;
+              onSelect(item);
+            }}>
               <AppText
                 variant={isSelected ? 'bold' : 'regular'}
                 style={[drum.itemText, isSelected ? drum.selectedText : drum.fadedText]}
@@ -148,12 +183,13 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
   const insets = useSafeAreaInsets();
   const [title,     setTitle]     = useState('');
   const [frequency, setFrequency] = useState<FrequencyType>('Daily');
-  const [days,      setDays]      = useState<string[]>(['Tue', 'Thu', 'Sat']);
+  const [days,      setDays]      = useState<string[]>([]);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate,   setEndDate]   = useState<Date | undefined>(undefined);
-  const [hour,      setHour]      = useState('5');
-  const [minute,    setMinute]    = useState('48');
-  const [period,    setPeriod]    = useState('PM');
+  const [hour,      setHour]      = useState('12');
+  const [minute,    setMinute]    = useState('00');
+  const [period,    setPeriod]    = useState('AM');
+  const [pickerScrolling, setPickerScrolling] = useState(false);
 
   // Sync state when modal opens
   useEffect(() => {
@@ -171,12 +207,12 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
         // Reset
         setTitle('');
         setFrequency('Daily');
-        setDays(['Tue', 'Thu', 'Sat']);
+        setDays([]);
         setStartDate(undefined);
         setEndDate(undefined);
-        setHour('5');
-        setMinute('48');
-        setPeriod('PM');
+        setHour('12');
+        setMinute('00');
+        setPeriod('AM');
       }
     }
   }, [visible, initialData]);
@@ -208,9 +244,11 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
 
   return (
     <AppModal visible={visible} onClose={onClose} closeOnOverlayPress={true}>
+      {/* Scrollable form fields ONLY — no drum pickers inside */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[s.scrollContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[s.scrollContent]}
       >
         <AppText variant="semibold" style={s.sheetTitle}>{reminders.reminderTitle}</AppText>
 
@@ -276,23 +314,23 @@ export function ReminderModal({ visible, onClose, onSave, initialData }: Reminde
             />
           </>
         )}
-
-        {/* Time picker */}
-        <View style={s.timeCard}>
-          <AppText variant="semibold" style={s.timeTitle}>{reminders.scheduledTimeTitle}</AppText>
-          <View style={s.pickerRow}>
-            <DrumPicker items={HOURS}   selected={hour}   onSelect={setHour}   width={70} />
-            <DrumPicker items={MINUTES} selected={minute} onSelect={setMinute} width={70} />
-            <DrumPicker items={PERIODS} selected={period} onSelect={setPeriod} width={60} />
-          </View>
-        </View>
-
-        {/* Actions */}
-        <View style={s.actions}>
-          <Button variant="outline" style={s.cancelBtn} title={reminders.cancelBtn} onPress={onClose} />
-          <Button variant="primary" style={s.saveBtn} title={reminders.saveBtn} onPress={handleSave} />
-        </View>
       </ScrollView>
+
+      {/* Time picker is OUTSIDE ScrollView — no gesture conflict */}
+      <View style={[s.timeCard, { marginHorizontal: spacing.xl }]}>
+        <AppText variant="semibold" style={s.timeTitle}>{reminders.scheduledTimeTitle}</AppText>
+        <View style={s.pickerRow}>
+          <DrumPicker items={HOURS}   selected={hour}   onSelect={setHour}   width={70} />
+          <DrumPicker items={MINUTES} selected={minute} onSelect={setMinute} width={70} />
+          <DrumPicker items={PERIODS} selected={period} onSelect={setPeriod} width={60} />
+        </View>
+      </View>
+
+      {/* Actions also outside ScrollView */}
+      <View style={[s.actions, { paddingHorizontal: spacing.xl, paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
+        <Button variant="outline" style={s.cancelBtn} title={reminders.cancelBtn} onPress={onClose} />
+        <Button variant="primary" style={s.saveBtn} title={reminders.saveBtn} onPress={handleSave} />
+      </View>
     </AppModal>
   );
 }

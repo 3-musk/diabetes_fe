@@ -34,7 +34,7 @@ export function GlucoseSection({ data }: { data: GlucoseReading | null }) {
   }
 
   const tileColor = GLUCOSE_STATUS_COLORS[data.status as keyof typeof GLUCOSE_STATUS_COLORS]
-    ?? GLUCOSE_STATUS_COLORS.danger;
+    ?? GLUCOSE_STATUS_COLORS.CRITICAL;
 
   const formattedDate = new Date(data.timestamp)
     .toLocaleString("en-GB", {

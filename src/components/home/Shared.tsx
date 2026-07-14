@@ -13,7 +13,7 @@ export function HomeSectionStack({ children }: { children: React.ReactNode }) {
 export function SetupCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={styles.card}>
-      <AppText variant="semibold" style={styles.sectionTitle}>
+      <AppText variant="medium" style={styles.sectionTitle}>
         {title}
       </AppText>
       {children}

@@ -21,6 +21,7 @@ export const ROUTES = {
   appMealImpact: "/meal-impact",
   appSwapMeal: "/swap-meal",
   appMealCompare: "/meal-compare",
+  appMySubscriptions: "/(app)/my-subscriptions",
 } as const;
 
 export const APP_PATHS = [
@@ -44,4 +45,6 @@ export const APP_PATHS = [
   "/meal-impact",
   "/swap-meal",
   "/meal-compare",
+  "/my-subscriptions",
+  "/subscription",
 ] as const;

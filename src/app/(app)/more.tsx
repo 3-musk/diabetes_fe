@@ -1,11 +1,11 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { useRouter } from 'expo-router';
-import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAlert } from '../../context/AlertContext';
-import { AppText, BackButton, Button, ScreenContainer } from '../../components';
+import { AppText, BackButton, ScreenContainer } from '../../components';
 import { more as MORECONSTANTS } from '../../constants/more';
 import { ROUTES } from '../../constants/routes';
+import { useAlert } from '../../context/AlertContext';
 import { useAuth } from '../../context/AuthContext';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
 import { SvgIcon } from '../../utils/icon';
@@ -56,10 +56,9 @@ export default function More() {
       label: MORECONSTANTS.menuMySubscription,
       icon: require('../../../assets/svgs/more/subscription.svg'),
       iconBg: colors.secondary,
-      // iconColor: colors.secondaryForeground,
       onPress: () =>
         router.push({
-          pathname: ROUTES.subscription as any,
+          pathname: ROUTES.appMySubscriptions as any,
         }),
     },
     {
@@ -97,20 +96,6 @@ export default function More() {
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Avatar */}
-        <View style={styles.avatarSection}>
-          <View style={styles.avatarWrapper}>
-            <Image
-              source={{ uri: 'https://i.pravatar.cc/150?img=8' }}
-              style={styles.avatar}
-            />
-            <Pressable style={styles.editBadge}>
-              <FontAwesome name="pencil" size={12} color={colors.primaryBackground} />
-            </Pressable>
-          </View>
-          <AppText variant="semibold" style={styles.userName}>{displayName}</AppText>
-        </View>
-
         {/* Menu card */}
         <View style={styles.menuCard}>
           {menuItems.map((item, index) => (
@@ -131,39 +116,6 @@ export default function More() {
               )}
             </Pressable>
           ))}
-        </View>
-
-        {/* Test Alerts section */}
-        <View style={styles.testSection}>
-          <AppText variant="semibold" style={styles.testTitle}>Test Alert Dialogs</AppText>
-          <View style={styles.buttonRowGrid}>
-            <Button
-              title="Info Alert"
-              size="sm"
-              style={{ flex: 1, backgroundColor: colors.primary, borderColor: colors.primary }}
-              onPress={() => alert('Information', 'This is a premium custom info alert dialog.', undefined, { type: 'info' })}
-            />
-            <Button
-              title="Success Alert"
-              size="sm"
-              style={{ flex: 1, backgroundColor: colors.success, borderColor: colors.success }}
-              onPress={() => alert('Success', 'The action has completed successfully!', undefined, { type: 'success' })}
-            />
-          </View>
-          <View style={styles.buttonRowGrid}>
-            <Button
-              title="Warning Alert"
-              size="sm"
-              style={{ flex: 1, backgroundColor: colors.warning, borderColor: colors.warning }}
-              onPress={() => alert('Warning', 'Please proceed with caution.', undefined, { type: 'warning' })}
-            />
-            <Button
-              title="Error Alert"
-              size="sm"
-              style={{ flex: 1, backgroundColor: colors.error, borderColor: colors.error }}
-              onPress={() => alert('Error', 'An unexpected error occurred. Please try again.', undefined, { type: 'error' })}
-            />
-          </View>
         </View>
       </ScrollView>
     </ScreenContainer>

@@ -92,6 +92,7 @@ export default function AppLayout() {
             <Tabs.Screen name="meal-impact"        options={{ href: null, tabBarStyle: { display: 'none' } }} />
             <Tabs.Screen name="swap-meal"          options={{ href: null, tabBarStyle: { display: 'none' } }} />
             <Tabs.Screen name="meal-compare"       options={{ href: null, tabBarStyle: { display: 'none' } }} />
+            <Tabs.Screen name="my-subscriptions"   options={{ href: null, tabBarStyle: { display: 'none' } }} />
         </Tabs>
         </View>
     );

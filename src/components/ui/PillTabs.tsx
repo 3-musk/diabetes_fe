@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, View } from 'react-native';
-import { borderRadius, colors, shadows, spacing } from '../../theme';
+import { borderRadius, colors, spacing } from '../../theme';
 import AppText from './AppText';
 
 export interface PillTabsProps<T extends string> {
@@ -67,7 +67,6 @@ const styles = StyleSheet.create({
   },
   pillActive: {
     backgroundColor: colors.primary,
-    ...shadows.sm,
   },
   text: {
     textAlign: 'center',

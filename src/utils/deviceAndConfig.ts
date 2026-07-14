@@ -144,3 +144,21 @@ export const fetchAndStoreFCMToken = async (): Promise<void> => {
     console.error('Error fetching FCM token:', error);
   }
 };
+
+// Register the stored FCM token with the backend (call only when user is logged in)
+export const registerFCMTokenWithServer = async (): Promise<void> => {
+  try {
+    const fcmToken = await secureStorage.getItem(STORAGE_KEYS.fcmToken);
+    if (!fcmToken) {
+      console.log('No FCM token found, skipping push token registration');
+      return;
+    }
+
+    // Import apiClient lazily to avoid circular deps
+    const { apiClient } = await import('./apiClient');
+    await apiClient.put('/api/user/push-token', { fcmToken });
+    console.log('FCM token registered with server successfully');
+  } catch (error) {
+    console.error('Error registering FCM token with server:', error);
+  }
+};

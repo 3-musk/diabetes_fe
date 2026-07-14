@@ -8,6 +8,7 @@ export const apiClient = axios.create({
   timeout: 15000,
   headers: {
     'content-type': 'application/json',
+    'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata',
   },
 });
 

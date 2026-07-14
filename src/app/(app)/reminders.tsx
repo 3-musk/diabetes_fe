@@ -1,5 +1,5 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
-import { useEffect, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -19,21 +19,41 @@ export default function RemindersScreen() {
   const { alert } = useAlert();
   const insets = useSafeAreaInsets();
 
-  const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<ReminderData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasNext, setHasNext] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<ReminderData | null>(null);
+  const pageRef = useRef(0);
+  const isFetchingRef = useRef(false);
 
-  useEffect(() => {
-    fetchReminders();
+  const fetchPage = useCallback(async (page: number, replace: boolean) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
+    if (replace) setLoading(true);
+    else setLoadingMore(true);
+
+    const result = await getReminders(page);
+
+    setItems(prev => replace ? result.items : [...prev, ...result.items]);
+    setHasNext(result.hasNext);
+    pageRef.current = page;
+
+    if (replace) setLoading(false);
+    else setLoadingMore(false);
+
+    isFetchingRef.current = false;
   }, []);
 
-  const fetchReminders = async () => {
-    setLoading(true);
-    const data = await getReminders();
-    setItems(data);
-    setLoading(false);
-  };
+  // Load on mount
+  useState(() => { fetchPage(0, true); });
+
+  const handleLoadMore = useCallback(() => {
+    if (!hasNext || loadingMore || loading) return;
+    fetchPage(pageRef.current + 1, false);
+  }, [hasNext, loadingMore, loading, fetchPage]);
 
   const handleAddPress = () => {
     setEditingItem(null);
@@ -67,15 +87,11 @@ export default function RemindersScreen() {
 
   const handleSaveReminder = async (data: ReminderData) => {
     const saved = await saveReminder(data);
-    
     setItems(prev => {
       const exists = prev.find(r => r.id === saved.id);
-      if (exists) {
-        return prev.map(r => (r.id === saved.id ? saved : r));
-      }
-      return [...prev, saved];
+      if (exists) return prev.map(r => (r.id === saved.id ? saved : r));
+      return [saved, ...prev];
     });
-    
     setModalVisible(false);
   };
 
@@ -103,6 +119,15 @@ export default function RemindersScreen() {
     </View>
   );
 
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={s.footerLoader}>
+        <ActivityIndicator size="small" color={colors.primary} />
+      </View>
+    );
+  };
+
   return (
     <ScreenContainer edges={['top']}>
       {/* Header */}
@@ -122,6 +147,9 @@ export default function RemindersScreen() {
           keyExtractor={item => item.id || Math.random().toString()}
           renderItem={renderItem}
           contentContainerStyle={[s.listContent, { paddingBottom: insets.bottom + 100 }]}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={renderFooter}
           ListEmptyComponent={
             <View style={s.emptyState}>
               <AppText style={s.emptyText}>{REMINDERSCONSTANTS.emptyState}</AppText>
@@ -152,14 +180,13 @@ export default function RemindersScreen() {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
-    gap: spacing.md
+    gap: spacing.md,
   },
   headerTitle: { fontSize: fontSize.lg, color: colors.textPrimary },
   listContent: {
@@ -174,9 +201,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     ...shadows.sm,
   },
-  cardContent: {
-    flex: 1,
-  },
+  cardContent: { flex: 1 },
   cardTitle: {
     fontSize: fontSize.lg,
     color: colors.textPrimary,
@@ -204,9 +229,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  deleteBtn: {
-    backgroundColor: '#FFEBEE',
-  },
+  deleteBtn: { backgroundColor: '#FFEBEE' },
   emptyState: {
     alignItems: 'center',
     paddingTop: spacing.xxxl,
@@ -226,7 +249,9 @@ const s = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
-  addBtnFull: {
-    borderRadius: borderRadius.full,
+  addBtnFull: { borderRadius: borderRadius.full },
+  footerLoader: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
   },
 });

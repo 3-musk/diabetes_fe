@@ -12,7 +12,7 @@ import { APP_PATHS, ROUTES } from "../constants/routes";
 import { AlertProvider } from "../context/AlertContext";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { borderRadius, colors, fontSize, fontWeight, spacing } from "../theme";
-import { checkMaintenanceMode, fetchAndStoreFCMToken } from "../utils/deviceAndConfig";
+import { checkMaintenanceMode, fetchAndStoreFCMToken, registerFCMTokenWithServer } from "../utils/deviceAndConfig";
 
 // Prevent splash screen from hiding automatically
 SplashScreen.preventAutoHideAsync();
@@ -64,6 +64,13 @@ function AuthRouter({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     runMaintenanceCheck();
   }, []);
+
+  // Register FCM token with server once user is fully logged in
+  useEffect(() => {
+    if (accessToken) {
+      registerFCMTokenWithServer();
+    }
+  }, [accessToken]);
 
   const [loaded] = useFonts({
     'Chillax-Regular': require('../../assets/fonts/Chillax-Regular.otf'),

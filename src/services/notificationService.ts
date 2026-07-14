@@ -1,3 +1,5 @@
+import { apiClient } from '../utils/apiClient';
+
 export type AppNotification = {
   id: string;
   title: string;
@@ -6,75 +8,71 @@ export type AppNotification = {
   isRead: boolean;
 };
 
-let mockNotifications: AppNotification[] = [
-  {
-    id: '1',
-    title: 'Glucose reminder',
-    body: 'Time to log your post-meal glucose reading.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-    isRead: false,
-  },
-  {
-    id: '2',
-    title: 'Care plan updated',
-    body: 'Your personalized care plan has new meal recommendations.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    isRead: false,
-  },
-  {
-    id: '3',
-    title: 'Medication reminder',
-    body: 'Take Metformin 500mg with your evening meal.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    isRead: true,
-  },
-  {
-    id: '4',
-    title: 'Weekly summary ready',
-    body: 'Your glucose trends for the past 7 days are available.',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    isRead: true,
-  },
-];
+export type NotificationPage = {
+  items: AppNotification[];
+  hasNext: boolean;
+};
 
-const delay = (ms = 400) => new Promise(resolve => setTimeout(resolve, ms));
+const PAGE_SIZE = 10;
 
-export const getNotifications = async (): Promise<AppNotification[]> => {
-  await delay();
-  return [...mockNotifications].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+export const getNotifications = async (page = 0): Promise<NotificationPage> => {
+  try {
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const futureDate = new Date();
+    futureDate.setFullYear(today.getFullYear() + 10);
+
+    const start = thirtyDaysAgo.toISOString().split('T')[0];
+    const end = futureDate.toISOString().split('T')[0];
+
+    const response = await apiClient.get(
+      `/api/notifications?page=${page}&size=${PAGE_SIZE}&startDate=${start}&endDate=${end}`,
+      { headers: { 'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata' } }
+    );
+    if (response.data && response.data.success && response.data.data) {
+      const data = response.data.data;
+      return {
+        items: (data.items || []).map((item: any): AppNotification => ({
+          id: item.id,
+          title: item.title,
+          body: item.body || item.source || '',
+          createdAt: item.created_at || new Date().toISOString(),
+          isRead: item.read || false,
+        })),
+        hasNext: data.hasNext ?? false,
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+  }
+  return { items: [], hasNext: false };
 };
 
 export const markNotificationAsRead = async (id: string): Promise<AppNotification | null> => {
-  await delay(200);
-  const index = mockNotifications.findIndex(notification => notification.id === id);
-  if (index === -1) return null;
-
-  mockNotifications[index] = { ...mockNotifications[index], isRead: true };
-  return mockNotifications[index];
+  try {
+    await apiClient.patch('/api/notifications/read', [id]);
+    return { id, title: '', body: '', createdAt: '', isRead: true };
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    return null;
+  }
 };
 
 export const markAllNotificationsAsRead = async (): Promise<AppNotification[]> => {
-  await delay(200);
-  mockNotifications = mockNotifications.map(notification => ({
-    ...notification,
-    isRead: true,
-  }));
-  return [...mockNotifications];
+  // If there's an API for this later, implement here
+  return [];
 };
 
 export const addPushNotification = async (
   notification: Pick<AppNotification, 'title' | 'body'> & { createdAt?: string }
 ): Promise<AppNotification> => {
-  await delay(100);
-  const newNotification: AppNotification = {
+  // Implement if you handle local pushes
+  return {
     id: Date.now().toString(),
     title: notification.title,
     body: notification.body,
     createdAt: notification.createdAt ?? new Date().toISOString(),
     isRead: false,
   };
-  mockNotifications.unshift(newNotification);
-  return newNotification;
 };

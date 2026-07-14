@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import {
@@ -6,13 +7,12 @@ import {
   NUTRITION_STATUS_GAUGE,
   NUTRITION_STRINGS,
 } from "../../constants/nutritionConfig";
+import { ROUTES } from "../../constants/routes";
+import { useFeatureAccess } from "../../hooks/useFeatureAccess";
 import { borderRadius, colors, fontSize, shadows, spacing } from "../../theme";
 import AppText from "../ui/AppText";
 import { OutlineAction, SetupCard } from "./Shared";
 import type { NutritionData, NutritionRange } from "./types";
-import { useFeatureAccess } from "../../hooks/useFeatureAccess";
-import { ROUTES } from "../../constants/routes";
-import { useRouter } from "expo-router";
 
 function getNutrientState(item: NutritionRange) {
   if (!item.status) {
@@ -99,7 +99,7 @@ function NutritionCompassCard({ data, leftBorder=true }: { data: NutritionData, 
   const borderLeftWidth = leftBorder===false ? 0 : 4
   return (
     <View style={[styles.card, { borderLeftColor }, {borderLeftWidth}]}>
-      <AppText variant="semibold" style={styles.sectionTitle}>
+      <AppText variant="medium" style={styles.sectionTitle}>
         {NUTRITION_STRINGS.sectionTitle}
       </AppText>
 

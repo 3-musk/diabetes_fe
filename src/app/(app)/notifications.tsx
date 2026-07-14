@@ -1,6 +1,6 @@
 import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,16 +10,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppText, BackButton, PillTabs, ScreenContainer } from '../../components';
-import {
-  NOTIFICATION_FILTERS,
-  NotificationFilter,
-  notifications as NOTIFICATIONS_CONSTANTS,
-} from '../../constants/notifications';
+import { AppText, BackButton, ScreenContainer } from '../../components';
+import { notifications as NOTIFICATIONS_CONSTANTS } from '../../constants/notifications';
 import {
   AppNotification,
   getNotifications,
-  markAllNotificationsAsRead,
   markNotificationAsRead,
 } from '../../services/notificationService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -32,66 +27,55 @@ export default function NotificationsScreen() {
   const router = useRouter();
   const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const insets = useSafeAreaInsets();
-  const [loading, setLoading] = useState(true);
+
   const [items, setItems] = useState<AppNotification[]>([]);
-  const [filter, setFilter] = useState<NotificationFilter>('All');
-  const [markingAll, setMarkingAll] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasNext, setHasNext] = useState(false);
+  const pageRef = useRef(0);
+  const isFetchingRef = useRef(false);
 
   const handleBack = useCallback(() => {
-    if (returnTo) {
-      router.navigate(returnTo as any);
-    } else {
-      router.back();
-    }
+    if (returnTo) router.navigate(returnTo as any);
+    else router.back();
   }, [router, returnTo]);
 
-  const fetchNotifications = useCallback(async () => {
-    setLoading(true);
-    const data = await getNotifications();
-    setItems(data);
-    setLoading(false);
+  const fetchPage = useCallback(async (page: number, replace: boolean) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
+    if (replace) setLoading(true);
+    else setLoadingMore(true);
+
+    const result = await getNotifications(page);
+
+    setItems(prev => replace ? result.items : [...prev, ...result.items]);
+    setHasNext(result.hasNext);
+    pageRef.current = page;
+
+    if (replace) setLoading(false);
+    else setLoadingMore(false);
+
+    isFetchingRef.current = false;
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      fetchNotifications();
-    }, [fetchNotifications])
+      fetchPage(0, true);
+    }, [fetchPage])
   );
 
-  const filteredItems = useMemo(() => {
-    if (filter === 'Unread') return items.filter(item => !item.isRead);
-    if (filter === 'Read') return items.filter(item => item.isRead);
-    return items;
-  }, [filter, items]);
-
-  const unreadCount = useMemo(
-    () => items.filter(item => !item.isRead).length,
-    [items]
-  );
-
-  const emptyMessage =
-    filter === 'Unread'
-      ? NOTIFICATIONS_CONSTANTS.emptyUnread
-      : filter === 'Read'
-        ? NOTIFICATIONS_CONSTANTS.emptyRead
-        : NOTIFICATIONS_CONSTANTS.emptyAll;
+  const handleLoadMore = useCallback(() => {
+    if (!hasNext || loadingMore || loading) return;
+    fetchPage(pageRef.current + 1, false);
+  }, [hasNext, loadingMore, loading, fetchPage]);
 
   const handleMarkAsRead = async (id: string) => {
     const updated = await markNotificationAsRead(id);
     if (!updated) return;
-
     setItems(prev =>
       prev.map(item => (item.id === id ? { ...item, isRead: true } : item))
     );
-  };
-
-  const handleMarkAllAsRead = async () => {
-    if (unreadCount === 0) return;
-
-    setMarkingAll(true);
-    const updated = await markAllNotificationsAsRead();
-    setItems(updated);
-    setMarkingAll(false);
   };
 
   const renderItem = ({ item }: { item: AppNotification }) => (
@@ -101,7 +85,7 @@ export default function NotificationsScreen() {
           {!item.isRead && <View style={s.unreadDot} />}
           <AppText
             variant={item.isRead ? 'medium' : 'semibold'}
-            style={[s.cardTitle, !item.isRead && s.cardTitleUnread]}
+            style={s.cardTitle}
           >
             {item.title}
           </AppText>
@@ -112,11 +96,18 @@ export default function NotificationsScreen() {
           </Pressable>
         )}
       </View>
-
-      <AppText style={s.cardBody}>{item.body}</AppText>
       <AppText style={s.cardTime}>{formatTimestamp(item.createdAt)}</AppText>
     </View>
   );
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={s.footerLoader}>
+        <ActivityIndicator size="small" color={colors.primary} />
+      </View>
+    );
+  };
 
   return (
     <ScreenContainer edges={['top']}>
@@ -125,25 +116,7 @@ export default function NotificationsScreen() {
         <AppText variant="semibold" style={s.headerTitle}>
           {NOTIFICATIONS_CONSTANTS.pageTitle}
         </AppText>
-        {unreadCount > 0 && (
-          <Pressable
-            style={s.markAllBtn}
-            onPress={handleMarkAllAsRead}
-            disabled={markingAll}
-          >
-            <AppText variant="medium" style={s.markAllText}>
-              {NOTIFICATIONS_CONSTANTS.markAllAsRead}
-            </AppText>
-          </Pressable>
-        )}
       </View>
-
-      <PillTabs
-        options={NOTIFICATION_FILTERS}
-        selected={filter}
-        onSelect={setFilter}
-        style={s.filters}
-      />
 
       {loading ? (
         <View style={s.center}>
@@ -151,14 +124,17 @@ export default function NotificationsScreen() {
         </View>
       ) : (
         <FlatList
-          data={filteredItems}
+          data={items}
           keyExtractor={item => item.id}
           renderItem={renderItem}
           contentContainerStyle={[s.listContent, { paddingBottom: insets.bottom + spacing.xl }]}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={renderFooter}
           ListEmptyComponent={
             <View style={s.emptyState}>
               <FontAwesome name="bell-o" size={32} color={colors.textTertiary} />
-              <AppText style={s.emptyText}>{emptyMessage}</AppText>
+              <AppText style={s.emptyText}>{NOTIFICATIONS_CONSTANTS.emptyAll}</AppText>
             </View>
           }
         />
@@ -185,23 +161,10 @@ const s = StyleSheet.create({
     fontSize: fontSize.lg,
     color: colors.textPrimary,
   },
-  markAllBtn: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-  },
-  markAllText: {
-    fontSize: fontSize.sm,
-    color: colors.primary,
-  },
-  filters: {
-    paddingHorizontal: spacing.xl,
-    marginTop: 0,
-    marginBottom: spacing.sm,
-    justifyContent: 'flex-start',
-  },
   listContent: {
     paddingHorizontal: spacing.xl,
     gap: spacing.md,
+    paddingTop: spacing.sm,
   },
   card: {
     backgroundColor: colors.surface,
@@ -220,7 +183,7 @@ const s = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: spacing.md,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   titleRow: {
     flex: 1,
@@ -228,34 +191,28 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
+  markReadText: {
+    fontSize: fontSize.sm,
+    color: colors.primary,
+    fontWeight: '600',
+    flexShrink: 0,
+  },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: colors.primary,
+    flexShrink: 0,
   },
   cardTitle: {
     flex: 1,
-    fontSize: fontSize.lg,
-    color: colors.textPrimary,
-  },
-  cardTitleUnread: {
-    color: colors.textPrimary,
-  },
-  markReadText: {
-    fontSize: fontSize.sm,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  cardBody: {
     fontSize: fontSize.md,
-    color: colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: spacing.sm,
+    color: colors.textPrimary,
   },
   cardTime: {
     fontSize: fontSize.sm,
     color: colors.textTertiary,
+    marginTop: spacing.xs,
   },
   emptyState: {
     alignItems: 'center',
@@ -266,5 +223,9 @@ const s = StyleSheet.create({
     fontSize: fontSize.md,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  footerLoader: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
   },
 });

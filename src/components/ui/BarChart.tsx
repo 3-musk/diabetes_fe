@@ -27,7 +27,7 @@ export function BarChart({
 
   // Sticky Y-axis dimensions
   const yAxisLabelWidth = 40;
-  const xAxisLabelsHeight = 30;
+  const xAxisLabelsHeight =40;
   const yAxisExtraHeight = 10;
 
   // Scrollable area (excludes sticky y-axis)
@@ -101,7 +101,7 @@ export function BarChart({
             spacing={barSpacing}
             roundedTop
             roundedBottom={false}
-            xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 10, textAlign: 'left' }}
+            xAxisLabelTextStyle={{ color: colors.textSecondary, fontSize: 10, textAlign: 'right' }}
             yAxisTextStyle={{ color: colors.textSecondary, fontSize: 10 }}
             rulesType="solid"
             rulesColor={colors.border}
