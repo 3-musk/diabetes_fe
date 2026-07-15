@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   AppText,
-  BackButton,
+  PageHeader,
   Button,
   Checkbox,
   RadioRow,
@@ -207,7 +207,7 @@ export default function LogGlucose() {
   const [symptomList, setSymptomList] = useState<
     { id: string; label: string }[]
   >([]);
-  const [unitText, setUnitText] = useState("mg/dL");
+  const [unitText, setUnitText] = useState(GLUCOSECONSTANTS.unitText);
   const [othersText, setOthersText] = useState("");
 
   // Critical Modal State
@@ -227,7 +227,7 @@ export default function LogGlucose() {
             const sessions: { id: string; label: string }[] = [];
             const types: { id: string; label: string }[] = [];
             const symps: { id: string; label: string }[] = [];
-            let unit = "mg/dL";
+            let unit = GLUCOSECONSTANTS.unitText;
 
             configData.data.forEach((item: any) => {
               if (item.category === "READING_SESSION") {
@@ -300,7 +300,7 @@ export default function LogGlucose() {
       }
     } catch (error: any) {
       console.error("Failed to save glucose reading:", error);
-      Alert.alert("Error", error?.response?.data?.message || error?.message || "Failed to save reading");
+      Alert.alert(GLUCOSECONSTANTS.errorAlertTitle, error?.response?.data?.message || error?.message || GLUCOSECONSTANTS.errorAlertMessage);
     } finally {
       setSubmitting(false);
     }
@@ -330,12 +330,7 @@ export default function LogGlucose() {
   return (
     <ScreenContainer edges={["top"]}>
       {/* Header */}
-      <View style={styles.header}>
-        <BackButton color={colors.primaryBackground} />
-        <AppText variant="semibold" style={styles.headerTitle}>
-          {GLUCOSECONSTANTS.pageTitle}
-        </AppText>
-      </View>
+      <PageHeader title={GLUCOSECONSTANTS.pageTitle} />
 
       {loading ? (
         <View
@@ -416,7 +411,7 @@ export default function LogGlucose() {
                 />
               ))}
               <Checkbox
-                title="Others"
+                title={GLUCOSECONSTANTS.othersCheckboxLabel}
                 checked={symptoms.has("OTHERS")}
                 onChange={() => {
                   toggleSymptom("OTHERS");
@@ -428,7 +423,7 @@ export default function LogGlucose() {
               {symptoms.has("OTHERS") && (
                 <TextInput
                   style={styles.othersInput}
-                  placeholder="Type here"
+                  placeholder={GLUCOSECONSTANTS.othersInputPlaceholder}
                   placeholderTextColor={colors.textSecondary}
                   value={othersText}
                   onChangeText={setOthersText}
@@ -482,17 +477,6 @@ const styles = StyleSheet.create({
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xs,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
   },
   valueCard: {
     width: 180,

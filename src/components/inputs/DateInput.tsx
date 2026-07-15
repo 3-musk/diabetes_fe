@@ -10,6 +10,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { UI_STRINGS } from '../../constants/uiConstants';
 import { colors, fontSize, spacing } from '../../theme';
 import AppText from '../ui/AppText';
 import { Input } from './Input';
@@ -113,12 +114,12 @@ const DateInput: React.FC<DateInputProps> = ({
               <View style={styles.header}>
                 <TouchableOpacity onPress={closePicker} hitSlop={8}>
                   <AppText variant="medium" style={styles.cancelText}>
-                    Cancel
+                    {UI_STRINGS.dateInput.cancel}
                   </AppText>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleDone} hitSlop={8}>
                   <AppText variant="semibold" style={styles.doneText}>
-                    Done
+                    {UI_STRINGS.dateInput.done}
                   </AppText>
                 </TouchableOpacity>
               </View>

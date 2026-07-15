@@ -10,7 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAlert } from '../../context/AlertContext';
 
-import { AppText, BackButton, Button, ReminderData, ReminderModal, ScreenContainer } from '../../components';
+import { AppText, Button, PageHeader, ReminderData, ReminderModal, ScreenContainer } from '../../components';
 import { reminders as REMINDERSCONSTANTS } from '../../constants/reminders';
 import { deleteReminder, getReminders, saveReminder } from '../../services/reminderService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -131,10 +131,7 @@ export default function RemindersScreen() {
   return (
     <ScreenContainer edges={['top']}>
       {/* Header */}
-      <View style={s.header}>
-        <BackButton color={colors.primaryBackground} />
-        <AppText variant="semibold" style={s.headerTitle}>{REMINDERSCONSTANTS.pageTitle}</AppText>
-      </View>
+      <PageHeader title={REMINDERSCONSTANTS.pageTitle} />
 
       {/* List */}
       {loading ? (
@@ -181,14 +178,6 @@ export default function RemindersScreen() {
 
 const s = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: { fontSize: fontSize.lg, color: colors.textPrimary },
   listContent: {
     padding: spacing.xl,
     gap: spacing.md,

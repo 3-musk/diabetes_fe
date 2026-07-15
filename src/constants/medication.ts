@@ -13,6 +13,8 @@ export const medication = {
   emptyBody: "Add your prescribed medicines to get reminders and stay on track.",
   addMedicationBtn: "Add Medication",
   medicationsTitle: "Medications",
+  noMedicationsAdded: "No medications added.",
+  doctorSuggested: "Doctor Suggested",
 
   categories: [
     {

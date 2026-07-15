@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppText, BackButton, ScreenContainer } from '../../components';
+import { AppText, PageHeader, ScreenContainer } from '../../components';
 import { notifications as NOTIFICATIONS_CONSTANTS } from '../../constants/notifications';
 import {
   AppNotification,
@@ -111,12 +111,7 @@ export default function NotificationsScreen() {
 
   return (
     <ScreenContainer edges={['top']}>
-      <View style={s.header}>
-        <BackButton color={colors.primaryBackground} onPress={handleBack} />
-        <AppText variant="semibold" style={s.headerTitle}>
-          {NOTIFICATIONS_CONSTANTS.pageTitle}
-        </AppText>
-      </View>
+      <PageHeader title={NOTIFICATIONS_CONSTANTS.pageTitle} onBack={handleBack} />
 
       {loading ? (
         <View style={s.center}>

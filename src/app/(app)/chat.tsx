@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SvgIcon } from '@/utils/icon';
-import { AppText, BackButton, ScreenContainer } from '../../components';
+import { AppText, PageHeader, ScreenContainer } from '../../components';
 import { ChatMessage, chatTexts } from '../../constants/chat';
 import { sendChatMessage } from '../../services/chatService';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
@@ -102,12 +102,7 @@ export default function Chat() {
 
   return (
     <ScreenContainer edges={['top']}>
-      <View style={styles.header}>
-        <BackButton color={colors.primaryBackground} />
-        <AppText variant="semibold" style={styles.headerTitle}>
-          {chatTexts.pageTitle}
-        </AppText>
-      </View>
+      <PageHeader title={chatTexts.pageTitle} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -160,17 +155,7 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
-  },
+
   messageList: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,

@@ -48,11 +48,7 @@ export type LifestyleQuestionsStatus = {
 
 // ─── API stubs (replace with real HTTP calls) ─────────────────────────────────
 
-export let mockCarePlanGenerated = false;
-export const markCarePlanGenerated = () => { mockCarePlanGenerated = true; };
 
-export let mockProfileComplete = false;
-export const markProfileComplete = () => { mockProfileComplete = true; };
 
 /** Fetch the user's care plan. Returns null if none exists. */
 export const getCarePlan = async (accessToken?: string, date?: string): Promise<CarePlan | null> => {
@@ -67,14 +63,6 @@ export const getCarePlan = async (accessToken?: string, date?: string): Promise<
     console.error("Failed to fetch care plan:", error);
   }
   return null;
-};
-
-export const getProfileCompletion = async (token: string): Promise<ProfileCompletion> => {
-  await new Promise(r => setTimeout(r, 800));
-  return {
-    isComplete: mockProfileComplete,
-    missingFields: mockProfileComplete ? [] : ['BMI'],
-  };
 };
 
 
@@ -93,17 +81,7 @@ export const submitLifestyleAnswers = async (token: string, answers: Record<stri
   return { success: false };
 };
 
-/** Check whether lifestyle questions have been answered */
-export const getLifestyleQuestionsStatus = async (
-  accessToken: string,
-): Promise<LifestyleQuestionsStatus> => {
-  await new Promise(r => setTimeout(r, 400));
-  return {
-    answered: true,
-    totalAnswered: 5,
-    totalQuestions: 5,
-  };
-};
+
 
 /** Fetch lifestyle questions from API */
 export const getLifestyleQuestions = async (

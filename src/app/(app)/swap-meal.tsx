@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SvgIcon } from '@/utils/icon';
-import { AppText, BackButton, Button, RoundCheckBox, ScreenContainer } from '../../components';
+import { AppText, Button, PageHeader, RoundCheckBox, ScreenContainer } from '../../components';
 import { MealSlotId, getDefaultMealSlotByTime } from '../../constants/meals';
 import { ROUTES } from '../../constants/routes';
 import { SwapMealOption, SwapMealResponse, swapMealTexts } from '../../constants/swapMeal';
@@ -156,12 +156,7 @@ export default function SwapMealScreen() {
   if (loading || !swapData) {
     return (
       <ScreenContainer edges={['top']}>
-        <View style={styles.header}>
-          <BackButton color={colors.primaryBackground} onPress={goBackToMealImpact} />
-          <AppText variant="semibold" style={styles.headerTitle}>
-            {swapMealTexts.pageTitle}
-          </AppText>
-        </View>
+        <PageHeader title={swapMealTexts.pageTitle} onBack={goBackToMealImpact} />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -171,12 +166,7 @@ export default function SwapMealScreen() {
 
   return (
     <ScreenContainer edges={['top']}>
-      <View style={styles.header}>
-        <BackButton color={colors.primaryBackground} onPress={goBackToMealImpact} />
-        <AppText variant="semibold" style={styles.headerTitle}>
-          {swapMealTexts.pageTitle}
-        </AppText>
-      </View>
+      <PageHeader title={swapMealTexts.pageTitle} onBack={goBackToMealImpact} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -260,17 +250,6 @@ export default function SwapMealScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
-  },
   center: {
     flex: 1,
     alignItems: 'center',

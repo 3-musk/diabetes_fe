@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton, Button, DateInput, ScreenContainer } from '../../components';
+import { AppText, PageHeader, Button, DateInput, ScreenContainer } from '../../components';
 import { medication as MEDICATIONCONSTANTS } from '../../constants/medication';
 import { saveMedication } from '../../services/medicationService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -49,10 +49,7 @@ export default function AddMedication() {
   return (
     <ScreenContainer edges={['top']}>
       {/* Header */}
-      <View style={s.header}>
-        <BackButton color={colors.primaryBackground} />
-        <AppText variant="semibold" style={s.headerTitle}>{MEDICATIONCONSTANTS.pageTitle}</AppText>
-      </View>
+      <PageHeader title={MEDICATIONCONSTANTS.pageTitle} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -165,14 +162,7 @@ export default function AddMedication() {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  headerTitle: { fontSize: fontSize.xl, color: colors.textPrimary },
+
   scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
 
   card: {

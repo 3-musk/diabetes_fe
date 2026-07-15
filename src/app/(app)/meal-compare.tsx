@@ -10,7 +10,7 @@ import {
 import { LineChart as GiftedLineChart } from 'react-native-gifted-charts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppText, BackButton, ScreenContainer } from '../../components';
+import { AppText, PageHeader, ScreenContainer } from '../../components';
 import { getDefaultMealSlotByTime, MealSlotId } from '../../constants/meals';
 import { ROUTES } from '../../constants/routes';
 import { MealCompareResponse, swapMealTexts } from '../../constants/swapMeal';
@@ -165,12 +165,7 @@ export default function MealCompareScreen() {
     return (
       <ScreenContainer edges={['top']}>
         <AppText style={styles.breadcrumb}>{swapMealTexts.pageTitle}</AppText>
-        <View style={styles.header}>
-          <BackButton color={colors.primaryBackground} onPress={goBackToSwapMeal} />
-          <AppText variant="semibold" style={styles.headerTitle}>
-            {swapMealTexts.comparePageTitle}
-          </AppText>
-        </View>
+        <PageHeader title={swapMealTexts.comparePageTitle} onBack={goBackToSwapMeal} />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -181,12 +176,7 @@ export default function MealCompareScreen() {
   return (
     <ScreenContainer edges={['top']}>
       <AppText style={styles.breadcrumb}>{swapMealTexts.pageTitle}</AppText>
-      <View style={styles.header}>
-        <BackButton color={colors.primaryBackground} onPress={goBackToSwapMeal} />
-        <AppText variant="semibold" style={styles.headerTitle}>
-          {swapMealTexts.comparePageTitle}
-        </AppText>
-      </View>
+      <PageHeader title={swapMealTexts.comparePageTitle} onBack={goBackToSwapMeal} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -239,17 +229,6 @@ const styles = StyleSheet.create({
     color: colors.textTertiary,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
   },
   center: {
     flex: 1,

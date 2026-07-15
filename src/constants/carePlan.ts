@@ -8,4 +8,8 @@ export const carePlan = {
   dietTitle: "DIET:",
   physicalActivityTitle: "PHYSICAL ACTIVITY:",
   medicationsTitle: "MEDICATIONS:",
+  morning: "Morning",
+  afternoon: "Afternoon",
+  evening: "Evening",
+  night: "Night",
 };

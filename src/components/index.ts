@@ -15,12 +15,13 @@ export { RoundCheckBox } from "./inputs/RoundCheckBox";
 
 export { HeaderActionIcons } from "./navigation/HeaderActionIcons";
 export { BackButton } from "./navigation/BackButton";
+export { default as PageHeader } from "./navigation/PageHeader";
 
 export { PlanCard } from "./features/PlanCard";
 export { ReminderModal, ReminderData } from "./features/ReminderModal";
 export { default as GlucoseGauge } from "./features/GlucoseGauge";
 export { GlucoseCriticalModal } from "./features/GlucoseCriticalModal";
-export { GlucoseEscalationModal, NextStepsData } from "./features/GlucoseEscalationModal";
+export { GlucoseEscalationModal } from "./features/GlucoseEscalationModal";
 export { AddActivityModal, NewActivityData } from "./features/AddActivityModal";
 export { DateStrip } from "./ui/DateStrip";
 export { AppModal } from "./ui/AppModal";

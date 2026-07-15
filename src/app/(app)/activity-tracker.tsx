@@ -3,7 +3,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AddActivityModal, AppText, BackButton, Button, DateStrip, NewActivityData, RoundCheckBox, ScreenContainer } from '../../components';
+import { AddActivityModal, AppText, PageHeader, Button, DateStrip, NewActivityData, RoundCheckBox, ScreenContainer } from '../../components';
 import { activityTrackerTexts } from '../../constants/activityTracker';
 import { Activity, addActivity, fetchActivities, saveCompletedActivities } from '../../services/activityService';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
@@ -95,10 +95,7 @@ export default function ActivityTracker() {
   return (
     <ScreenContainer edges={['top', 'bottom']}>
       {/* Header */}
-      <View style={styles.header}>
-        <BackButton color={colors.primaryBackground} />
-        <AppText variant="medium" style={styles.headerTitle}>{activityTrackerTexts.pageTitle}</AppText>
-      </View>
+      <PageHeader title={activityTrackerTexts.pageTitle} />
 
       <View style={[styles.scroll, { flex: 1, paddingBottom: spacing.lg }]}>
         <DateStrip selectedDate={selectedDate} onSelectDate={setSelectedDate} />
@@ -200,17 +197,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9F6EF', // Matching the background from the mockup
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
-  },
+
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xs,

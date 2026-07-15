@@ -39,4 +39,5 @@ export const GLUCOSE_STRINGS = {
   metricAverage: "Average",
   metricLowest: "Lowest",
   metricHighest: "Highest",
+  criticalModalDefaultText: "Your glucose level is not normal. Please visit nearest hospital or consult a doctor immediately.",
 } as const;

@@ -18,7 +18,7 @@ import { useAlert } from '../../context/AlertContext';
 import { SvgIcon } from '@/utils/icon';
 import {
   AppText,
-  BackButton,
+  PageHeader,
   Button,
   ScreenContainer,
   SegmentedControl,
@@ -76,7 +76,7 @@ export default function AddMealScreen() {
 
   const activeSlotId = (slotId ?? getDefaultMealSlotByTime()) as MealSlotId;
   const activeDate = date ?? new Date().toISOString().split('T')[0];
-  const slotLabel = MEAL_SLOT_META[activeSlotId]?.label ?? 'Meal';
+  const slotLabel = MEAL_SLOT_META[activeSlotId]?.label ?? addMealTexts.defaultMealLabel;
 
   const [selection, setSelection] = useState<MealSelectionItem[]>([]);
   const [description, setDescription] = useState('');
@@ -156,15 +156,15 @@ export default function AddMealScreen() {
 
   const handleTakePicture = async () => {
     Alert.alert(
-      'Upload Meal Image',
-      'Choose an option',
+      addMealTexts.uploadMealImageTitle,
+      addMealTexts.chooseOption,
       [
         {
-          text: 'Take Photo',
+          text: addMealTexts.takePhoto,
           onPress: async () => {
             const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
             if (permissionResult.granted === false) {
-              alert(addMealTexts.missingDetailsAlertTitle, 'You need to allow camera access to take a picture.');
+              alert(addMealTexts.missingDetailsAlertTitle, addMealTexts.cameraPermissionAlert);
               return;
             }
             const result = await ImagePicker.launchCameraAsync({
@@ -177,11 +177,11 @@ export default function AddMealScreen() {
           }
         },
         {
-          text: 'Choose from Gallery',
+          text: addMealTexts.chooseFromGallery,
           onPress: async () => {
             const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (permissionResult.granted === false) {
-              alert(addMealTexts.missingDetailsAlertTitle, 'You need to allow gallery access to choose a picture.');
+              alert(addMealTexts.missingDetailsAlertTitle, addMealTexts.galleryPermissionAlert);
               return;
             }
             const result = await ImagePicker.launchImageLibraryAsync({
@@ -194,7 +194,7 @@ export default function AddMealScreen() {
           }
         },
         {
-          text: 'Cancel',
+          text: addMealTexts.cancel,
           style: 'cancel'
         }
       ]
@@ -311,12 +311,7 @@ export default function AddMealScreen() {
 
   return (
     <ScreenContainer edges={['top']}>
-      <View style={styles.header}>
-        <BackButton color={colors.primaryBackground} onPress={goBackToMeals} />
-        <AppText variant="semibold" style={styles.headerTitle}>
-          {slotLabel}
-        </AppText>
-      </View>
+      <PageHeader title={slotLabel} onBack={goBackToMeals} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -491,17 +486,7 @@ export default function AddMealScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
-  },
+
   scrollContent: {
     paddingHorizontal: spacing.lg,
   },

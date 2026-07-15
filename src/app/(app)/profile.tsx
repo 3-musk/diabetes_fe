@@ -3,8 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { BackHandler, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AppText, BackButton, Button, Input, ScreenContainer } from "../../components";
-import { markProfileComplete } from "../../services/carePlanService";
+import { AppText, Button, Input, PageHeader, ScreenContainer } from "../../components";
 import { getUser, updateUser } from "../../services/authService";
 import { borderRadius, colors, fontSize, spacing } from "../../theme";
 import { profileTexts } from "../../constants/profile";
@@ -76,7 +75,6 @@ export default function Profile() {
     });
     setLoading(false);
     
-    markProfileComplete();
     handleBack();
   };
 
@@ -95,10 +93,7 @@ export default function Profile() {
 
   return (
     <ScreenContainer edges={['top']}>
-      <View style={styles.header}>
-        <BackButton color={colors.primaryBackground} onPress={handleBack} />
-        <AppText variant="semibold" style={styles.headerTitle}>{profileTexts.pageTitle}</AppText>
-      </View>
+      <PageHeader title={profileTexts.pageTitle} onBack={handleBack} />
 
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom + 20, 40) }]}
@@ -206,17 +201,6 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
-  },
   scrollContent: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.sm,

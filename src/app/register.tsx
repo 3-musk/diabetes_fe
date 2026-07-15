@@ -1,10 +1,10 @@
-import { SegmentedControl } from '../components';
+import { SegmentedControl , AppText, Button, Card, Checkbox, DateInput, Input, LoadingSpinner, ScreenContainer } from '../components';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import { useAlert } from '../context/AlertContext';
 import { registerTexts } from '../constants/register';
-import { AppText, Button, Card, Checkbox, DateInput, Input, LoadingSpinner, ScreenContainer } from '../components';
+
 import { ROUTES } from '../constants/routes';
 import { useAuth } from '../context/AuthContext';
 import { colors, fontSize, spacing } from '../theme';

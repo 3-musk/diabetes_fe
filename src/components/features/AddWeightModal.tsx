@@ -39,7 +39,7 @@ export function AddWeightModal({ visible, onClose, onSave }: AddWeightModalProps
             setWeight(''); setHeight(''); setDate(undefined);
             onClose();
         } else {
-            Alert.alert('Invalid Entry', res?.message || 'Failed to save weight reading. Please try again.');
+            Alert.alert(WEIGHTTRACKERCONSTANTS.invalidEntryTitle, res?.message || WEIGHTTRACKERCONSTANTS.failedToSaveMessage);
         }
     };
 

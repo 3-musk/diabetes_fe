@@ -8,8 +8,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppText, BackButton, Button, ScreenContainer } from '../../components';
+import { AppText, Button, PageHeader, ScreenContainer } from '../../components';
 import { ROUTES } from '../../constants/routes';
+import { subscriptionTexts } from '../../constants/subscription';
 import { apiClient } from '../../utils/apiClient';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
 
@@ -81,11 +82,11 @@ export default function MySubscriptionsScreen() {
         {/* Date rows */}
         <View style={s.divider} />
         <View style={s.dateRow}>
-          <AppText style={s.dateLabel}>Start Date</AppText>
+          <AppText style={s.dateLabel}>{subscriptionTexts.startDate}</AppText>
           <AppText variant="medium" style={s.dateValue}>{formatDate(item.startDate)}</AppText>
         </View>
         <View style={s.dateRow}>
-          <AppText style={s.dateLabel}>End Date</AppText>
+          <AppText style={s.dateLabel}>{subscriptionTexts.endDate}</AppText>
           <AppText variant="medium" style={s.dateValue}>{formatDate(item.endDate)}</AppText>
         </View>
       </View>
@@ -94,11 +95,7 @@ export default function MySubscriptionsScreen() {
 
   return (
     <ScreenContainer edges={['top']}>
-      {/* Header */}
-      <View style={s.header}>
-        <BackButton color={colors.primaryBackground} />
-        <AppText variant="semibold" style={s.headerTitle}>My Subscription</AppText>
-      </View>
+      <PageHeader title={subscriptionTexts.mySubscription} />
 
       {loading ? (
         <View style={s.center}>
@@ -113,7 +110,7 @@ export default function MySubscriptionsScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={s.emptyState}>
-              <AppText style={s.emptyText}>No subscriptions found.</AppText>
+              <AppText style={s.emptyText}>{subscriptionTexts.noSubscriptions}</AppText>
             </View>
           }
         />
@@ -122,7 +119,7 @@ export default function MySubscriptionsScreen() {
       {/* Docked footer button */}
       <View style={[s.footer, { paddingBottom: insets.bottom + spacing.md }]}>
         <Button
-          title="View Plans"
+          title={subscriptionTexts.viewPlans}
           size="lg"
           style={s.footerBtn}
           onPress={() => router.push(ROUTES.subscription as any)}
@@ -134,18 +131,6 @@ export default function MySubscriptionsScreen() {
 
 const s = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: {
-    fontSize: fontSize.lg,
-    color: colors.textPrimary,
-    flex: 1,
-  },
   list: {
     padding: spacing.xl,
     gap: spacing.md,

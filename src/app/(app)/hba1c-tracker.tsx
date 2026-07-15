@@ -9,7 +9,7 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppModal, AppText, BackButton, Button, DateInput, Input, ScreenContainer } from '../../components';
+import { AppModal, AppText, PageHeader, Button, DateInput, Input, ScreenContainer } from '../../components';
 import { hba1cTracker as HBA1CTRACKERCONSTANTS, STATUS_CONFIG } from '../../constants/hba1cTracker';
 import { getHba1cHistory, saveHba1cEntry, type HbA1cEntry, type HbA1cStatus } from '../../services/trackerService';
 import { borderRadius, colors, fontSize, shadows, spacing } from '../../theme';
@@ -66,14 +66,14 @@ function AddHba1cModal({ visible, onClose, onSave }: AddHba1cModalProps) {
       setDate(undefined);
       onClose();
     } else {
-      Alert.alert('Invalid Entry', res?.message || 'Failed to save HbA1c reading. Please try again.');
+      Alert.alert(HBA1CTRACKERCONSTANTS.invalidEntryAlertTitle, res?.message || HBA1CTRACKERCONSTANTS.invalidEntryAlertMessage);
     }
   };
 
   return (
     <AppModal visible={visible} onClose={onClose}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[modal.scrollContent, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}>
-        <AppText variant="medium" style={modal.sheetTitle}>Add HbA1c</AppText>
+        <AppText variant="medium" style={modal.sheetTitle}>{HBA1CTRACKERCONSTANTS.addModalTitle}</AppText>
 
         <Input
           label={HBA1CTRACKERCONSTANTS.valueLabel}
@@ -179,7 +179,7 @@ export default function Hba1cTracker() {
   const avgNum = history.length
     ? (history.reduce((s, e) => s + e.value, 0) / history.length)
     : 0;
-  const averageStr = history.length ? avgNum.toFixed(1) : '--';
+  const averageStr = history.length ? avgNum.toFixed(1) : HBA1CTRACKERCONSTANTS.emptyValueFallback;
   const averageStatus: HbA1cStatus | null = history.length
     ? (avgNum < 5.7 ? HBA1CTRACKERCONSTANTS.normalStatus as HbA1cStatus : avgNum < 6.5 ? HBA1CTRACKERCONSTANTS.prediabetesStatus as HbA1cStatus : HBA1CTRACKERCONSTANTS.diabetesStatus as HbA1cStatus)
     : null;
@@ -195,10 +195,7 @@ export default function Hba1cTracker() {
   return (
     <ScreenContainer edges={['top', 'bottom']}>
       {/* Header */}
-      <View style={s.header}>
-        <BackButton color={colors.primaryBackground} />
-        <AppText variant="medium" style={s.headerTitle}>{HBA1CTRACKERCONSTANTS.pageTitle}</AppText>
-      </View>
+      <PageHeader title={HBA1CTRACKERCONSTANTS.pageTitle} />
 
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -213,7 +210,7 @@ export default function Hba1cTracker() {
         <View style={s.summaryRow}>
           <View style={s.summaryCard}>
             <AppText variant="medium" style={s.summaryValue}>
-              {latest ? `${latest.value}%` : '--'}
+              {latest ? `${latest.value}%` : HBA1CTRACKERCONSTANTS.emptyValueFallback}
             </AppText>
             {latest && <StatusPill status={latest.status} />}
             <AppText style={s.summaryLabel}>{HBA1CTRACKERCONSTANTS.latestLabel}</AppText>
@@ -247,7 +244,7 @@ export default function Hba1cTracker() {
                 <View key={entry.id} style={s.historyRow}>
                   <View>
                     <AppText style={s.historyDate}>
-                      {new Date(entry.date).toLocaleDateString("en-US", {
+                      {new Date(entry.date).toLocaleDateString(HBA1CTRACKERCONSTANTS.locale, {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -292,14 +289,6 @@ export default function Hba1cTracker() {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  headerTitle: { fontSize: fontSize.xl, color: colors.textPrimary },
   scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   summaryRow: { flexDirection: 'row', gap: spacing.lg, marginBottom: spacing.xl },
   summaryCard: {

@@ -21,11 +21,12 @@ import { useAuth } from "../../context/AuthContext";
 import { getHomeDashboardData, getMedication } from "../../services/homepage";
 import { colors, spacing } from "../../theme";
 import { UI_STRINGS } from "../../constants/uiConstants";
+import { HOME_STRINGS } from "../../constants/home";
 
 export default function Home() {
   const { user, refreshAuth } = useAuth();
   const insets = useSafeAreaInsets();
-  const firstName = user?.name?.split(" ")[0] || "User";
+  const firstName = user?.name?.split(" ")[0] || HOME_STRINGS.fallbackUser;
   const hasLoadedRef = useRef(false);
 
   const [homeData, setHomeData] = useState<HomeDashboardData | null>(null);
@@ -58,7 +59,7 @@ export default function Home() {
         setLifestyleQuestions({
           current: data.currentQuestionNumber || 1,
           total: data.totalLifestyleQuestions || 12,
-          question: data.lifestyleQuestion || "Please answer the lifestyle questionnaire.",
+          question: data.lifestyleQuestion || HOME_STRINGS.lifestylePlaceholder,
           isCompleted: data.currentQuestionNumber ? data.currentQuestionNumber > data.totalLifestyleQuestions : false,
         });
       } else {

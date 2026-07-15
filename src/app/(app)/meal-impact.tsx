@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppText, BackButton, LineChart, ScreenContainer } from '../../components';
+import { AppText, LineChart, PageHeader, ScreenContainer } from '../../components';
 import {
   MealImpactMealItem,
   MealImpactResponse,
@@ -112,12 +112,7 @@ export default function MealImpactScreen() {
   if (loading || !impact) {
     return (
       <ScreenContainer edges={['top']}>
-        <View style={styles.header}>
-          <BackButton color={colors.primaryBackground} onPress={goBackToAddMeal} />
-          <AppText variant="semibold" style={styles.headerTitle}>
-            {mealImpactTexts.pageTitle}
-          </AppText>
-        </View>
+        <PageHeader title={mealImpactTexts.pageTitle} onBack={goBackToAddMeal} />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -127,12 +122,7 @@ export default function MealImpactScreen() {
 
   return (
     <ScreenContainer edges={['top']}>
-      <View style={styles.header}>
-        <BackButton color={colors.primaryBackground} onPress={goBackToAddMeal} />
-        <AppText variant="semibold" style={styles.headerTitle}>
-          {mealImpactTexts.pageTitle}
-        </AppText>
-      </View>
+      <PageHeader title={mealImpactTexts.pageTitle} onBack={goBackToAddMeal} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -239,17 +229,6 @@ export default function MealImpactScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
-  },
   center: {
     flex: 1,
     alignItems: 'center',

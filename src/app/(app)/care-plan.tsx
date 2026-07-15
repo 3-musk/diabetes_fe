@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppModal, AppText, Button, DateStrip, HeaderActionIcons, ScreenContainer } from '../../components';
 import { carePlan as CAREPLANCONSTANTS } from '../../constants/carePlan';
+import { MealSlot } from '../../constants/uiConstants';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -23,7 +24,7 @@ import { getUser } from '../../services/authService';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
 import { SvgIcon } from '../../utils/icon';
 
-import { MOCK_MEAL_SLOTS, MealSlot } from '../../constants/uiConstants';
+
 
 // ─── Removed WeekCalendar in favor of DateStrip ────────────────────────────────
 
@@ -293,10 +294,7 @@ export default function CarePlanScreen() {
     if (screenState === 'pending') {
       timeout = setTimeout(() => {
         // Automatically finish pending generation after 10s
-        import('../../services/carePlanService').then((m) => {
-          m.markCarePlanGenerated();
-          setScreenState('has_care_plan');
-        });
+        setScreenState('has_care_plan');
       }, 10000);
     }
     return () => clearTimeout(timeout);
@@ -345,16 +343,16 @@ export default function CarePlanScreen() {
       const medTasks = (s.tasks || []).filter(t => t.category === 'medication').map(t => t.description).join('\n\n');
 
       let icon = require('../../../assets/svgs/care_plan/morning.svg');
-      let label = 'Morning';
+      let label = CAREPLANCONSTANTS.morning;
       if (s.session.toLowerCase() === 'afternoon') {
         icon = require('../../../assets/svgs/care_plan/afternoon.svg');
-        label = 'Afternoon';
+        label = CAREPLANCONSTANTS.afternoon;
       } else if (s.session.toLowerCase() === 'evening') {
         icon = require('../../../assets/svgs/care_plan/evening.svg');
-        label = 'Evening';
+        label = CAREPLANCONSTANTS.evening;
       } else if (s.session.toLowerCase() === 'night' || s.session.toLowerCase() === 'dinner') {
         icon = require('../../../assets/svgs/care_plan/dinner.svg');
-        label = 'Night';
+        label = CAREPLANCONSTANTS.night;
       }
 
       return {

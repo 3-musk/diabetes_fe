@@ -100,7 +100,7 @@ export function MedicationSection({ data, onRefresh }: { data: MedicationData[],
           userMeds.map(renderMedicationItem)
         ) : (
           <AppText style={[styles.bodyText, { marginLeft: 0, marginTop: spacing.md }]}>
-            No medications added.
+            {medication.noMedicationsAdded}
           </AppText>
         )}
       </View>
@@ -110,7 +110,7 @@ export function MedicationSection({ data, onRefresh }: { data: MedicationData[],
         <View style={[styles.sectionContainer, { marginTop: spacing.xxl }]}>
           <View style={styles.sectionHeaderRow}>
             <AppText variant="medium" style={styles.sectionTitle}>
-              Doctor Suggested
+              {medication.doctorSuggested}
             </AppText>
           </View>
           {doctorMeds.map(renderMedicationItem)}

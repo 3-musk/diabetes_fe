@@ -11,7 +11,7 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton, Button, ScreenContainer } from '../../components';
+import { AppText, Button, PageHeader, ScreenContainer } from '../../components';
 import { AddWeightModal } from '../../components/features/AddWeightModal';
 import { BmiCard } from '../../components/features/BmiCard';
 import { WeightGauge } from '../../components/features/WeightGauge';
@@ -144,10 +144,7 @@ export default function WeightTracker() {
   return (
     <ScreenContainer edges={['top', 'bottom']}>
       {/* Header */}
-      <View style={s.header}>
-        <BackButton color={colors.primaryBackground} />
-        <AppText variant="medium" style={s.headerTitle}>{WEIGHTTRACKERCONSTANTS.pageTitle}</AppText>
-      </View>
+      <PageHeader title={WEIGHTTRACKERCONSTANTS.pageTitle} />
 
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -363,11 +360,6 @@ export default function WeightTracker() {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row', alignItems: 'center',
-    gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-  },
-  headerTitle: { fontSize: fontSize.xl, color: colors.textPrimary },
   scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   modalOverlay: {
     flex: 1,

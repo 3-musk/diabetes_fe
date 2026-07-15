@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton, Button, ScreenContainer } from '../../components';
+import { AppText, PageHeader, Button, ScreenContainer } from '../../components';
 import { lifestyleQuestions as LIFESTYLEQUESTIONSCONSTANTS } from '../../constants/lifestyleQuestions';
 import { useAuth } from '../../context/AuthContext';
 import { getLifestyleQuestions, submitLifestyleAnswers, type CarePlanQuestion } from '../../services/carePlanService';
@@ -98,10 +98,7 @@ export default function LifestyleQuestions() {
   return (
     <ScreenContainer edges={['top']}>
       {/* Header */}
-      <View style={s.header}>
-        <BackButton color={colors.primaryBackground}/>
-        <AppText variant="semibold" style={s.headerTitle}>{LIFESTYLEQUESTIONSCONSTANTS.pageTitle}</AppText>
-      </View>
+      <PageHeader title={LIFESTYLEQUESTIONSCONSTANTS.pageTitle} />
 
       <ScrollView
         contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 40 }]}
@@ -161,12 +158,6 @@ export default function LifestyleQuestions() {
 const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: { flex: 1, fontSize: fontSize.xl, color: colors.textPrimary },
   headerActions: { flexDirection: 'row', gap: spacing.sm },
   headerIcon: {
     width: 34, height: 34, borderRadius: borderRadius.full,

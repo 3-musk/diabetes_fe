@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SvgIcon } from '@/utils/icon';
-import { AppText, BackButton, Button, DateStrip, ScreenContainer } from '../../components';
+import { AppText, Button, DateStrip, PageHeader, ScreenContainer } from '../../components';
 import { NutritionSection } from '../../components/home/NutritionSection';
 import {
   DayMealsResponse,
@@ -242,12 +242,7 @@ export default function MealsScreen() {
 
   return (
     <ScreenContainer edges={['top']}>
-      <View style={styles.header}>
-        <BackButton color={colors.primaryBackground} />
-        <AppText variant="semibold" style={styles.headerTitle}>
-          {mealsTexts.pageTitle}
-        </AppText>
-      </View>
+      <PageHeader title={mealsTexts.pageTitle} />
 
       {loading || !dayMeals ? (
         <View style={styles.center}>
@@ -295,17 +290,6 @@ export default function MealsScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
-  },
   center: {
     flex: 1,
     alignItems: 'center',

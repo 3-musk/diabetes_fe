@@ -12,6 +12,11 @@ export const hba1cTracker = {
   normalStatus: "Normal",
   prediabetesStatus: "Prediabetes",
   diabetesStatus: "Diabetes",
+  invalidEntryAlertTitle: "Invalid Entry",
+  invalidEntryAlertMessage: "Failed to save HbA1c reading. Please try again.",
+  addModalTitle: "Add HbA1c",
+  emptyValueFallback: "--",
+  locale: "en-US",
 };
 
 export const STATUS_CONFIG = {

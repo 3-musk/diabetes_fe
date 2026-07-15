@@ -33,4 +33,9 @@ export const subscriptionTexts = {
   checkoutFailed:          "Checkout failed",
   subscribedSuccessfully:  "Subscribed successfully",
   subscriptionFailed:      "Subscription failed",
+  startDate:               "Start Date",
+  endDate:                 "End Date",
+  mySubscription:          "My Subscription",
+  noSubscriptions:         "No subscriptions found.",
+  viewPlans:               "View Plans",
 };

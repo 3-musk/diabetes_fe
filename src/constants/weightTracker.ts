@@ -26,4 +26,6 @@ export const weightTracker = {
   kgUnitLower: "kg",
   addWeightTitle: "Add Weight",
   logWeight: "Log Weight",
+  invalidEntryTitle: "Invalid Entry",
+  failedToSaveMessage: "Failed to save weight reading. Please try again.",
 };

@@ -1,12 +1,12 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { AppText, DateStrip, HeaderActionIcons, PillTabs, ScreenContainer, TrendChartCard } from '../../components';
 import { getTrendData, TrendDataResponse, TrendMetric } from '../../services/trendService';
 import { colors, fontSize, spacing } from '../../theme';
 
-import { GLUCOSE_FILTERS, METRICS } from '../../constants/uiConstants';
 import { trendsTexts } from '../../constants/trendData';
+import { GLUCOSE_FILTERS, METRICS } from '../../constants/uiConstants';
 import { useAuth } from '../../context/AuthContext';
 
 type Metric = typeof METRICS[number];

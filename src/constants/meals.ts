@@ -124,4 +124,12 @@ export const addMealTexts = {
   missingDetailsAlertBody: 'Search for a meal and set the portion first.',
   noItemsAlertTitle: 'No items',
   calUnit: 'Cal',
+  defaultMealLabel: 'Meal',
+  uploadMealImageTitle: 'Upload Meal Image',
+  chooseOption: 'Choose an option',
+  takePhoto: 'Take Photo',
+  cameraPermissionAlert: 'You need to allow camera access to take a picture.',
+  chooseFromGallery: 'Choose from Gallery',
+  galleryPermissionAlert: 'You need to allow gallery access to choose a picture.',
+  cancel: 'Cancel',
 };

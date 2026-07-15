@@ -2,7 +2,7 @@ import { FontAwesome } from '@react-native-vector-icons/fontawesome';
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText, BackButton, ScreenContainer } from '../../components';
+import { AppText, PageHeader, ScreenContainer } from '../../components';
 import { more as MORECONSTANTS } from '../../constants/more';
 import { ROUTES } from '../../constants/routes';
 import { useAlert } from '../../context/AlertContext';
@@ -87,10 +87,7 @@ export default function More() {
 
   return (
     <ScreenContainer edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <BackButton color={colors.primaryBackground}/>
-      </View>
+      <PageHeader />
 
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
@@ -123,17 +120,6 @@ export default function More() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  headerTitle: {
-    fontSize: fontSize.xl,
-    color: colors.textPrimary,
-  },
   content: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xxl,

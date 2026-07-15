@@ -1,5 +1,6 @@
 import { Image, StyleSheet, View } from 'react-native';
 import { borderRadius, colors, fontSize, spacing } from '../../theme';
+import { GLUCOSE_STRINGS } from '../../constants/glucoseConfig';
 import { AppModal } from '../ui/AppModal';
 import AppText from '../ui/AppText';
 
@@ -25,7 +26,7 @@ export function GlucoseCriticalModal({
           resizeMode="contain"
         />
         <AppText variant='semibold' style={styles.messageText}>
-          {escalationText || "Your glucose level is not normal. Please visit nearest hospital or consult a doctor immediately."}
+          {escalationText || GLUCOSE_STRINGS.criticalModalDefaultText}
         </AppText>
       </View>
     </AppModal>

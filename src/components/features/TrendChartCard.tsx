@@ -7,6 +7,7 @@ import { LineChart } from '../ui/LineChart';
 import { BarChart } from '../ui/BarChart';
 import { PillTabs } from '../ui/PillTabs';
 import { TrendDataResponse } from '../../services/trendService';
+import { trendsTexts } from '../../constants/trendData';
 
 export interface TrendChartCardProps {
   chartProps: TrendDataResponse;
@@ -89,7 +90,7 @@ export function TrendChartCard({
         {data.length === 0 ? (
           <View style={styles.noDataContainer}>
             <FontAwesome name="line-chart" size={32} color={colors.textTertiary} />
-            <AppText style={styles.noDataText}>No data available</AppText>
+            <AppText style={styles.noDataText}>{trendsTexts.noDataAvailable}</AppText>
           </View>
         ) : chartProps.chartType?.toLowerCase() === 'bar' ? (
           <BarChart

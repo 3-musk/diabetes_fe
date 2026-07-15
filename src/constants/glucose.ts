@@ -39,6 +39,10 @@ export const glucose = {
   timeToAct: "You have 10-15 mins to act",
   consumeImmediately: "Choose ONE - consume immediately",
   continueRecheck: "Continue to recheck",
+  errorAlertTitle: "Error",
+  errorAlertMessage: "Failed to save reading",
+  othersCheckboxLabel: "Others",
+  othersInputPlaceholder: "Type here",
 };
 
 export const GLUCOSE_MIN = 0;
